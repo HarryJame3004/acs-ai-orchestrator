@@ -27,7 +27,7 @@ def collect() -> dict[str, Any]:
     lint = json.loads(run([
         sys.executable, "-m", "ruff", "check", "--isolated", "--no-cache",
         "--select", "E4,E7,E9,F", "--output-format", "json",
-        "acs_team", "tests", "scripts/cloud_test.py", "scripts/cloud_static.py",
+        "acs_team", "tests", "scripts/cloud_test.py", "scripts/cloud_static.py", "scripts/security_scan.py",
     ], {0, 1}))
     lint_rows = [
         {"file": str(Path(row["filename"]).relative_to(ROOT)), "line": row["location"]["row"],
@@ -36,7 +36,7 @@ def collect() -> dict[str, Any]:
     ]
     typed = run([
         sys.executable, "-m", "mypy", "--config-file", "config/mypy.ini",
-        "acs_team", "scripts/cloud_test.py", "scripts/cloud_static.py",
+        "acs_team", "scripts/cloud_test.py", "scripts/cloud_static.py", "scripts/security_scan.py",
     ], {0, 1})
     type_rows = []
     for line in typed.splitlines():

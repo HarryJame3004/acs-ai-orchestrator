@@ -19,6 +19,7 @@ import sys
 import tempfile
 import uuid
 import shutil
+import time
 from typing import Callable
 from urllib.parse import quote
 
@@ -60,8 +61,14 @@ def snapshot(source: Path, target: Path) -> None:
         raise FileExistsError("SQLite snapshot target exists")
     private_write(target, b"")
     with closing(readonly_database(source)) as src, closing(sqlite3.connect(target)) as dst:
+        src.execute("BEGIN")
+        src.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        deadline = time.monotonic() + 30
+        def progress(status, remaining, total):
+            if time.monotonic() > deadline:
+                raise TimeoutError("SQLite snapshot exceeded its 30 second budget")
         with dst:
-            src.backup(dst, pages=128, sleep=0.01)
+            src.backup(dst, pages=128, sleep=0.01, progress=progress)
     integrity(target)
 
 

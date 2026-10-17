@@ -17,19 +17,23 @@ import os
 import shutil
 import subprocess
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from .auth import get_or_create_auth_token
 from .config import GIT_BIN, LOGS_DIR, STATE_DIR
 from .db import DatabaseManager
-from .evidence import EvidenceEngine
+from .evidence import EvidenceEngine, persist_evidence
 from .guardian import Guardian, GuardianVerdict
 from .planner import AIPlanner
 from .scope_and_integration import IntegrationManager, ScopeManager
 from .state_machine import MissionState, StateMachine
 from .worker_adapters import BaseWorker, WorkerRegistry, WorkerUnverifiedError
 from .worktree_manager import WorktreeManager
+from .runtime_control import RuntimeControl
+from .security import redact
+from .managed_worker import worker_context
 
 logger = logging.getLogger("acs_ai.autonomous_planner")
 
@@ -48,7 +52,8 @@ class AutonomousMissionPlanner:
         self.worktree_mgr = WorktreeManager()
         self.scope_mgr = ScopeManager()
         self.planner = AIPlanner()
-        self.auth_token = get_or_create_auth_token()
+        self.auth_token = get_or_create_auth_token(STATE_DIR / "evidence.key")
+        self.control = RuntimeControl(self.db, initialize=False)
 
     def run_mission(
         self,
@@ -62,9 +67,12 @@ class AutonomousMissionPlanner:
     ) -> Dict[str, Any]:
         """Executes a full natural-language mission from prompt to Guardian integration."""
         repo_path = repo_path.resolve()
+        self.control.require_dispatch()
+        Guardian(self.db, auth_token=self.auth_token).verify_corelock_safety(str(repo_path), [])
         start_time = time.time()
 
         def _log(msg: str) -> None:
+            msg = redact(msg)
             formatted = f"[{mission_id}] {msg}"
             logger.info(formatted)
             self.db.append_mission_log(mission_id, msg)
@@ -126,14 +134,15 @@ class AutonomousMissionPlanner:
         worker_id, worker = self._schedule_worker(worker_preference, plan)
         _log(f"Assigned worker: {worker_id}")
 
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             con.execute(
                 "UPDATE missions SET assigned_workers = ? WHERE mission_id = ?",
                 (json.dumps([worker_id]), mission_id),
             )
 
         # Step 4: Allocate Isolated Worktree
-        task_id = f"task-{int(time.time())}"
+        task_id = f"task-{uuid.uuid4().hex[:16]}"
+        base_sha = EvidenceEngine.get_repo_head_commit(repo_path)
         _log(f"Step 4: Allocating isolated git worktree for task {task_id}...")
         worktree_path = self.worktree_mgr.create_worktree(
             repo_path=repo_path,
@@ -159,17 +168,24 @@ class AutonomousMissionPlanner:
         current_test_cmd = plan.get("test_command", test_command or "pytest")
 
         while attempt < max_retries and not execution_success:
+            self.control.require_dispatch()
             attempt += 1
             _log(f"Step 5 (Attempt {attempt}/{max_retries}): Worker '{worker_id}' executing code changes...")
 
-            dispatch_res = worker.execute_task(
-                task_id=task_id,
-                goal=plan.get("goal_summary", prompt),
-                instructions=current_instructions,
-                worktree_path=worktree_path,
-                files_to_modify=current_files,
-                timeout_seconds=300.0,
-            )
+            with worker_context(self.control, mission_id):
+                dispatch_res = worker.execute_task(
+                    task_id=task_id,
+                    goal=plan.get("goal_summary", prompt),
+                    instructions=current_instructions,
+                    worktree_path=worktree_path,
+                    files_to_modify=current_files,
+                    timeout_seconds=300.0,
+                )
+            current_mission = self.db.get_mission(mission_id)
+            if current_mission is None:
+                raise RuntimeError("Mission state disappeared during execution")
+            if self.control.stopped() or current_mission["state"] == MissionState.CANCELLED.value:
+                return {"mission_id": mission_id, "status": "CANCELLED", "worktree_path": str(worktree_path)}
             last_worker_result = dispatch_res
 
             if not dispatch_res.get("success", False):
@@ -213,7 +229,7 @@ class AutonomousMissionPlanner:
         if not execution_success:
             _log(f"Mission {mission_id} failed after {max_retries} attempts: {last_error}")
             self.state_machine.transition(mission_id, MissionState.FAILED, error_info=last_error)
-            self.worktree_mgr.remove_worktree(repo_path, worktree_path, force=True)
+            # Retain failed worktrees/evidence for recovery and operator review.
             return {
                 "mission_id": mission_id,
                 "status": "FAILED",
@@ -223,11 +239,18 @@ class AutonomousMissionPlanner:
 
         # Step 7: Commit Worker Changes to Branch
         _log("Step 7: Committing verified worker modifications...")
-        subprocess.run([str(GIT_BIN), "add", "-A"], cwd=str(worktree_path), check=True)
+        valid_scope, unstaged_files, unexpected = self.scope_mgr.verify_diff_against_scope(worktree_path, current_files, base_ref=base_sha)
+        if not valid_scope:
+            self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info=f"Scope violation: {unexpected}")
+            return {"mission_id": mission_id, "status": "BLOCKED", "unexpected_files": unexpected}
+        if unstaged_files:
+            subprocess.run([str(GIT_BIN), "add", "-A", "--", *unstaged_files], cwd=str(worktree_path), check=True)
         commit_msg = f"Implement: {plan.get('goal_summary', prompt)[:80]} (Worker: {worker_id})"
-        status_res = subprocess.run([str(GIT_BIN), "status", "--porcelain"], cwd=str(worktree_path), capture_output=True, text=True)
-        if status_res.stdout.strip():
+        status_res = subprocess.run([str(GIT_BIN), "diff", "--cached", "--quiet"], cwd=str(worktree_path))
+        if status_res.returncode == 1:
             subprocess.run([str(GIT_BIN), "commit", "-m", commit_msg], cwd=str(worktree_path), check=True)
+        elif status_res.returncode != 0:
+            raise RuntimeError("Cannot inspect staged worker changes")
 
         worker_commit_sha = subprocess.run(
             [str(GIT_BIN), "rev-parse", "HEAD"], cwd=str(worktree_path), capture_output=True, text=True, check=True
@@ -235,16 +258,15 @@ class AutonomousMissionPlanner:
         _log(f"Worker commit SHA: {worker_commit_sha}")
 
 
-        # Step 8: Integration Manager Merge to Mission Branch
-        _log("Step 8: Merging task branch into mission integration branch...")
+        valid_scope, actual_files, unexpected = self.scope_mgr.verify_diff_against_scope(worktree_path, current_files, base_ref=base_sha)
+        if not valid_scope:
+            self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info=f"Scope violation: {unexpected}")
+            return {"mission_id": mission_id, "status": "BLOCKED", "unexpected_files": unexpected}
+        # Prepare integration; Guardian must approve BEFORE the branch advances.
+        _log("Step 8: Preparing independent pre-integration verification...")
         int_mgr = IntegrationManager(repo_path)
         integ_branch = int_mgr.ensure_integration_branch(mission_id)
-        merge_result = int_mgr.merge_task_branch(
-            integration_branch=integ_branch,
-            worker_branch=worker_branch,
-        )
-        integrated_sha = merge_result.get("integrated_commit_sha") or merge_result.get("commit") or worker_commit_sha
-        _log(f"Integrated merge commit SHA: {integrated_sha}")
+        integrated_sha = worker_commit_sha
 
 
         self.state_machine.transition(mission_id, MissionState.INTEGRATING, commit_sha=integrated_sha)
@@ -254,7 +276,7 @@ class AutonomousMissionPlanner:
         _log("Step 9: Generating HMAC-SHA256 commit-bound evidence package...")
         evidence_eng = EvidenceEngine(self.auth_token)
         diff_text = subprocess.run(
-            ["git", "diff", "main..HEAD"], cwd=str(worktree_path), capture_output=True, text=True
+            ["git", "diff", f"{base_sha}..HEAD"], cwd=str(worktree_path), capture_output=True, text=True, check=True
         ).stdout or ""
 
         evidence = evidence_eng.create_evidence(
@@ -270,9 +292,10 @@ class AutonomousMissionPlanner:
             diff_summary={"diff_text": diff_text},
         )
         ev_dict = evidence.to_dict()
+        evidence_path = persist_evidence(ev_dict, STATE_DIR / "artifacts")
         _log(f"Evidence package signed: {ev_dict['signature'][:16]} (Payload SHA256: {ev_dict['payload_sha256'][:16]})")
 
-        self.state_machine.transition(mission_id, MissionState.REVIEWING)
+        self.state_machine.transition(mission_id, MissionState.REVIEWING, evidence_ref=str(evidence_path))
 
         # Step 10: Guardian Independent Gatekeeper Evaluation
         _log("Step 10: Running Guardian security, branch, and quality evaluation...")
@@ -286,19 +309,13 @@ class AutonomousMissionPlanner:
             target_branch=target_mission_branch,
             commit_sha=integrated_sha,
             evidence_dict=ev_dict,
-            changed_files=last_worker_result.get("changed_files", []),
+            changed_files=actual_files,
             test_command=current_test_cmd,
         )
 
         _log(f"Guardian Verdict: Approved={verdict.approved} | Quality Score={verdict.quality_score:.4f}")
         if verdict.veto_reasons:
             _log(f"Guardian Veto Reasons: {verdict.veto_reasons}")
-
-        # Clean up worktree safely
-        try:
-            self.worktree_mgr.remove_worktree(repo_path, worktree_path, force=True)
-        except Exception as e:
-            logger.debug(f"Worktree cleanup note: {e}")
 
         duration = time.time() - start_time
 
@@ -314,12 +331,25 @@ class AutonomousMissionPlanner:
                 "duration_sec": round(duration, 2),
             }
 
+        self.control.require_dispatch()
+        merge_result = int_mgr.merge_task_branch(integration_branch=integ_branch, worker_branch=worker_branch)
+        integrated_sha = merge_result["integrated_commit_sha"]
+        integrated_tests = self._run_test_command(Path(merge_result.get("integration_worktree", repo_path)), current_test_cmd)
+        if not integrated_tests["passed"]:
+            int_mgr.rollback_integration(merge_result["previous_commit_sha"])
+            self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info="Post-integration tests failed; mission branch rolled back")
+            return {"mission_id": mission_id, "status": "BLOCKED", "error": "Post-integration verification failed"}
+        final_evidence = evidence_eng.create_evidence(mission_id, task_id, integrated_sha,
+                                                     {"executed": True, **integrated_tests},
+                                                     {"diff_text": diff_text}).to_dict()
+        final_path = persist_evidence(final_evidence, STATE_DIR / "artifacts")
+        self.worktree_mgr.remove_worktree(repo_path, worktree_path, force=True)
         # Step 11: Final Completion
-        self.state_machine.transition(mission_id, MissionState.COMPLETED)
+        self.state_machine.transition(mission_id, MissionState.COMPLETED, commit_sha=integrated_sha, evidence_ref=str(final_path))
         _log(f"=== Mission {mission_id} COMPLETED SUCCESSFULLY in {duration:.1f}s ===")
 
         # Update quality score in DB
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             con.execute(
                 "UPDATE missions SET quality_score = ?, commit_sha = ? WHERE mission_id = ?",
                 (verdict.quality_score, integrated_sha, mission_id),
@@ -361,7 +391,7 @@ class AutonomousMissionPlanner:
 
             # Read README if present
             readme = repo_path / "README.md"
-            if readme.exists():
+            if readme.exists() and not readme.is_symlink():
                 summary_lines.append("\nREADME.md excerpt:")
                 summary_lines.append(readme.read_text(encoding="utf-8", errors="replace")[:1000])
 
@@ -418,30 +448,8 @@ class AutonomousMissionPlanner:
 
     def _run_test_command(self, worktree_path: Path, cmd: str) -> Dict[str, Any]:
         """Executes test command in worktree."""
+        from .security import run_verification
         try:
-            res = subprocess.run(
-                cmd,
-                shell=True,
-                cwd=str(worktree_path),
-                capture_output=True,
-                text=True,
-                timeout=120,
-            )
-            output = (res.stdout + "\n" + res.stderr).strip()
-            return {
-                "passed": res.returncode == 0,
-                "exit_code": res.returncode,
-                "output": output,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "passed": False,
-                "exit_code": -1,
-                "output": "Test command timed out after 120s",
-            }
-        except Exception as e:
-            return {
-                "passed": False,
-                "exit_code": -1,
-                "output": f"Test execution error: {e}",
-            }
+            return run_verification(cmd, worktree_path, 120)
+        except Exception as error:
+            return {"passed": False, "exit_code": -1, "output": str(error)}

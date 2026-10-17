@@ -1,6 +1,8 @@
 import json
 import os
+import shutil
 from pathlib import Path
+from .security import load_protected_paths
 
 # Base Paths
 ORCHESTRATOR_HOME = Path(os.environ.get("ACS_HOME", str(Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))) / "acs-orchestrator"))).expanduser().resolve()
@@ -16,13 +18,16 @@ BACKUPS_DIR = Path(os.environ.get("ACS_BACKUPS_DIR", str(ORCHESTRATOR_HOME.paren
 VENV_BIN = ORCHESTRATOR_HOME / "venv" / "bin"
 VENV_PYTHON = VENV_BIN / "python3"
 AGPAIR_BIN = VENV_BIN / "agpair"
-CODEX_BIN = Path(os.path.expanduser("~/.npm-global/bin/codex"))
-AGY_BIN = Path(os.path.expanduser("~/.local/bin/agy"))
-AGY_B_BIN = Path(os.path.expanduser("~/.local/bin/agy-b"))
+CODEX_BIN = Path(os.environ.get("CODEX_BIN", shutil.which("codex") or os.path.expanduser("~/.npm-global/bin/codex")))
+AGY_BIN = Path(os.environ.get("AGY_A_BIN", shutil.which("agy") or os.path.expanduser("~/.local/bin/agy")))
+AGY_B_BIN = Path(os.environ.get("AGY_B_BIN", shutil.which("agy-b") or os.path.expanduser("~/.local/bin/agy-b")))
 AGY_B_HOME = Path(os.path.expanduser("~/.local/share/agy-google-b/home"))
 GIT_BIN = Path("/usr/bin/git")
 BWRAP_BIN = Path("/usr/bin/bwrap")
 ACS_CORE_DIR = Path(os.path.expanduser("~/autonomous-coding-system"))
+PROTECTED_PATHS = load_protected_paths(Path(__file__).with_name("defaults.json"), os.environ.get("ACS_PROTECTED_PATHS"))
+ACS_CORE_DIR = Path(os.environ.get("ACS_CORE_PATH", str(ACS_CORE_DIR))).expanduser().resolve()
+PROTECTED_PATHS = tuple(dict.fromkeys((*PROTECTED_PATHS, ACS_CORE_DIR)))
 
 # Ensure runtime directories exist
 STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -39,6 +44,8 @@ AUTH_TOKEN_PATH = ORCHESTRATOR_HOME / "auth.token"
 PID_FILE = ORCHESTRATOR_HOME / "daemon.pid"
 API_PORT = int(os.environ.get("ACS_API_PORT", "20129"))
 API_HOST = os.environ.get("ACS_API_HOST", "127.0.0.1")
+if API_HOST not in {"127.0.0.1", "localhost", "::1"}:
+    raise ValueError("ACS API is restricted to loopback")
 
 # Resource Safeguards
 MIN_DISK_FREE_GB = 10.0  # Circuit breaker threshold for 256GB SSD

@@ -1,5 +1,12 @@
 # Upgrade progress
 
+## Current checkpoint — V2.3 PARTIAL
+
+Stage 1 PR #2 is open. V2.3 production hardening passes 87 tests, with 4 explicit
+local-only skips; no baseline regressions or new static findings. See
+reports/V2_3_REPORT.md for implemented controls and unresolved acceptance gaps.
+Continue V2.4 on a dependent branch. Earlier entries below are historical.
+
 ## Overnight execution — Stage 1 checkpoint
 
 The final user directive authorizes all safe stages without merge waits.

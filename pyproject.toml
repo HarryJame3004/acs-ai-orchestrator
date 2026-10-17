@@ -42,6 +42,9 @@ acsai = "acs_team.cli:main"
 where = ["."]
 include = ["acs_team*"]
 
+[tool.setuptools.package-data]
+acs_team = ["defaults.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

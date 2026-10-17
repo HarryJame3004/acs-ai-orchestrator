@@ -1,0 +1,22 @@
+[Unit]
+Description=ACS AI user daemon (operator-reviewed template)
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=notify
+NotifyAccess=main
+WorkingDirectory=%h/.local/share/acs-deploy/current
+ExecStart=%h/.local/share/acs-deploy/current/.venv/bin/python -m acs_team.daemon
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+WatchdogSec=20
+# Optional limits: enable individually after local measurements.
+# MemoryMax=2G
+# CPUQuota=200%
+# TasksMax=256
+
+[Install]
+WantedBy=default.target

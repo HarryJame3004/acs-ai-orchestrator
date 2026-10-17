@@ -16,7 +16,6 @@ from __future__ import annotations
 import logging
 import os
 import re
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -59,53 +58,13 @@ class QualityEngine:
         timeout_sec: int = 180,
     ) -> Dict[str, Any]:
         """Executes test suite within the designated worktree."""
+        from .security import run_verification
         worktree_path = Path(worktree_path)
-        if not test_command:
-            # Check for pytest or fallback python unittest
-            if (worktree_path / "tests").is_dir() or (worktree_path / "test").is_dir():
-                test_command = "pytest"
-            else:
-                return {
-                    "executed": False,
-                    "passed": True,
-                    "total": 0,
-                    "failed": 0,
-                    "output": "No tests detected in worktree.",
-                }
-
-        logger.info(f"Running test suite in {worktree_path}: '{test_command}'")
         try:
-            res = subprocess.run(
-                test_command,
-                shell=True,
-                cwd=str(worktree_path),
-                capture_output=True,
-                text=True,
-                timeout=timeout_sec,
-            )
-            output = (res.stdout + "\n" + res.stderr).strip()
-            passed = res.returncode == 0
-            
-            return {
-                "executed": True,
-                "passed": passed,
-                "exit_code": res.returncode,
-                "output": output[-4000:] if len(output) > 4000 else output,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "executed": True,
-                "passed": False,
-                "exit_code": -1,
-                "output": f"Tests timed out after {timeout_sec} seconds.",
-            }
-        except Exception as e:
-            return {
-                "executed": True,
-                "passed": False,
-                "exit_code": -1,
-                "output": f"Failed to execute tests: {e}",
-            }
+            return run_verification(test_command or "pytest", worktree_path, timeout_sec)
+        except Exception as error:
+            return {"executed": False, "passed": False, "exit_code": -1,
+                    "output": str(error), "counts": {}}
 
     def evaluate_static_analysis(self, worktree_path: Path | str, changed_files: List[str]) -> Dict[str, Any]:
         """Runs basic python syntax validation and lint checks on changed files."""
