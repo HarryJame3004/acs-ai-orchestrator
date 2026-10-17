@@ -750,6 +750,8 @@ def main():
     register_recovery(subparsers)
     from .runtime_cli import register as register_runtime
     register_runtime(subparsers)
+    from .team_cli import register as register_team
+    register_team(subparsers)
 
     # ui
     p_ui = subparsers.add_parser("ui", help="Launch interactive Textual Control Center TUI")

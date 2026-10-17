@@ -1,5 +1,15 @@
 # Upgrade progress
 
+## Current checkpoint — V2.4 PARTIAL
+
+110 passed / 4 local-only skips, no regressions. Real coordinated production API
+and strict plans/claims/ownership/blackboard/integration implemented, with fake
+worker E2E. See reports/V2_4_REPORT.md and MULTI_AGENT_DESIGN.md for gaps.
+V2.3 hosted CI failure was isolated via safe annotations and fixed in cebfd08:
+first periodic backup now runs even on a freshly booted VM. Hosted retest pending.
+Actions log download hosts return 403; API access itself still works.
+Continue V2.5 on a dependent branch; do not claim full stage acceptance.
+
 ## Current checkpoint — V2.3 PARTIAL
 
 Stage 1 PR #2 is open. V2.3 production hardening passes 87 tests, with 4 explicit

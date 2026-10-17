@@ -27,3 +27,7 @@ textual==8.2.8
 typer==0.27.3
 typing_extensions==4.16.0
 urllib3==2.8.0
+annotated-types==0.8.0
+pydantic==2.12.3
+pydantic-core==2.41.4
+typing-inspection==0.4.4

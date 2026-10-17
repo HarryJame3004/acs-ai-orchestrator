@@ -314,99 +314,187 @@
       "requirement": "Structured task planning",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.2",
       "requirement": "File ownership",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.3",
       "requirement": "SQLite claims",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.4",
       "requirement": "Contract-first development",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.5",
       "requirement": "Blackboard communication",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.6",
       "requirement": "Dynamic worker roles",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.7",
       "requirement": "Independent testing",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.8",
       "requirement": "Cross-review",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.9",
       "requirement": "Sequential integration",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.10",
       "requirement": "Multi-agent failure recovery",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "5.11",
       "requirement": "V2.4 acceptance criteria **[CLOUD ADAPTED]**",
       "stage": "V2.4",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
     },
     {
       "id": "6.1",
