@@ -65,7 +65,7 @@ class AutonomousMissionPlanner:
             from .intelligence import WorkerMetrics
             from .context_selection import relevance
             audits = self.db.get_audit_trail(mission_id)
-            selected = next((event['details'] for event in audits if event['action'] == 'CONTEXT_SELECTED'), {})
+            selected: Dict[str, Any] = next((event['details'] for event in audits if event['action'] == 'CONTEXT_SELECTED'), {})
             self.db.record_audit_event(mission_id, 'context-selector', 'CONTEXT_RELEVANCE',
                 {'selected_fraction_touched': relevance(selected, result.get('files_modified', [])),
                  'estimated_tokens': selected.get('estimated_tokens', 0)})

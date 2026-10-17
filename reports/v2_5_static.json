@@ -2,19 +2,12 @@
   "label": "CLOUD_REAL",
   "counts": {
     "ruff": 95,
-    "mypy": 13,
+    "mypy": 12,
     "secret_candidates": 15
   },
   "new_findings": {
     "ruff": [],
-    "mypy": [
-      {
-        "file": "acs_team/autonomous_planner.py",
-        "line": 68,
-        "message": "Need type annotation for \"selected\"",
-        "code": "var-annotated"
-      }
-    ],
+    "mypy": [],
     "secret_candidates": []
   }
 }
