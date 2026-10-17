@@ -36,6 +36,7 @@ def test_git_repo(tmp_path):
     return repo
 
 
+@pytest.mark.local_only(reason='Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.')
 def test_worker_registry_and_banned_flags(tmp_path):
     registry = WorkerRegistry()
     available = registry.list_available_workers()

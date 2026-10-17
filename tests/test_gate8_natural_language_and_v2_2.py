@@ -197,6 +197,7 @@ def test_5_automatic_worker_selection(temp_env):
 
 
 # Test 6: Explicit worker selection
+@pytest.mark.local_only(reason='Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.')
 def test_6_explicit_worker_selection(temp_env):
     db: DatabaseManager = temp_env["db"]
     planner = AutonomousMissionPlanner(db=db)

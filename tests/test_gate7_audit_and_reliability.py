@@ -80,6 +80,7 @@ def test_agy_b_worker_isolation():
     assert str(AGY_B_HOME) in env["XDG_DATA_HOME"]
 
 
+@pytest.mark.local_only(reason='Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.')
 def test_all_three_workers_in_registry():
     registry = WorkerRegistry()
     available = registry.list_available_workers()

@@ -146,6 +146,7 @@ def test_mcp_registry_permissions_and_path_security(temp_worktree):
         registry.authorize("force_reset_state", caller_role="admin", is_human_approved=False)
 
 
+@pytest.mark.local_only(reason='Requires working bubblewrap user namespaces; cloud probe failed setting up uid map. Verify real boundaries on the local machine.')
 def test_rea_adapter_inspection():
     adapter = REAAdapter()
     
