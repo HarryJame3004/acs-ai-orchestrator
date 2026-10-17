@@ -31,3 +31,12 @@ context/advisory lessons and measured selection in the existing planner.
 ACS_ENABLE_MULTI_SOLUTION=1 additionally permits the explicitly configured
 alternatives API; need/quota checks still apply. Real provider role adapters are
 unverified. `bench --workers fake` explicitly selects simulation.
+
+ACS_ENABLE_REVIEW_WORKFLOW=1 permits explicit local structured review import;
+exports/dry-run are read-only with respect to target repositories.
+ACS_ENABLE_DAEMON_EXECUTION=1 enables bounded queued mission dispatch and makes
+CLI --bg enqueue only. Actual providers additionally require verified adapters
+and ACS_ENABLE_SUPERVISION=1. An ACTIVE durable dispatch is not auto-stolen after
+restart. ACS_ENABLE_NOTIFICATIONS=1 allows desktop event-only attempts; HTTPS
+provider attempts also require ACS_NOTIFY_NETWORK=1 and an explicitly approved
+credential-free ACS_NOTIFY_NTFY_URL. None are enabled automatically.

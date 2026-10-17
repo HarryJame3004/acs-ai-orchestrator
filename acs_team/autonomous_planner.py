@@ -57,10 +57,11 @@ class AutonomousMissionPlanner:
 
     def run_mission(self, mission_id: str, prompt: str, repo_path: Path,
                     worker_preference: str = "auto", test_command: Optional[str] = None,
-                    max_retries: int = 3, log_callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+                    max_retries: int = 3, log_callback: Optional[Callable[[str], None]] = None,
+                    risk_profile: Optional[str] = None, dispatch_claim: Optional[str] = None) -> Dict[str, Any]:
         started = time.monotonic()
         result = self._run_mission(mission_id, prompt, repo_path, worker_preference,
-                                   test_command, max_retries, log_callback)
+                                   test_command, max_retries, log_callback, risk_profile, dispatch_claim)
         if os.environ.get("ACS_ENABLE_INTELLIGENCE") == "1" and result.get("worker_used"):
             from .intelligence import WorkerMetrics
             from .context_selection import relevance
@@ -73,6 +74,11 @@ class AutonomousMissionPlanner:
                 success=result.get("status") == "COMPLETED", tests_passed=result.get("approved", False),
                 review_rejected=not result.get("approved", False), runtime=time.monotonic()-started,
                 retries=max(0, result.get("attempts", 1)-1), context_tokens=selected.get('estimated_tokens', 0))
+        try:
+            from .notifications import notify_event
+            notify_event({'COMPLETED':'completed','FAILED':'failed','BLOCKED':'worker_blocked'}.get(str(result.get('status')), 'worker_blocked'))
+        except (OSError, ValueError):
+            logger.warning('Optional notification unavailable')
         return result
 
     def _run_mission(
@@ -84,8 +90,12 @@ class AutonomousMissionPlanner:
         test_command: Optional[str] = None,
         max_retries: int = 3,
         log_callback: Optional[Callable[[str], None]] = None,
+        risk_profile: Optional[str] = None,
+        dispatch_claim: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Executes a full natural-language mission from prompt to Guardian integration."""
+        if risk_profile not in {None, 'low', 'medium', 'high'}:
+            raise ValueError('Invalid risk profile')
         repo_path = repo_path.resolve()
         self.control.require_dispatch()
         Guardian(self.db, auth_token=self.auth_token).verify_corelock_safety(str(repo_path), [])
@@ -121,12 +131,16 @@ class AutonomousMissionPlanner:
                 prompt=prompt,
             )
 
-        # Transition CREATED -> QUEUED -> PLANNING
-        try:
-            self.state_machine.transition(mission_id, MissionState.QUEUED)
-        except Exception:
-            pass
-        self.state_machine.transition(mission_id, MissionState.PLANNING)
+        # A daemon claim is validated before accepting its already-PLANNING state.
+        if dispatch_claim:
+            from .daemon_dispatch import validate_dispatch
+            validate_dispatch(self.db, mission_id, dispatch_claim)
+        else:
+            if existing and existing['state'] not in {'CREATED', 'QUEUED'}:
+                raise PermissionError('Resume requires explicit recovery/replanning; active/terminal mission cannot restart')
+            if not existing or existing['state'] == 'CREATED':
+                self.state_machine.transition(mission_id, MissionState.QUEUED)
+            self.state_machine.transition(mission_id, MissionState.PLANNING)
 
         # Step 1: Inspect repository structure
         _log("Step 1: Inspecting repository structure...")
@@ -340,6 +354,7 @@ class AutonomousMissionPlanner:
             evidence_dict=ev_dict,
             changed_files=actual_files,
             test_command=current_test_cmd,
+            is_release_attempt=risk_profile == 'high',
         )
 
         _log(f"Guardian Verdict: Approved={verdict.approved} | Quality Score={verdict.quality_score:.4f}")

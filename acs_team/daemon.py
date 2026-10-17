@@ -21,7 +21,8 @@ from .api_server import ACSServer
 from .auth import get_or_create_auth_token
 from .config import API_HOST, API_PORT, DB_PATH, LOGS_DIR, PID_FILE, STATE_DIR
 from .db import DatabaseManager
-from .state_machine import MissionState, StateMachine
+from .state_machine import StateMachine
+from .service_lock import ServiceLock
 from .security import RedactingFormatter
 from logging.handlers import RotatingFileHandler
 from .watchdog import notify
@@ -54,6 +55,9 @@ class ACSDaemon:
         self.http_server: Optional[ACSServer] = None
         self.http_thread: Optional[threading.Thread] = None
         self.last_backup = 0.0
+        from .daemon_dispatch import DaemonDispatcher
+        self.dispatcher = DaemonDispatcher(self.db)
+        self.service_lock: Optional[ServiceLock] = None
 
     def _periodic_backup(self) -> None:
         if os.environ.get("ACS_ENABLE_PERIODIC_BACKUPS") != "1":
@@ -69,6 +73,13 @@ class ACSDaemon:
 
     def start(self) -> None:
         """Starts the persistent daemon and API server."""
+        self.service_lock = ServiceLock(STATE_DIR / 'daemon.lock').acquire()
+        if PID_FILE.exists():
+            from .supervision import identity
+            previous = PID_FILE.read_text().strip()
+            if previous.isdigit() and int(previous) != os.getpid() and identity(int(previous)) is not None:
+                self.service_lock.release()
+                raise RuntimeError('Existing daemon PID is live; stop it explicitly before starting a replacement')
         self.running = True
         logger.info(f"Starting ACS AI Persistent Daemon on {self.host}:{self.port}...")
 
@@ -105,15 +116,8 @@ class ACSDaemon:
         """Main supervisor loop processing queued tasks and checking resource limits."""
         while self.running:
             try:
-                # Check for queued missions
-                queued = self.db.list_missions(limit=5, state=MissionState.QUEUED.value)
-                for m in queued:
-                    logger.info(f"Processing queued mission: {m['mission_id']} - {m['goal'][:50]}...")
-                    # Advance to PLANNING
-                    try:
-                        self.state_machine.transition(m["mission_id"], MissionState.PLANNING)
-                    except Exception as e:
-                        logger.error(f"Failed to advance mission {m['mission_id']}: {e}")
+                if os.environ.get('ACS_ENABLE_DAEMON_EXECUTION') == '1':
+                    self.dispatcher.tick()
 
                 # Update heartbeat in status file
                 self._update_status("running")
@@ -147,6 +151,9 @@ class ACSDaemon:
         """Gracefully shuts down the daemon and frees ports and resources."""
         self.running = False
         notify("STOPPING=1")
+        dispatcher = getattr(self, 'dispatcher', None)
+        if dispatcher:
+            dispatcher.close()
         if self.http_server:
             try:
                 self.http_server.shutdown()
@@ -158,9 +165,13 @@ class ACSDaemon:
         self._update_status("stopped")
         if PID_FILE.exists():
             try:
-                PID_FILE.unlink()
+                if PID_FILE.read_text().strip() == str(os.getpid()):
+                    PID_FILE.unlink()
             except Exception:
                 pass
+        service_lock = getattr(self, 'service_lock', None)
+        if service_lock:
+            service_lock.release()
         logger.info("ACS AI Persistent Daemon stopped cleanly.")
         sys.exit(0)
 

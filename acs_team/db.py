@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
 from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR
+from .security import redact
 
 logger = logging.getLogger("acs_ai.db")
 
@@ -228,6 +229,7 @@ class DatabaseManager:
         prompt: Optional[str] = None,
         plan_json: Optional[str] = None,
     ) -> Dict[str, Any]:
+        goal, prompt = redact(goal), redact(prompt)
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         workers_json = json.dumps(assigned_workers or [])
         with self.connection() as con:
@@ -245,7 +247,7 @@ class DatabaseManager:
                 mission_id=mission_id,
                 actor="system",
                 action="create_mission",
-                details={"goal": goal, "project_id": project_id, "state": state},
+                details={"goal": redact(goal), "project_id": project_id, "state": state},
             )
         return self.get_mission(mission_id)  # type: ignore
 
@@ -285,6 +287,7 @@ class DatabaseManager:
         review_status: Optional[str] = None,
         quality_score: Optional[float] = None,
         evidence_ref: Optional[str] = None,
+        expected_state: Optional[str] = None,
     ) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         with self.connection() as con:
@@ -293,7 +296,7 @@ class DatabaseManager:
 
             if error_info is not None:
                 updates.append("error_info = ?")
-                params.append(error_info)
+                params.append(redact(error_info))
             if commit_sha is not None:
                 updates.append("commit_sha = ?")
                 params.append(commit_sha)
@@ -311,7 +314,12 @@ class DatabaseManager:
                 params.append(evidence_ref)
 
             params.append(mission_id)
-            con.execute(f"UPDATE missions SET {', '.join(updates)} WHERE mission_id = ?", params)
+            condition = ' AND state = ?' if expected_state is not None else ''
+            if expected_state is not None:
+                params.append(expected_state)
+            changed = con.execute(f"UPDATE missions SET {', '.join(updates)} WHERE mission_id = ?" + condition, params)
+            if expected_state is not None and changed.rowcount != 1:
+                raise RuntimeError('Concurrent mission state transition rejected')
             self.record_event(
                 con,
                 mission_id=mission_id,
@@ -389,7 +397,7 @@ class DatabaseManager:
         task_id: Optional[str] = None,
     ) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        details_str = json.dumps(details or {})
+        details_str = json.dumps(redact(details or {}))
         con.execute(
             """
             INSERT INTO audit_events (mission_id, task_id, actor, action, details_json, timestamp)

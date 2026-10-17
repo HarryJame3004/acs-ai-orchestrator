@@ -85,6 +85,7 @@ def main() -> int:
     start = time.monotonic()
     real_expanduser = os.path.expanduser
     real_connect = socket.socket.connect
+    real_bind = socket.socket.bind
 
     with tempfile.TemporaryDirectory(prefix="acs-cloud-tests-") as temporary:
         scratch = Path(temporary)
@@ -94,9 +95,23 @@ def main() -> int:
                 return str(scratch / "user") + path[1:]
             return real_expanduser(path)
 
+        allowed_endpoints = {("127.0.0.1", 20135)}
+
+        def bind(sock: socket.socket, address: Any) -> Any:
+            if isinstance(address, tuple):
+                if address[0] not in {"127.0.0.1", "::1"}:
+                    raise PermissionError("Cloud test servers must bind loopback")
+                result = real_bind(sock, address)
+                endpoint = sock.getsockname()
+                allowed_endpoints.add((endpoint[0], endpoint[1]))
+                return result
+            if not isinstance(address, str) or scratch not in Path(address).resolve().parents:
+                raise PermissionError("Cloud test Unix sockets must be disposable")
+            return real_bind(sock, address)
+
         def connect(sock: socket.socket, address: Any) -> Any:
             # Only the suite's disposable local HTTP server may be contacted.
-            if not isinstance(address, tuple) or address[:2] != ("127.0.0.1", 20135):
+            if not isinstance(address, tuple) or address[:2] not in allowed_endpoints:
                 raise PermissionError("Cloud tests cannot contact operational services")
             return real_connect(sock, address)
 
@@ -105,7 +120,7 @@ def main() -> int:
         try:
             os.chdir(scratch)
             with patch("os.path.expanduser", expanduser), patch("tempfile.tempdir", temporary), \
-                 patch("socket.socket.connect", connect), patch.dict(os.environ, {
+                 patch("socket.socket.connect", connect), patch("socket.socket.bind", bind), patch.dict(os.environ, {
                      "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
                  }):
                 exit_code = int(pytest.main([

@@ -1,5 +1,13 @@
 # Upgrade progress
 
+## Current checkpoint — V2.6 PARTIAL
+
+133 passed / 4 local-only skips, no regressions. Added no-write dry-run, bounded
+review/escalation intake/export, event-only notifications, persisted dashboard
+projection, exclusive daemon lock/queue claims and cancellation-safe state CAS.
+See reports/V2_6_UX_REPORT.md for gaps. PR #5 hosted CI passed. Continue Stage 7:
+MCP auditing/protocol checks, local verification, migrations, regressions/docs.
+
 ## Current checkpoint — V2.5 PARTIAL
 
 117 passed / 4 local-only skips; no regressions/new static findings. Full fake

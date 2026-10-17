@@ -653,81 +653,171 @@
       "requirement": "Natural-language interface",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.2",
       "requirement": "Dry-run",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.3",
       "requirement": "Review package",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.4",
       "requirement": "Escalation package",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.5",
       "requirement": "Structured review import",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.6",
       "requirement": "Mission templates",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.7",
       "requirement": "Notifications",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.8",
       "requirement": "Dashboard improvements",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "7.9",
       "requirement": "V2.6 acceptance criteria",
       "stage": "V2.6",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json"
+      ]
     },
     {
       "id": "8.1",
