@@ -89,7 +89,8 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
     file_to_change = worktree_path / "app.py"
     file_to_change.write_text("def hello():\n    return 'updated'\n\ndef add(a, b):\n    return a + b\n")
 
-    subprocess.run(["git", "add", "app.py"], cwd=str(worktree_path), check=True)
+    (worktree_path / "test_app.py").write_text("from app import add\ndef test_add(): assert add(2, 3) == 5\n")
+    subprocess.run(["git", "add", "app.py", "test_app.py"], cwd=str(worktree_path), check=True)
     subprocess.run(["git", "commit", "-m", "Implement add function"], cwd=str(worktree_path), check=True)
 
     worker_head = subprocess.run(
@@ -98,7 +99,7 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
 
     # 4. Scope & Integration Manager Merge to Mission Branch
     scope_mgr = ScopeManager()
-    scope_mgr.reserve_scope(mission_id, task_id, ["app.py"])
+    scope_mgr.reserve_scope(mission_id, task_id, ["app.py", "test_app.py"])
 
     int_mgr = IntegrationManager(repo_dir)
     integ_branch = int_mgr.ensure_integration_branch(mission_id)
@@ -119,7 +120,7 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
         mission_id=mission_id,
         task_id=task_id,
         commit_sha=merge_sha,
-        test_results={"executed": False, "passed": True},
+        test_results={"executed": True, "passed": True},
         diff_summary={"diff_text": "+ def add(a, b):\n+     return a + b\n"},
     )
     ev_dict = evidence.to_dict()
@@ -133,11 +134,11 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
     verdict = guardian.evaluate(
         mission_id=mission_id,
         repository_path=repo_dir,
-        worktree_path=worktree_path,
+        worktree_path=Path(merge_result["integration_worktree"]),
         target_branch=target_mission_branch,
         commit_sha=merge_sha,
         evidence_dict=ev_dict,
-        changed_files=["app.py"],
+        changed_files=["app.py", "test_app.py"],
     )
 
     assert verdict.approved is True
@@ -189,7 +190,8 @@ def test_cli_subcommands(tmp_path, monkeypatch):
     assert "codex-primary" in res_worker.stdout
     assert "agy-google-a" in res_worker.stdout
     assert "agy-google-b" in res_worker.stdout
-    assert "READY" in res_worker.stdout
+    assert "UNAVAILABLE" in res_worker.stdout
+    assert "[READY" not in res_worker.stdout
 
     # 3. Test acsai memory search
     res_mem = subprocess.run(
