@@ -24,3 +24,8 @@
   log-download hosts separately returned proxy 403; safe check annotations identify
   failures without log downloads. Do not rotate/request a token for that tunnel
   problem. See reports/GITHUB_API_DIAGNOSTIC.md.
+
+An older gh build may fail `gh pr edit` with a deprecated `projectCards` GraphQL
+query. That is a client/query compatibility error, not failed authentication.
+Updating PR title/body through the existing authenticated REST pulls endpoint
+with a structured JSON input file works; no token replacement is needed.

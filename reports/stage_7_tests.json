@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "pytest_exit_code": 0,
-  "duration_s": 58.987,
+  "duration_s": 104.141,
   "counts": {
     "skipped": 5,
-    "passed": 150
+    "passed": 151
   },
   "by_label": {
     "CLOUD_REAL": {
-      "passed": 125
+      "passed": 126
     },
     "CLOUD_SIMULATED": {
       "passed": 25
@@ -51,6 +51,11 @@
     },
     {
       "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_changed_exception_cannot_hide_behind_a_known_failure",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_history_metadata.py::test_only_exact_existing_scan_metadata_is_recognized",
       "label": "CLOUD_REAL",
       "outcome": "passed"
     },

@@ -15,3 +15,7 @@ preserves executable bits, bounds size, emits a checksum manifest and refuses to
 overwrite. It does not package operational state, auto-install or activate anything.
 Checksums detect corruption; the unsigned ZIP is not an authenticity signature.
 Use reports/FINAL_ACCEPTANCE_REPORT.md and the handoff before deciding what to merge.
+
+The ZIP excludes Git metadata. Use a real checkout of the integration branch for
+Git/history regression commands; checksum validation alone does not certify Git
+history or activate any runtime component.

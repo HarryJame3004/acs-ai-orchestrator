@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -14,6 +16,26 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def git(*args: str) -> bytes:
     return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True).stdout
+
+
+def known_report_metadata(name: str, line: str, detector_hash: str,
+                          known_fingerprints: set[str], commits: list[str]) -> bool:
+    """Recognize only authentic scanner fingerprints/Git refs in our report.
+
+    Never blanket-exclude reports: unknown values, other fields and source files
+    still fail. Match the detector hash as well as the exact field/value identity.
+    """
+    if name != "reports/stage_7_history.json":
+        return False
+    match = re.fullmatch(r'\s*"(fingerprint|commit)"\s*:\s*"([a-f0-9]{7,40})"\s*,?\s*', line)
+    if match is None:
+        return False
+    field, value = match.groups()
+    if hashlib.sha1(value.encode()).hexdigest() != detector_hash:
+        return False
+    if field == "fingerprint":
+        return value in known_fingerprints
+    return any(commit.startswith(value) for commit in commits)
 
 
 def main() -> int:
@@ -34,6 +56,7 @@ def main() -> int:
             if kind == "blob":
                 objects.setdefault(sha, (raw_name.decode(), commit))
     mapping = {}
+    metadata_lines = {}
     skipped = []
     with tempfile.TemporaryDirectory(prefix="acs-history-scan-") as temporary:
         directory = Path(temporary)
@@ -62,6 +85,8 @@ def main() -> int:
             target.write_bytes(content)
             target.chmod(0o600)
             mapping[str(target)] = (name, commit)
+            if name == "reports/stage_7_history.json":
+                metadata_lines[str(target)] = content.decode("utf-8").splitlines()
         scan = subprocess.run([sys.executable, "-m", "detect_secrets", "scan", "--no-verify", "--all-files", str(canary), *mapping],
                               cwd=directory, capture_output=True, text=True, check=True)
         result = json.loads(scan.stdout)
@@ -73,10 +98,21 @@ def main() -> int:
             if filename == str(canary):
                 continue
             name, commit = mapping[filename]
+            lines = metadata_lines.get(filename, [])
             for row in rows:
+                line_index = row["line_number"] - 1
+                metadata_line = lines[line_index] if 0 <= line_index < len(lines) else ""
                 candidates.append({"file": name, "commit": commit[:12], "line": row["line_number"],
                                    "type": row["type"], "fingerprint": row["hashed_secret"],
-                                   "known_fixture_or_metadata": (name, row["type"], row["hashed_secret"]) in permitted})
+                                   "known_fixture_or_metadata": (
+                                       (name, row["type"], row["hashed_secret"]) in permitted
+                                       or known_report_metadata(
+                                           name,
+                                           metadata_line,
+                                           row["hashed_secret"],
+                                           {r["fingerprint"] for r in known}, commits,
+                                       )
+                                   )})
     report = {"label": "CLOUD_REAL", "commits": len(commits), "unique_blobs": len(objects),
               "candidates": candidates, "skipped": skipped,
               "limitations": ["Heuristic text scan; no credential validation", "Scanner fingerprint baseline excluded", "Binary blobs not analyzed"]}

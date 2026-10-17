@@ -14,7 +14,7 @@ Stage 7 490fbb0/e69f67e/54e598e/8595f48/2892d6c/46ff7ad plus final fixes/evidenc
 All are dependent branches targeting main; none merged by this task. Continue
 upgrade/stage-7-verification-release and fast-forward upgrade/overnight-integration.
 
-Root final: 150 passed, 5 explicit local skips (125 CLOUD_REAL, 25
+Root final: 151 passed, 5 explicit local skips (126 CLOUD_REAL, 25
 CLOUD_SIMULATED, 5 LOCAL_VERIFICATION_REQUIRED). Scoped Ruff/mypy now 0/0;
 15 known secret candidates, zero new; original baselines unchanged. Companion
 138 passed/25 suites, compile/build passed, npm audit zero after exact esbuild

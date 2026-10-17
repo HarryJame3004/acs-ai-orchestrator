@@ -18,7 +18,7 @@ exact latest evidence commit rather than treating this document's own hash as fi
 
 ## Saved evidence
 
-- reports/stage_7_tests.json: 150 pass / 5 explicit local skips; CLOUD_REAL 125,
+- reports/stage_7_tests.json: 151 pass / 5 explicit local skips; CLOUD_REAL 126,
   CLOUD_SIMULATED 25. No baseline regressions.
 - reports/bridge_tests.json: latest full measured bridge result; fake providers.
   Earlier 846-pass run did not reveal a fast-terminal timing race; the expanded

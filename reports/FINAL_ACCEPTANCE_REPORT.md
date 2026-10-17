@@ -48,7 +48,7 @@ reports if a subsequent verification changes these checkpoint numbers.
 
 | Profile | Label | Actual result |
 |---|---|---|
-| Root policy, SQLite, Git, filesystem and process tests | CLOUD_REAL | 125 passed |
+| Root policy, SQLite, Git, filesystem and process tests | CLOUD_REAL | 126 passed |
 | Root fake providers/model/transports, fixture pipeline and review | CLOUD_SIMULATED | 25 passed |
 | Root laptop-only assertions | LOCAL_VERIFICATION_REQUIRED | 5 explicit cloud skips; no local pass |
 | Full agpair bridge | CLOUD_SIMULATED | 847 passed, 0 failures in recorded full container run; hosted profile follow-up recorded in CI_STATUS.json |
