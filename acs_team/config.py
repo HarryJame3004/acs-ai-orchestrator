@@ -1,28 +1,33 @@
 import json
 import os
+import shutil
 from pathlib import Path
+from .security import load_protected_paths
 
 # Base Paths
-ORCHESTRATOR_HOME = Path(os.path.expanduser("~/.local/share/acs-orchestrator"))
+ORCHESTRATOR_HOME = Path(os.environ.get("ACS_HOME", str(Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))) / "acs-orchestrator"))).expanduser().resolve()
 STATE_DIR = ORCHESTRATOR_HOME / "state"
 CONTEXT_DIR = ORCHESTRATOR_HOME / "context"
 CONTEXT_FILE = CONTEXT_DIR / "ACS_VERIFIED_PROJECT_STATE.md"
 WORKTREES_DIR = ORCHESTRATOR_HOME / "worktrees"
 WORKSPACES_DIR = ORCHESTRATOR_HOME / "workspaces"
 LOGS_DIR = ORCHESTRATOR_HOME / "logs"
-BACKUPS_DIR = Path(os.path.expanduser("~/.local/share/acs-orchestrator-backups"))
+BACKUPS_DIR = Path(os.environ.get("ACS_BACKUPS_DIR", str(ORCHESTRATOR_HOME.parent / "acs-orchestrator-backups"))).expanduser()
 
 # Executables
 VENV_BIN = ORCHESTRATOR_HOME / "venv" / "bin"
 VENV_PYTHON = VENV_BIN / "python3"
 AGPAIR_BIN = VENV_BIN / "agpair"
-CODEX_BIN = Path(os.path.expanduser("~/.npm-global/bin/codex"))
-AGY_BIN = Path(os.path.expanduser("~/.local/bin/agy"))
-AGY_B_BIN = Path(os.path.expanduser("~/.local/bin/agy-b"))
+CODEX_BIN = Path(os.environ.get("CODEX_BIN", shutil.which("codex") or os.path.expanduser("~/.npm-global/bin/codex")))
+AGY_BIN = Path(os.environ.get("AGY_A_BIN", shutil.which("agy") or os.path.expanduser("~/.local/bin/agy")))
+AGY_B_BIN = Path(os.environ.get("AGY_B_BIN", shutil.which("agy-b") or os.path.expanduser("~/.local/bin/agy-b")))
 AGY_B_HOME = Path(os.path.expanduser("~/.local/share/agy-google-b/home"))
 GIT_BIN = Path("/usr/bin/git")
 BWRAP_BIN = Path("/usr/bin/bwrap")
 ACS_CORE_DIR = Path(os.path.expanduser("~/autonomous-coding-system"))
+PROTECTED_PATHS = load_protected_paths(Path(__file__).with_name("defaults.json"), os.environ.get("ACS_PROTECTED_PATHS"))
+ACS_CORE_DIR = Path(os.environ.get("ACS_CORE_PATH", str(ACS_CORE_DIR))).expanduser().resolve()
+PROTECTED_PATHS = tuple(dict.fromkeys((*PROTECTED_PATHS, ACS_CORE_DIR)))
 
 # Ensure runtime directories exist
 STATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -39,6 +44,8 @@ AUTH_TOKEN_PATH = ORCHESTRATOR_HOME / "auth.token"
 PID_FILE = ORCHESTRATOR_HOME / "daemon.pid"
 API_PORT = int(os.environ.get("ACS_API_PORT", "20129"))
 API_HOST = os.environ.get("ACS_API_HOST", "127.0.0.1")
+if API_HOST not in {"127.0.0.1", "localhost", "::1"}:
+    raise ValueError("ACS API is restricted to loopback")
 
 # Resource Safeguards
 MIN_DISK_FREE_GB = 10.0  # Circuit breaker threshold for 256GB SSD
@@ -53,7 +60,7 @@ def get_router_api_key() -> str:
     """Retrieve 9router API key from environment or ~/.claude/settings.json."""
     if os.environ.get("NINE_ROUTER_API_KEY"):
         return os.environ["NINE_ROUTER_API_KEY"]
-    claude_settings = Path(os.path.expanduser("~/.claude/settings.json"))
+    claude_settings = Path(os.environ.get("ACS_CREDENTIALS_FILE", os.path.expanduser("~/.claude/settings.json")))
     if claude_settings.exists():
         try:
             data = json.loads(claude_settings.read_text(encoding="utf-8"))

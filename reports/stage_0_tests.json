@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "pytest_exit_code": 1,
+  "duration_s": 5.513,
+  "counts": {
+    "passed": 43,
+    "skipped": 4,
+    "failed": 1
+  },
+  "by_label": {
+    "CLOUD_REAL": {
+      "passed": 39,
+      "failed": 1
+    },
+    "CLOUD_SIMULATED": {
+      "passed": 4
+    },
+    "LOCAL_VERIFICATION_REQUIRED": {
+      "skipped": 4
+    }
+  },
+  "tests": [
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_missing_and_zero_tests_are_regressions",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_new_failure_is_a_regression",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_known_failure_stays_visible_and_improvement_is_allowed",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_only_explicit_local_checks_may_be_skipped",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_setup_error_does_not_equal_a_known_assertion_failure",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/scaffolding/test_baseline_comparison.py::test_changed_exception_cannot_hide_behind_a_known_failure",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_db_pragmas_and_schema",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_state_machine_valid_transitions",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_state_machine_invalid_transition_fails_closed",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_cryptographic_checkpoint_integrity",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_crash_reconciliation",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_local_api_server",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_worker_registry_and_banned_flags",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "outcome": "skipped"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_worktree_isolation_and_lifecycle",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_disk_space_circuit_breaker",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_scope_reservation_and_diff_verification",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_integration_manager_merge_and_conflict_handling",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_memory_engine_record_and_search",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_mcp_registry_permissions_and_path_security",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_rea_adapter_inspection",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "outcome": "skipped"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_quality_engine_scoring_and_vetoes",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_evidence_engine_integrity",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_human_approval_gate",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_guardian_security_boundaries",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_e2e_autonomous_lifecycle",
+      "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_cli_subcommands",
+      "label": "CLOUD_REAL",
+      "outcome": "failed",
+      "failure_type": "FileNotFoundError"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_tui_app_instantiation",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_test_tracker_roundtrip",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_check_daemon_health_online",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_check_daemon_health_offline",
+      "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_agy_b_worker_isolation",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_all_three_workers_in_registry",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "outcome": "skipped"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_1_nl_mission_without_repo",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_2_nl_mission_with_existing_repo",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_3_multiline_prompts",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_4_dashboard_mission_submission",
+      "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_5_automatic_worker_selection",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_6_explicit_worker_selection",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "outcome": "skipped"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_7_sqlite_mission_persistence",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_8_mission_logs_and_progress",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_9_mission_cancellation",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_10_resume_after_restart",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_11_real_coding_task_execution",
+      "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_12_pytest_execution_in_worktree",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_13_guardian_evaluation_and_hmac",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_14_mcp_inventory_and_verification",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_15_repository_inventory",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_16_protected_acs_core_rejection",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    }
+  ],
+  "regressions": []
+}

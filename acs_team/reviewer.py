@@ -30,35 +30,12 @@ class CodeReviewer:
         self, repo_path: Path, test_command: str = "pytest"
     ) -> Dict[str, Any]:
         """Execute automated tests in the repository and capture results."""
-        logger.info(f"Running automated tests in {repo_path}: '{test_command}'")
+        from .security import run_verification
         try:
-            res = subprocess.run(
-                test_command,
-                shell=True,
-                cwd=str(repo_path),
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-            passed = res.returncode == 0
-            output = (res.stdout + "\n" + res.stderr).strip()
-            return {
-                "passed": passed,
-                "returncode": res.returncode,
-                "output": output[-2000:] if len(output) > 2000 else output,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "passed": False,
-                "returncode": -1,
-                "output": "Test command timed out after 120s.",
-            }
-        except Exception as e:
-            return {
-                "passed": False,
-                "returncode": -1,
-                "output": f"Failed to execute tests: {e}",
-            }
+            result = run_verification(test_command, repo_path, 300)
+            return {**result, "returncode": result["exit_code"]}
+        except Exception as error:
+            return {"passed": False, "returncode": -1, "output": str(error)}
 
     def get_git_diff(self, repo_path: Path) -> str:
         """Get unstaged or latest git diff."""

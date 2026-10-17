@@ -13,9 +13,22 @@ import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import os
+import uuid
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("acs_ai.evidence")
+
+
+def persist_evidence(evidence: Dict[str, Any], directory: Path) -> Path:
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if directory.is_symlink():
+        raise PermissionError("Evidence directory may not be a symlink")
+    path = directory / f"{uuid.uuid4().hex}.evidence.json"
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as stream:
+        json.dump(evidence, stream, sort_keys=True)
+    return path
 
 
 @dataclass

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Opt in locally after review: git config --local core.hooksPath .githooks
+set -euo pipefail
+acs_hook_report="$(mktemp /tmp/acs-precommit.XXXXXX.json)"
+trap 'rm -f -- "$acs_hook_report"' EXIT
+.venv/bin/python scripts/cloud_static.py --report "$acs_hook_report"

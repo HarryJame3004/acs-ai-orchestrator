@@ -12,10 +12,11 @@ import logging
 import os
 import subprocess
 import threading
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .config import GIT_BIN, MAX_CONCURRENT_WORKERS
+from .config import GIT_BIN, MAX_CONCURRENT_WORKERS, WORKTREES_DIR
 
 logger = logging.getLogger("acs_ai.integration")
 
@@ -79,19 +80,20 @@ class ScopeManager:
         """
         try:
             # Check unstaged + staged + uncommitted
-            cmd = [str(GIT_BIN), "status", "--porcelain"]
+            cmd = [str(GIT_BIN), "diff", "--name-only", "--no-renames", "-z", base_ref, "--"]
             res = subprocess.run(
                 cmd,
                 cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
                 timeout=10,
+                check=True,
             )
-            actual_files = []
-            for line in res.stdout.splitlines():
-                parts = line.strip().split()
-                if len(parts) >= 2:
-                    actual_files.append(os.path.normpath(parts[-1]))
+            untracked = subprocess.run([str(GIT_BIN), "ls-files", "--others", "--exclude-standard", "-z"],
+                                       cwd=worktree_path, check=True, capture_output=True, text=True)
+            generated = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+            new_files = [name for name in untracked.stdout.split("\0") if name and not generated.intersection(Path(name).parts)]
+            actual_files = sorted(set(filter(None, res.stdout.split("\0"))) | set(new_files))
 
             norm_declared = {os.path.normpath(f) for f in declared_files if f}
             unexpected = [f for f in actual_files if f not in norm_declared]
@@ -112,6 +114,7 @@ class IntegrationManager:
 
     def __init__(self, repo_path: Path):
         self.repo_path = Path(repo_path)
+        self.integration_path: Optional[Path] = None
 
     def ensure_integration_branch(self, mission_id: str, base_ref: str = "master") -> str:
         """Creates or checks out the dedicated mission integration branch: acsai/mission/{mission_id}."""
@@ -191,13 +194,22 @@ class IntegrationManager:
         env = os.environ.copy()
         env["GIT_TERMINAL_PROMPT"] = "0"
 
-        # Check out integration branch
-        subprocess.run([str(GIT_BIN), "checkout", integration_branch], cwd=str(self.repo_path), check=True, env=env)
+        if not integration_branch.startswith("acsai/mission/"):
+            raise PermissionError("Integration requires a dedicated mission branch")
+        if self.integration_path is None:
+            WORKTREES_DIR.mkdir(parents=True, exist_ok=True)
+            path = Path(tempfile.mkdtemp(prefix="integration-", dir=WORKTREES_DIR))
+            path.rmdir()  # Only our just-created empty directory.
+            subprocess.run([str(GIT_BIN), "worktree", "add", str(path), integration_branch],
+                           cwd=self.repo_path, check=True, capture_output=True)
+            self.integration_path = path
+        previous = subprocess.run([str(GIT_BIN), "rev-parse", "HEAD"], cwd=self.integration_path,
+                                  check=True, capture_output=True, text=True).stdout.strip()
 
         # Attempt merge with --no-ff
         merge_res = subprocess.run(
             [str(GIT_BIN), "merge", "--no-ff", "-m", f"Merge task {worker_branch} into {integration_branch}", worker_branch],
-            cwd=str(self.repo_path),
+            cwd=str(self.integration_path),
             capture_output=True,
             text=True,
             env=env,
@@ -205,14 +217,14 @@ class IntegrationManager:
 
         if merge_res.returncode != 0:
             # Merge conflict detected! Abort merge to preserve clean state
-            subprocess.run([str(GIT_BIN), "merge", "--abort"], cwd=str(self.repo_path), capture_output=True, env=env)
+            subprocess.run([str(GIT_BIN), "merge", "--abort"], cwd=str(self.integration_path), capture_output=True, env=env, check=True)
             conflict_msg = merge_res.stderr or merge_res.stdout
             raise MergeConflictError(f"Merge conflict merging {worker_branch} into {integration_branch}: {conflict_msg}")
 
         # Get frozen commit SHA
         sha = subprocess.run(
             [str(GIT_BIN), "rev-parse", "HEAD"],
-            cwd=str(self.repo_path),
+            cwd=str(self.integration_path),
             capture_output=True,
             text=True,
             check=True,
@@ -223,7 +235,15 @@ class IntegrationManager:
             "integration_branch": integration_branch,
             "merged_branch": worker_branch,
             "integrated_commit_sha": sha,
+            "previous_commit_sha": previous,
+            "integration_worktree": str(self.integration_path),
         }
+
+    def rollback_integration(self, commit: str) -> None:
+        if self.integration_path is None or WORKTREES_DIR.resolve() not in self.integration_path.resolve().parents:
+            raise PermissionError("Only the manager's own integration worktree may be reset")
+        subprocess.run([str(GIT_BIN), "reset", "--hard", commit], cwd=self.integration_path,
+                       check=True, capture_output=True)
 
 
 class ResourceManager:
