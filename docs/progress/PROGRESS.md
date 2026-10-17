@@ -2,6 +2,16 @@
 
 ## Latest continuation checkpoint
 
+Latest network diagnosis: **CLOUD_REAL PASS**. Unauthenticated api.github.com
+returns 200; curl CONNECT=200, API=200, TLS verification=0. Existing-auth REST
+repository and GraphQL PR queries both succeed. PR #1 is OPEN, not merged.
+The former tunnel 403 is resolved in this active task; no new token, restart or
+republication is needed for current GitHub API access. The editable draft still
+reports restricted + api.github.com whereas the user reports All; draft metadata
+is not live policy evidence. No policy was overwritten. See
+`reports/GITHUB_API_DIAGNOSTIC.md`. Older network-blocker entries below are
+historical. Stage 1 can use a dependent branch under existing authorization.
+
 The user requested cross-stage autonomous continuation on dependent branches,
 then asked for a full prerequisite review before starting the unattended run.
 That authorization supersedes the older merge-wait instructions below. No

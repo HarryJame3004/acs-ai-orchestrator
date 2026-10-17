@@ -1,5 +1,11 @@
 # Overnight continuation preflight
 
+Latest connectivity validation: **CLOUD_REAL PASS**. GitHub API unauthenticated
+HTTPS, proxy CONNECT/TLS, authenticated REST repository access and authenticated
+GraphQL PR access now succeed. PR #1 is OPEN. No new token or task restart is
+needed for current API access. The network-blocker discussion below records the
+earlier observation; see `reports/GITHUB_API_DIAGNOSTIC.md` for current evidence.
+
 The user asked for prerequisite analysis before starting a long unattended task.
 The original full specification is retained verbatim in
 `docs/upgrade/MASTER_SPEC.md`; read it with AGENTS.md and PROGRESS.md. The latest
@@ -26,7 +32,7 @@ deploy, touch ACS Core, request real credentials or bypass approval requirements
   LOCAL_VERIFICATION_REQUIRED 4 explicitly skipped. Total 47 passed, 4 skipped,
   zero failures, pytest exit 0. The original baseline is preserved.
 
-## One confirmed infrastructure blocker
+## Former infrastructure blocker (now resolved)
 
 `api.github.com` is missing from the current restricted network allowlist.
 Even an unauthenticated request fails while establishing the HTTPS tunnel:
@@ -43,9 +49,11 @@ install/start instructions and nonsecret suggested variables:
 - ACS_BACKUPS_DIR=/workspace/.acs-cloud-backups
 - ACS_CREDENTIALS_FILE=/workspace/.acs-cloud-runtime/no-credentials.json
 
-The user must review and save these changes in environment settings and publish
-the prepared environment. Saving the draft alone has not applied the policy or
-published a snapshot. Keep package registry access enabled in the agent phase.
+At the time of the initial preflight, that saved draft had not established an
+applied policy or published snapshot. Current API connectivity now works;
+republication is not required to restore it in this task. Review/save/publish
+remains a separate action to retain prepared environment configuration and
+snapshot changes. Keep package registry access enabled in the agent phase.
 Do not broaden network access to every host merely for convenience.
 
 After the user applies the settings, retry using existing authentication:
