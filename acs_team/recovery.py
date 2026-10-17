@@ -7,6 +7,7 @@ proof. Every destination must be new. No operation replaces the running app.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import closing
 import hashlib
 import json
 import os
@@ -34,7 +35,7 @@ def readonly_database(path: Path) -> sqlite3.Connection:
 
 
 def integrity(path: Path) -> str:
-    with readonly_database(path) as con:
+    with closing(readonly_database(path)) as con:
         rows = con.execute("PRAGMA integrity_check").fetchall()
     if rows != [("ok",)]:
         raise ValueError("SQLite integrity check failed")
@@ -58,8 +59,9 @@ def snapshot(source: Path, target: Path) -> None:
     if target.exists() or target.is_symlink():
         raise FileExistsError("SQLite snapshot target exists")
     private_write(target, b"")
-    with readonly_database(source) as src, sqlite3.connect(target) as dst:
-        src.backup(dst, pages=128, sleep=0.01)
+    with closing(readonly_database(source)) as src, closing(sqlite3.connect(target)) as dst:
+        with dst:
+            src.backup(dst, pages=128, sleep=0.01)
     integrity(target)
 
 
@@ -165,7 +167,7 @@ def apply_migrations(database: Path, migrations: tuple[Migration, ...] = MIGRATI
     integrity(database)
     if [m.version for m in migrations] != list(range(1, len(migrations) + 1)):
         raise ValueError("Migrations must be ordered and contiguous")
-    with sqlite3.connect(database, isolation_level=None) as con:
+    with closing(sqlite3.connect(database, isolation_level=None)) as con:
         con.execute("PRAGMA busy_timeout=5000")
         con.execute("BEGIN IMMEDIATE")
         try:

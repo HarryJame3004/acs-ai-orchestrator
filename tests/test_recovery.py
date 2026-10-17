@@ -20,6 +20,7 @@ def database(tmp_path):
         con.execute("PRAGMA journal_mode=WAL")
         con.execute("CREATE TABLE missions (id INTEGER PRIMARY KEY, goal TEXT)")
         con.execute("INSERT INTO missions VALUES (1, 'preserve history')")
+    con.close()  # Finish the fixture's WAL checkpoint before byte-level assertions.
     return path
 
 
