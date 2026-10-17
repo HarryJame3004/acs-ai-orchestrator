@@ -65,6 +65,7 @@ jobs:
           AGPAIR_HOME: ${{ runner.temp }}/agpair-fixture
           NO_COLOR: '1'
           COLUMNS: '1000'
+          TERMINAL_WIDTH: '1000'
         run: ../.venv/bin/python -m pytest tests -q -p no:cacheprovider --junitxml=/tmp/acs-bridge.xml
       - name: Expose sanitized failures through check annotations
         if: ${{ always() }}
@@ -79,7 +80,7 @@ jobs:
                   for result in list(case):
                       if result.tag not in {'failure', 'error'}:
                           continue
-                      message = redact(f"{case.get('classname')}.{case.get('name')}: {result.get('message', '')}")[:1200]
+                      message = redact(f"{case.get('classname')}.{case.get('name')}: {result.get('message', '')}")[:8000]
                       for before, after in [('%', '%25'), ('\r', '%0D'), ('\n', '%0A')]:
                           message = message.replace(before, after)
                       print(f'::error title=CLOUD_SIMULATED bridge regression::{message}')

@@ -17,25 +17,38 @@ import time
 
 
 def _descendants(root: int) -> dict[int, str]:
-    records = {}
-    for path in Path("/proc").iterdir():
-        if not path.name.isdigit():
-            continue
+    # Traverse only this owned tree. A full /proc scan can miss a cleanup deadline
+    # on busy hosts and is unnecessary; children may belong to any worker thread.
+    found: dict[int, str] = {}
+    pending = [root]
+    visited = {root}
+    while pending:
+        parent = pending.pop()
         try:
-            raw = (path / "stat").read_text()
-            fields = raw[raw.rfind(")") + 2 :].split()
-            records[int(path.name)] = (int(fields[1]), fields[19])
-        except (OSError, ValueError, IndexError):
+            threads = list(Path(f"/proc/{parent}/task").iterdir())
+        except OSError:
             continue
-    found = {root}
-    while True:
-        additions = {
-            pid for pid, (parent, _) in records.items() if parent in found
-        } - found
-        if not additions:
-            break
-        found.update(additions)
-    return {pid: records[pid][1] for pid in found - {root}}
+        for thread in threads:
+            try:
+                children = (thread / "children").read_text().split()
+            except OSError:
+                continue
+            for text in children:
+                try:
+                    pid = int(text)
+                    if pid in visited:
+                        continue
+                    raw = Path(f"/proc/{pid}/stat").read_text()
+                    fields = raw[raw.rfind(")") + 2:].split()
+                    # Ignore a PID already reparented outside this owned tree.
+                    if int(fields[1]) != parent:
+                        continue
+                    found[pid] = fields[19]
+                    visited.add(pid)
+                    pending.append(pid)
+                except (OSError, ValueError, IndexError):
+                    continue
+    return found
 
 
 def _signal_owned(root: int, sig: signal.Signals) -> None:

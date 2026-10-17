@@ -2143,7 +2143,8 @@ def test_task_start_fails_before_dispatch_when_no_executor_is_available(tmp_path
     assert result.exit_code != 0
     assert "no available executor" in result.output
     assert "agpair" in result.output
-    assert "doctor --fresh" in result.output
+    from rich.text import Text
+    assert "doctor --fresh" in Text.from_ansi(result.output).plain, result.output
     assert make_task_repo(tmp_path).get_task("TASK-NO-EXECUTOR") is None
 
 
@@ -2943,8 +2944,9 @@ def test_task_start_rejects_home_repo_path_without_explicit_override(tmp_path: P
     )
 
     assert result.exit_code != 0
-    normalized_output = " ".join(result.output.split())
-    assert "Refused broad --repo-path" in normalized_output
+    from rich.text import Text
+    normalized_output = " ".join(Text.from_ansi(result.output).plain.split())
+    assert "Refused broad --repo-path" in normalized_output, result.output
     assert "home directory" in normalized_output
     assert "private logs" in normalized_output
     assert "--allow-broad-repo-path" in normalized_output
