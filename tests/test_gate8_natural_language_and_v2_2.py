@@ -157,7 +157,12 @@ def test_4_dashboard_mission_submission(temp_env):
 
         mock_int_inst = mock_int_cls.return_value
         mock_int_inst.ensure_integration_branch.return_value = "acsai/mission/test-dash-submission"
-        mock_int_inst.merge_task_branch.return_value = {"success": True, "integrated_commit_sha": "123456"}
+        fixture_sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=temp_env["repo_dir"],
+                                     capture_output=True, text=True, check=True).stdout.strip()
+        mock_int_inst.merge_task_branch.return_value = {
+            "success": True, "integrated_commit_sha": fixture_sha,
+            "integration_worktree": str(temp_env["repo_dir"]),
+        }
 
         logs_collected = []
         res = planner.run_mission(
