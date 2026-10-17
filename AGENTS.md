@@ -12,11 +12,12 @@ README and historical reports are claims, not runtime evidence.
 
 Use the existing isolated checkout. Do not create a worktree unless requested.
 Work on one feature branch and one PR per stage. Never touch ACS Core, never
-push to main, never merge or deploy. Finish STAGE-0 before starting STAGE-1.
+push to main, never merge or deploy. The user's continuation instruction permits
+dependent stage branches before earlier PRs merge; never merge them yourself.
 
 Setup: `bash scripts/cloud_setup.sh` (Python 3.12+).
 Tests: `.venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json`.
-This command preserves pytest's exit status. A known failure remains.
+This command preserves pytest's exit status. Consult current progress for failures.
 CI comparison: add `--compare-baseline`; it reports existing failures explicitly.
 Static checks: `.venv/bin/python scripts/cloud_static.py --report /tmp/acs-static.json`.
 See `TESTING.md` for profiles and limitations. Do not refresh baselines merely to
