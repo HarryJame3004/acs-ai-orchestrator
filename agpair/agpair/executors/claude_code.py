@@ -17,9 +17,11 @@ from agpair.models import ContinuationCapability
 
 
 def _permission_args() -> list[str]:
-    mode = os.environ.get("AGPAIR_CLAUDE_CODE_PERMISSION_MODE", "bypassPermissions").strip()
+    mode = os.environ.get("AGPAIR_CLAUDE_CODE_PERMISSION_MODE", "default").strip()
     if not mode or mode == "default":
         return []
+    if mode not in {"plan", "acceptEdits"}:
+        raise PermissionError("Unsupported or unsafe Claude permission mode")
     return ["--permission-mode", mode]
 
 

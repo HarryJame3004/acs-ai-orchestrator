@@ -9,7 +9,7 @@ import threading
 
 import pytest
 
-from acs_team.recovery import (Migration, apply_migrations, create_backup, integrity,
+from acs_team.recovery import (MIGRATIONS, Migration, apply_migrations, create_backup, integrity,
                                migrate, preflight, promote_application, restore_backup, stage_upgrade, verify_backup)
 
 
@@ -85,11 +85,11 @@ def test_malicious_or_corrupt_backup_rejected(database, tmp_path, attack):
 
 def test_migrations_are_copy_first_idempotent_and_transactional(database, tmp_path):
     before = database.read_bytes()
-    assert migrate(database)["applied_to_copy"] == [1]
+    assert migrate(database)["applied_to_copy"] == [m.version for m in MIGRATIONS]
     assert database.read_bytes() == before
-    assert migrate(database, dry_run=False, backup_directory=tmp_path / "backup")["applied"] == [1]
+    assert migrate(database, dry_run=False, backup_directory=tmp_path / "backup")["applied"] == [m.version for m in MIGRATIONS]
     assert apply_migrations(database) == []
-    failing = (Migration(1, "upgrade metadata", ()), Migration(2, "broken", (
+    failing = (*MIGRATIONS, Migration(len(MIGRATIONS)+1, "broken", (
         "CREATE TABLE should_rollback (value TEXT)", "INVALID SQL",
     )))
     with pytest.raises(sqlite3.Error):
@@ -97,7 +97,7 @@ def test_migrations_are_copy_first_idempotent_and_transactional(database, tmp_pa
     with sqlite3.connect(database) as con:
         assert con.execute("SELECT goal FROM missions").fetchone()[0] == "preserve history"
         assert not con.execute("SELECT name FROM sqlite_master WHERE name='should_rollback'").fetchone()
-        assert con.execute("SELECT count(*) FROM acs_schema_migrations").fetchone()[0] == 1
+        assert con.execute("SELECT count(*) FROM acs_schema_migrations").fetchone()[0] == len(MIGRATIONS)
 
 
 def test_restore_refuses_existing_installation(database, tmp_path):

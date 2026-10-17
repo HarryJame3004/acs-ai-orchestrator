@@ -1,6 +1,5 @@
 """Internal Linux child launcher; limits are applied before exec, never in threads."""
 
-import os
 import resource
 import sys
 
@@ -14,7 +13,8 @@ def main():
         resource.setrlimit(resource.RLIMIT_AS, (memory * 1024 * 1024,) * 2)
     if cpu:
         resource.setrlimit(resource.RLIMIT_CPU, (cpu, cpu + 1))
-    os.execvpe(command[0], command, os.environ)
+    from .process_guard import run
+    raise SystemExit(run(command))
 
 
 if __name__ == "__main__":

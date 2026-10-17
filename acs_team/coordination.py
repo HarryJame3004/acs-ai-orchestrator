@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .upgrade_schema import COORD_SQL as SCHEMA
+
 import hashlib
 import json
 import time
@@ -12,17 +14,6 @@ from .ownership import overlaps
 from .schemas import Message, Plan
 from .security import redact
 
-SCHEMA = (
-    "CREATE TABLE IF NOT EXISTS coord_plans (mission TEXT PRIMARY KEY, repository TEXT NOT NULL, plan TEXT NOT NULL)",
-    "CREATE TABLE IF NOT EXISTS coord_tasks (mission TEXT NOT NULL REFERENCES coord_plans(mission), task TEXT NOT NULL, state TEXT NOT NULL, worker TEXT, token INTEGER, expires REAL, heartbeat REAL, process TEXT, worktree TEXT, result TEXT, PRIMARY KEY(mission, task))",
-    "CREATE TABLE IF NOT EXISTS coord_tokens (token INTEGER PRIMARY KEY AUTOINCREMENT)",
-    "CREATE TABLE IF NOT EXISTS coord_messages (id INTEGER PRIMARY KEY AUTOINCREMENT, mission TEXT NOT NULL, task TEXT NOT NULL, sender TEXT NOT NULL, created REAL NOT NULL, message TEXT NOT NULL)",
-    'CREATE TRIGGER IF NOT EXISTS coord_messages_no_update BEFORE UPDATE ON coord_messages BEGIN SELECT RAISE(ABORT, "append-only blackboard"); END',
-    'CREATE TRIGGER IF NOT EXISTS coord_messages_no_delete BEFORE DELETE ON coord_messages BEGIN SELECT RAISE(ABORT, "append-only blackboard"); END',
-    "CREATE INDEX IF NOT EXISTS coord_message_rate ON coord_messages(sender, created)",
-    "CREATE TABLE IF NOT EXISTS coord_contracts (mission TEXT NOT NULL, digest TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(mission, digest))",
-    "CREATE TABLE IF NOT EXISTS coord_acks (mission TEXT NOT NULL, task TEXT NOT NULL, digest TEXT NOT NULL, PRIMARY KEY(mission,task,digest))",
-)
 
 
 class ClaimDenied(RuntimeError):

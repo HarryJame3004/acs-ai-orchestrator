@@ -79,7 +79,7 @@ def run_verification(command: str | list[str], workspace: Path, timeout: float =
 
 
 def sandbox_argv(workspace: Path, command: list[str], *, home: Path, network: bool = False,
-                 private_paths: tuple[Path, ...] = ()) -> list[str]:
+                 private_paths: tuple[Path, ...] = (), read_only_workspace: bool = False) -> list[str]:
     workspace, home = workspace.resolve(), home.resolve()
     if workspace == Path("/") or workspace == home or home in workspace.parents:
         raise ValueError("Sandbox requires separate bounded workspace and home")
@@ -95,7 +95,7 @@ def sandbox_argv(workspace: Path, command: list[str], *, home: Path, network: bo
         if Path(path).exists():
             argv += ["--ro-bind", path, path]
     argv += ["--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp",
-             "--bind", str(workspace), str(workspace), "--bind", str(home), str(home),
+             "--ro-bind" if read_only_workspace else "--bind", str(workspace), str(workspace), "--bind", str(home), str(home),
              "--chdir", str(workspace), "--", *command]
     return argv
 

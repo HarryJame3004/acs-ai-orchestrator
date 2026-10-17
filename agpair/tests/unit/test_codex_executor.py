@@ -221,3 +221,10 @@ def test_codex_executor_dispatch_closes_fds_on_popen_error():
 
     mock_stdout_fh.close.assert_called_once()
     mock_stderr_fh.close.assert_called_once()
+
+
+def test_codex_executor_refuses_explicit_bypass(monkeypatch):
+    import pytest
+    monkeypatch.setenv('AGPAIR_CODEX_APPROVAL_MODE','dangerously_bypass')
+    with pytest.raises(PermissionError):
+        CodexExecutor(codex_bin='fake-codex')._build_codex_cmd('fixture','/fake/repo',pathlib.Path('/tmp'))

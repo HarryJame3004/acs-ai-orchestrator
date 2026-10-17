@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .upgrade_schema import DISPATCH_SQL
+
 from concurrent.futures import Future, ThreadPoolExecutor
 import os
 import json
@@ -12,9 +14,6 @@ from .db import DatabaseManager
 from .runtime_control import RuntimeControl
 from .security import redact
 
-DISPATCH_SQL = (
-    "CREATE TABLE IF NOT EXISTS daemon_dispatch (mission TEXT PRIMARY KEY REFERENCES missions(mission_id), owner TEXT NOT NULL, state TEXT NOT NULL)",
-)
 
 
 def validate_dispatch(db: DatabaseManager, mission: str, owner: str) -> None:

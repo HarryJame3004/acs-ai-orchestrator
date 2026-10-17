@@ -1,0 +1,209 @@
+{
+  "source": "PyPI version JSON vulnerability metadata; not a complete dependency/license audit",
+  "results": [
+    {
+      "package": "annotated-doc",
+      "version": "0.0.5",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "ast_serialize",
+      "version": "0.13.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "certifi",
+      "version": "2026.7.22",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "charset-normalizer",
+      "version": "3.5.2",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "detect-secrets",
+      "version": "1.5.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "idna",
+      "version": "3.20",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "iniconfig",
+      "version": "2.3.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "librt",
+      "version": "0.16.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "linkify-it-py",
+      "version": "2.2.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "markdown-it-py",
+      "version": "4.2.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "mdit-py-plugins",
+      "version": "0.6.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "mdurl",
+      "version": "0.1.2",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "mypy",
+      "version": "2.4.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "mypy_extensions",
+      "version": "1.1.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "packaging",
+      "version": "26.3",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "pathspec",
+      "version": "1.1.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "platformdirs",
+      "version": "4.13.3",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "pluggy",
+      "version": "1.7.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "Pygments",
+      "version": "2.21.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "pytest",
+      "version": "9.1.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "PyYAML",
+      "version": "6.0.3",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "requests",
+      "version": "2.34.2",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "rich",
+      "version": "15.0.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "ruff",
+      "version": "0.17.1",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "shellingham",
+      "version": "1.5.4",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "textual",
+      "version": "8.2.8",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "typer",
+      "version": "0.27.3",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "typing_extensions",
+      "version": "4.16.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "urllib3",
+      "version": "2.8.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "annotated-types",
+      "version": "0.8.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "pydantic",
+      "version": "2.12.3",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "pydantic-core",
+      "version": "2.41.4",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "typing-inspection",
+      "version": "0.4.4",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    },
+    {
+      "package": "click",
+      "version": "8.3.0",
+      "status": "NO_PUBLISHED_PYPI_ADVISORY",
+      "advisories": []
+    }
+  ]
+}

@@ -45,7 +45,6 @@ class GrokCLIExecutor(LocalCLIExecutor):
             repo_path,
             "--output-format",
             _output_format(),
-            "--always-approve",
             *_max_turn_args(),
             "--single",
             body,

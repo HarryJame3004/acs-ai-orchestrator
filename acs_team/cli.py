@@ -849,6 +849,8 @@ def main():
     p_mcp_status = mcp_subs.add_parser("status", help="Show MCP inventory and verification status")
     p_mcp_tools = mcp_subs.add_parser("tools", help="List all discovered MCP tools")
     p_mcp.set_defaults(func=cmd_mcp)
+    from .verification_cli import register as register_verification
+    register_verification(subparsers, mcp_subs)
 
     # repo
     p_repo = subparsers.add_parser("repo", help="Inspect and manage development repositories")

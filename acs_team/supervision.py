@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 import os
 from pathlib import Path
 import signal
@@ -63,6 +64,38 @@ class ProcessSupervisor:
         self._lock = threading.Lock()
         self._owned: dict[int, tuple[subprocess.Popen, ProcessIdentity]] = {}
 
+    @contextmanager
+    def start_owned(self, argv: list[str], cwd: Path, *, env: dict[str, str] | None = None):
+        """Streaming protocol lifecycle; caller must bound its pipe messages."""
+        if not self.slots.acquire(timeout=5):
+            raise TimeoutError("Protocol process slot unavailable")
+        process = None
+        expected = None
+        try:
+            environment = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL") if key in os.environ}
+            environment.update(env or {})
+            command = [sys.executable, '-m', 'acs_team._exec_limits', str(self.output_limit), '0', '0', *argv]
+            process = subprocess.Popen(command, cwd=cwd, env=environment, stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
+            expected = identity(process.pid)
+            if expected is None:
+                process.wait(timeout=5)
+                raise RuntimeError("Protocol process exited before ownership registration")
+            with self._lock:
+                self._owned[process.pid] = (process, expected)
+            yield process
+        finally:
+            if process is not None:
+                if expected is not None and process.poll() is None:
+                    self.terminate(process, expected)
+                process.wait(timeout=5)
+                with self._lock:
+                    self._owned.pop(process.pid, None)
+                for stream in (process.stdin, process.stdout, process.stderr):
+                    if stream:
+                        stream.close()
+            self.slots.release()
+
     def terminate(self, process: subprocess.Popen, expected: ProcessIdentity, grace: float = 0.3) -> None:
         with self._lock:
             if self._owned.get(process.pid) != (process, expected):
@@ -93,7 +126,10 @@ class ProcessSupervisor:
             memory_mb: int = 0, cpu_seconds: int = 0) -> dict:
         if timeout <= 0:
             raise ValueError("A positive execution timeout is required")
-        safe_env = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL", "TERM", "TMPDIR", "ACS_HOME", "ACS_BACKUPS_DIR", "ACS_CREDENTIALS_FILE") if key in os.environ}
+        names: tuple[str, ...] = ("PATH", "LANG", "LC_ALL", "TERM", "TMPDIR")
+        if env is None:
+            names += ("ACS_HOME", "ACS_BACKUPS_DIR", "ACS_CREDENTIALS_FILE")
+        safe_env = {key: os.environ[key] for key in names if key in os.environ}
         if env:
             safe_env.update(env)
         if not self.slots.acquire(timeout=timeout):

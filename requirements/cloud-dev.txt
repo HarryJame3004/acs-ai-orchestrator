@@ -31,3 +31,4 @@ annotated-types==0.8.0
 pydantic==2.12.3
 pydantic-core==2.41.4
 typing-inspection==0.4.4
+click==8.3.0

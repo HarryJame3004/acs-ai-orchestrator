@@ -9,10 +9,13 @@ Enforces:
 from __future__ import annotations
 
 import enum
+import json
 import logging
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from .safe_fs import open_workspace, list_workspace
+from .security import redact
 from typing import Any, Callable, Dict, List, Optional, Set
 
 logger = logging.getLogger("acs_ai.mcp_registry")
@@ -70,6 +73,7 @@ class MCPRegistry:
                     "category": tool.category.value,
                     "required_permissions": list(tool.required_permissions),
                     "available": tool.handler is not None,
+                    "parameters_schema": tool.parameters_schema,
                 })
         return results
 
@@ -167,6 +171,10 @@ class MCPRegistry:
             raise MCPPermissionError("Required tool permissions are missing")
 
         # Check all common path argument names to enforce worktree boundaries
+        if not isinstance(arguments, dict) or len(arguments)>32 or len(json.dumps(arguments).encode())>65536:
+            raise MCPPermissionError('Tool arguments exceed the bounded schema')
+        if any(key.startswith('_') for key in arguments) or set(arguments) - set(tool.parameters_schema):
+            raise MCPPermissionError('Unknown or reserved tool argument')
         sanitized_args = dict(arguments)
         path_keys = ["path", "file_path", "target_path", "directory", "dest"]
         for key in path_keys:
@@ -183,31 +191,32 @@ class MCPRegistry:
             }
 
         try:
+            if tool_name in {'read_file','write_file','list_directory'}:
+                sanitized_args['_workspace_root'] = worktree_dir
             result = tool.handler(**sanitized_args)
-            return {"success": True, "tool": tool_name, "result": result}
+            return {"success": True, "tool": tool_name, "result": redact(result)}
         except Exception as e:
             logger.error(f"Error executing MCP tool '{tool_name}': {e}", exc_info=True)
             return {"success": False, "tool": tool_name, "error": str(e)}
 
     def _register_default_tools(self) -> None:
         """Registers standard MCP tools with safe boundary-enforced defaults."""
-        def _read_file_handler(file_path: str, **kwargs):
-            p = Path(file_path)
-            if not p.is_file():
-                raise FileNotFoundError(f"File not found: {file_path}")
-            return p.read_text(errors="replace")[:100000]
+        def _read_file_handler(file_path: str, _workspace_root: str, **kwargs):
+            with open_workspace(Path(_workspace_root), file_path) as stream:
+                content = stream.read(1024*1024+1)
+                if len(content.encode())>1024*1024:
+                    raise ValueError('Read exceeded 1 MiB')
+                return content
 
-        def _write_file_handler(file_path: str, content: str, **kwargs):
-            p = Path(file_path)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(content)
-            return {"bytes_written": len(content), "path": file_path}
+        def _write_file_handler(file_path: str, content: str, _workspace_root: str, **kwargs):
+            if not isinstance(content, str) or len(content.encode())>65536:
+                raise ValueError('Write exceeded 64 KiB')
+            with open_workspace(Path(_workspace_root), file_path, write=True) as stream:
+                stream.write(content)
+            return {'bytes_written':len(content.encode()), 'path':file_path}
 
-        def _list_dir_handler(directory: str = ".", **kwargs):
-            p = Path(directory)
-            if not p.is_dir():
-                raise NotADirectoryError(f"Directory not found: {directory}")
-            return [f.name for f in p.iterdir()][:200]
+        def _list_dir_handler(_workspace_root: str, directory: str = '.', **kwargs):
+            return list_workspace(Path(_workspace_root), directory)
 
         self.register_tool(ToolDefinition(
             name="read_file",

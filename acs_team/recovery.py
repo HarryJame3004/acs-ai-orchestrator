@@ -6,6 +6,8 @@ proof. Every destination must be new. No operation replaces the running app.
 
 from __future__ import annotations
 
+from .upgrade_schema import RUNTIME_SQL, COORD_SQL, METRICS_SQL, REVIEW_SQL, DISPATCH_SQL
+
 from dataclasses import dataclass
 from contextlib import closing
 import hashlib
@@ -165,9 +167,16 @@ class Migration:
     statements: tuple[str, ...]
 
 
-MIGRATIONS = (Migration(1, "upgrade metadata", (
-    "CREATE TABLE IF NOT EXISTS acs_upgrade_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
-)),)
+
+MIGRATIONS = (
+    Migration(1, "upgrade metadata", (
+        "CREATE TABLE IF NOT EXISTS acs_upgrade_metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+    )),
+    Migration(2, "runtime emergency controls", RUNTIME_SQL),
+    Migration(3, "fenced team coordination", COORD_SQL),
+    Migration(4, "measured worker intelligence", METRICS_SQL),
+    Migration(5, "review intake and daemon dispatch", REVIEW_SQL + DISPATCH_SQL),
+)
 
 
 def apply_migrations(database: Path, migrations: tuple[Migration, ...] = MIGRATIONS) -> list[int]:

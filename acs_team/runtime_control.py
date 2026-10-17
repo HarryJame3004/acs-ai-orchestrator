@@ -1,6 +1,7 @@
 """Durable emergency dispatch gate; no signalling of arbitrary external PIDs."""
 
 from .db import DatabaseManager
+from .upgrade_schema import RUNTIME_SQL
 
 
 class RuntimeControl:
@@ -8,7 +9,7 @@ class RuntimeControl:
         self.db = db
         if initialize:
             with db.connection() as con:
-                con.execute("CREATE TABLE IF NOT EXISTS runtime_control (key TEXT PRIMARY KEY,value TEXT NOT NULL)")
+                con.execute(RUNTIME_SQL[0])
 
     def stopped(self) -> bool:
         with self.db.connection() as con:

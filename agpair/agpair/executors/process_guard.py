@@ -1,0 +1,122 @@
+"""Linux child subreaper in its own helper process; never alters the controller.
+
+The separately packaged bridge ships the same stdlib-only helper. Keep copies
+identical. A group signal requests cleanup; the helper reaps adopted descendants
+before exiting so container PID 1 is not responsible for their zombies.
+"""
+
+from __future__ import annotations
+
+import ctypes
+import os
+from pathlib import Path
+import signal
+import sys
+import time
+
+
+def _descendants(root: int) -> dict[int, str]:
+    records = {}
+    for path in Path("/proc").iterdir():
+        if not path.name.isdigit():
+            continue
+        try:
+            raw = (path / "stat").read_text()
+            fields = raw[raw.rfind(")") + 2 :].split()
+            records[int(path.name)] = (int(fields[1]), fields[19])
+        except (OSError, ValueError, IndexError):
+            continue
+    found = {root}
+    while True:
+        additions = {
+            pid for pid, (parent, _) in records.items() if parent in found
+        } - found
+        if not additions:
+            break
+        found.update(additions)
+    return {pid: records[pid][1] for pid in found - {root}}
+
+
+def _signal_owned(root: int, sig: signal.Signals) -> None:
+    for pid, start in _descendants(root).items():
+        descriptor = None
+        try:
+            descriptor = os.pidfd_open(pid, 0)
+            raw = Path(f"/proc/{pid}/stat").read_text()
+            fields = raw[raw.rfind(")") + 2 :].split()
+            if fields[19] == start:
+                signal.pidfd_send_signal(descriptor, sig)
+        except (OSError, ValueError, IndexError):
+            pass
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+
+
+def run(argv: list[str]) -> int:
+    if not argv:
+        raise ValueError("Guard requires a child argv")
+    if not sys.platform.startswith("linux"):
+        raise RuntimeError("Process guard requires Linux")
+    library = ctypes.CDLL(None, use_errno=True)
+    if library.prctl(36, 1, 0, 0, 0) != 0:
+        raise OSError(ctypes.get_errno(), "Cannot enable child subreaper")
+    stopping = [False]
+
+    def stop(signum, frame):
+        stopping[0] = True
+
+    signal.signal(signal.SIGTERM, stop)
+    signal.signal(signal.SIGINT, stop)
+    worker = os.fork()
+    if worker == 0:
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        try:
+            os.execvpe(argv[0], argv, os.environ)
+        except OSError:
+            os._exit(127)
+    worker_result = None
+    cleanup_started = None
+    sent_term = False
+    while True:
+        no_children = False
+        while True:
+            try:
+                pid, status = os.waitpid(-1, os.WNOHANG)
+            except ChildProcessError:
+                no_children = True
+                break
+            except InterruptedError:
+                continue
+            if pid == 0:
+                break
+            if pid == worker:
+                worker_result = os.waitstatus_to_exitcode(status)
+                stopping[0] = True
+        if no_children:
+            result = worker_result if worker_result is not None else 143
+            if result < 0:
+                child_signal = -result
+                if child_signal not in {signal.SIGKILL, signal.SIGSTOP}:
+                    signal.signal(child_signal, signal.SIG_DFL)
+                os.kill(os.getpid(), child_signal)
+                return 128 + child_signal
+            return result
+        if stopping[0]:
+            if cleanup_started is None:
+                cleanup_started = time.monotonic()
+            if not sent_term:
+                _signal_owned(os.getpid(), signal.SIGTERM)
+                sent_term = True
+            if time.monotonic() - cleanup_started >= 0.1:
+                _signal_owned(os.getpid(), signal.SIGKILL)
+            if time.monotonic() - cleanup_started > 2:
+                # Never pretend cleanup completed. The outer supervisor remains
+                # responsible for this registered helper's timeout/identity.
+                return 125
+        time.sleep(0.005)
+
+
+if __name__ == "__main__":
+    raise SystemExit(run(sys.argv[1:]))

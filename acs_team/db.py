@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR
+from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR, PROTECTED_PATHS
 from .security import redact
 
 logger = logging.getLogger("acs_ai.db")
@@ -147,7 +147,24 @@ class DatabaseManager:
     def __init__(self, db_path: Optional[Path] = None, read_only: bool = False):
         self.db_path = Path(db_path or DB_PATH)
         self.read_only = read_only
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        canonical = self.db_path.resolve()
+        if any(canonical == p or p in canonical.parents for p in PROTECTED_PATHS):
+            raise PermissionError('Database path overlaps a protected project')
+        if self.db_path.is_symlink() or (self.db_path.exists() and self.db_path.stat().st_nlink != 1):
+            raise PermissionError('Database must not be a symlink or hard link')
+        if read_only:
+            if not self.db_path.is_file():
+                raise FileNotFoundError('Read-only database must already exist')
+        else:
+            self.db_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            if not self.db_path.exists():
+                try:
+                    descriptor = os.open(self.db_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
+                except FileExistsError:
+                    if self.db_path.is_symlink():
+                        raise PermissionError('Concurrent database symlink replacement') from None
+                else:
+                    os.close(descriptor)
         self._ensure_initialized()
 
     def close(self) -> None:

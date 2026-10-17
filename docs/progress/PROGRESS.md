@@ -1,5 +1,12 @@
 # Upgrade progress
 
+## Current checkpoint — Stage 7 in progress
+
+Root 145 passed / 5 local-only skips; bridge 846 passed with fake providers.
+See reports/STAGE_7_CHECKPOINT.md for exact implementation and unresolved gaps.
+Environment exec-server recovered after a transient disconnect; production work
+is being saved before documentation, bundle and final hosted checks.
+
 ## Current checkpoint — V2.6 PARTIAL
 
 133 passed / 4 local-only skips, no regressions. Added no-write dry-run, bounded

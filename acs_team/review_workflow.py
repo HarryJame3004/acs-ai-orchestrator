@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .upgrade_schema import REVIEW_SQL
+
 import hashlib
 import json
 from pathlib import Path
@@ -42,9 +44,6 @@ class ImportedReview(Data):
         return self
 
 
-REVIEW_SQL = (
-    "CREATE TABLE IF NOT EXISTS imported_reviews (mission TEXT NOT NULL REFERENCES missions(mission_id), round INTEGER NOT NULL, fingerprint TEXT NOT NULL, review TEXT NOT NULL, tasks TEXT NOT NULL, PRIMARY KEY(mission,round), UNIQUE(mission,fingerprint))",
-)
 
 
 def bounded(value, budget: int = 24576):

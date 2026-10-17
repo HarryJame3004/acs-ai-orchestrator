@@ -6,6 +6,7 @@ import pathlib
 import signal
 import sqlite3
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass
 
@@ -271,7 +272,7 @@ def _run_probe(
     process_env = build_internal_probe_env(env)
     process_cwd = pathlib.Path(cwd).resolve() if cwd is not None else _probe_cwd()
     process = subprocess.Popen(
-        [binary_path, *args],
+        [sys.executable, str(pathlib.Path(__file__).with_name('process_guard.py')), binary_path, *args],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

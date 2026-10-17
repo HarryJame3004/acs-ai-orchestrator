@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
 from .security import load_protected_paths
 
@@ -29,13 +30,15 @@ PROTECTED_PATHS = load_protected_paths(Path(__file__).with_name("defaults.json")
 ACS_CORE_DIR = Path(os.environ.get("ACS_CORE_PATH", str(ACS_CORE_DIR))).expanduser().resolve()
 PROTECTED_PATHS = tuple(dict.fromkeys((*PROTECTED_PATHS, ACS_CORE_DIR)))
 
-# Ensure runtime directories exist
-STATE_DIR.mkdir(parents=True, exist_ok=True)
-CONTEXT_DIR.mkdir(parents=True, exist_ok=True)
-WORKTREES_DIR.mkdir(parents=True, exist_ok=True)
-WORKSPACES_DIR.mkdir(parents=True, exist_ok=True)
-LOGS_DIR.mkdir(parents=True, exist_ok=True)
-BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+for runtime_path in (ORCHESTRATOR_HOME, BACKUPS_DIR):
+    if any(runtime_path.resolve() == protected or protected in runtime_path.resolve().parents for protected in PROTECTED_PATHS):
+        raise ValueError('Runtime state/backups may not be located inside a protected project')
+
+# Read-only discovery/preview must not initialize an operational installation.
+READ_ONLY_INVOCATION = any(arg in {'verify-local', '--dry-run', '--help', '-h', 'mcp'} for arg in sys.argv)
+if not READ_ONLY_INVOCATION:
+    for directory in (STATE_DIR, CONTEXT_DIR, WORKTREES_DIR, WORKSPACES_DIR, LOGS_DIR, BACKUPS_DIR):
+        directory.mkdir(mode=0o700, parents=True, exist_ok=True)
 
 # Database & IPC
 DB_PATH = STATE_DIR / "acs_ai.db"
@@ -72,7 +75,7 @@ def get_router_api_key() -> str:
     return os.environ.get("ROUTER_API_KEY", "")
 
 
-ROUTER_API_KEY = get_router_api_key()
+ROUTER_API_KEY = "" if READ_ONLY_INVOCATION else get_router_api_key()
 
 # Model assignments (all verified free tier on 9Router)
 MODEL_PLANNER = os.environ.get("ACS_MODEL_PLANNER", "free-coding")

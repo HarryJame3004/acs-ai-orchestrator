@@ -207,3 +207,10 @@ exit 0
     ]
     assert env["ANTHROPIC_API_KEY"] == "test-secret"
     assert live_probe_count.read_text(encoding="utf-8") == "2"
+
+
+def test_claude_code_refuses_permission_bypass(monkeypatch):
+    import pytest
+    monkeypatch.setenv('AGPAIR_CLAUDE_CODE_PERMISSION_MODE','bypassPermissions')
+    with pytest.raises(PermissionError):
+        ClaudeCodeExecutor(claude_bin='fake-claude')._build_claude_cmd('fixture','/fake/repo',pathlib.Path('/tmp'))

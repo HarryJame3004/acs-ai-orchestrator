@@ -262,3 +262,31 @@ def test_actual_pipeline_integrates_only_after_guardian_and_keeps_source_branch(
     else:
         assert result["status"] == "COMPLETED" and integrated != before
         assert db.get_mission("fixture-mission")["commit_sha"] == integrated
+
+
+def test_guard_reaps_escaped_orphan_even_when_worker_parent_exits(tmp_path):
+    import os
+    marker=tmp_path/'orphan.pid'
+    source=tmp_path/'worker.py'
+    source.write_text('import subprocess,sys,pathlib\n'
+                      'child=subprocess.Popen([sys.executable,"-c","import threading; threading.Event().wait(30)"],start_new_session=True)\n'
+                      f'pathlib.Path({str(marker)!r}).write_text(str(child.pid))\n')
+    result=ProcessSupervisor().run([sys.executable,str(source)],tmp_path,timeout=5)
+    assert result['exit_code']==0 and result['reason']=='completed'
+    with pytest.raises(ProcessLookupError):
+        os.kill(int(marker.read_text()),0)
+    root=Path(__file__).parents[1]
+    assert (root/'acs_team/process_guard.py').read_bytes()==(root/'agpair/agpair/executors/process_guard.py').read_bytes()
+
+
+def test_database_new_files_private_and_readonly_missing_is_nonmutating(tmp_path):
+    database=tmp_path/'private'/'state.db'
+    DatabaseManager(database)
+    assert database.stat().st_mode & 0o777 == 0o600
+    absent=tmp_path/'absent'/'state.db'
+    with pytest.raises(FileNotFoundError):
+        DatabaseManager(absent,read_only=True)
+    assert not absent.parent.exists()
+    linked=tmp_path/'alias.db';linked.symlink_to(database)
+    with pytest.raises(PermissionError):
+        DatabaseManager(linked)

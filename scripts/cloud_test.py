@@ -36,7 +36,8 @@ def compare_results(baseline: list[dict[str, Any]], current: list[dict[str, Any]
             elif previous.get("failure_type") != row.get("failure_type"):
                 issues.append(f"Changed failure type: {nodeid}")
         if row["outcome"] == "skipped":
-            if not previous or previous["label"] != "LOCAL_VERIFICATION_REQUIRED":
+            new_local = previous is None and row.get('label') == 'LOCAL_VERIFICATION_REQUIRED' and len(row.get('local_reason', '')) >= 10
+            if not new_local and (not previous or previous["label"] != "LOCAL_VERIFICATION_REQUIRED"):
                 issues.append(f"Unexpected skip: {nodeid}")
     return issues
 
@@ -53,6 +54,12 @@ class Capture:
     def pytest_collection_modifyitems(self, items: list[Any]) -> None:
         for item in items:
             label = "CLOUD_SIMULATED" if item.get_closest_marker("simulated") else "CLOUD_REAL"
+            local = item.get_closest_marker('local_only')
+            if local and item.nodeid not in self.policy:
+                reason = local.kwargs.get('reason', '')
+                if not isinstance(reason, str) or len(reason) < 10:
+                    raise ValueError('New local-only tests require an explicit local capability reason')
+                self.policy[item.nodeid] = {'label':'LOCAL_VERIFICATION_REQUIRED', 'local_reason':reason}
             policy = self.policy.setdefault(item.nodeid, {"label": label})
             if label == "CLOUD_SIMULATED" and policy["label"] != "LOCAL_VERIFICATION_REQUIRED":
                 self.policy[item.nodeid] = policy = {"label": label}
@@ -70,6 +77,8 @@ class Capture:
                 "label": self.policy.get(report.nodeid, {}).get("label", "CLOUD_REAL"),
                 "outcome": outcome,
             }
+            if self.policy.get(report.nodeid, {}).get('local_reason'):
+                self.results[report.nodeid]['local_reason'] = self.policy[report.nodeid]['local_reason']
             if report.failed:
                 message = report.longrepr.reprcrash.message
                 self.results[report.nodeid]["failure_type"] = message.split(":", 1)[0].split()[-1]

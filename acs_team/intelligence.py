@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .upgrade_schema import METRICS_SQL
+
 from difflib import SequenceMatcher
 import hashlib
 import json
@@ -225,10 +227,6 @@ class Lessons:
         )
 
 
-METRICS_SQL = (
-    "CREATE TABLE IF NOT EXISTS worker_samples (id INTEGER PRIMARY KEY AUTOINCREMENT, worker TEXT NOT NULL, mission TEXT NOT NULL, sample TEXT NOT NULL, UNIQUE(worker,mission))",
-    "CREATE TABLE IF NOT EXISTS worker_decisions (id INTEGER PRIMARY KEY AUTOINCREMENT, mission TEXT NOT NULL, worker TEXT NOT NULL, reason TEXT NOT NULL)",
-)
 
 
 class WorkerMetrics:

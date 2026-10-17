@@ -39,11 +39,14 @@ def worker_run(command, *, task_id=None, **kwargs):
     provided = kwargs.get("env") or os.environ
     names = {"PATH", "LANG", "LC_ALL", "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "GIT_TERMINAL_PROMPT"}
     names.update(filter(None, os.environ.get("ACS_WORKER_ENV_ALLOWLIST", "").split(",")))
-    if any(name.startswith(("LD_", "DYLD_", "PYTHON", "GIT_CONFIG")) or name in {"BASH_ENV", "ENV", "NODE_OPTIONS"} for name in names):
+    if any(name.startswith(("LD_", "DYLD_", "PYTHON", "GIT_CONFIG", "ACS_")) or name in {"BASH_ENV", "ENV", "NODE_OPTIONS"} for name in names):
         raise PermissionError("Worker environment contains a reserved execution-control name")
     environment = {name: provided[name] for name in names if name in provided}
     workspace = Path(kwargs["cwd"])
     with tempfile.TemporaryDirectory(prefix="acs-worker-home-") as temporary:
+        environment.update({'HOME': temporary, 'XDG_CONFIG_HOME': str(Path(temporary)/'.config'),
+                            'XDG_DATA_HOME': str(Path(temporary)/'.local/share'),
+                            'XDG_STATE_HOME': str(Path(temporary)/'.local/state')})
         argv = sandbox_argv(workspace, command, home=Path(temporary), network=os.environ.get("ACS_WORKER_NETWORK") == "1",
                             private_paths=(STATE_DIR, AUTH_TOKEN_PATH))
         limited = os.environ.get("ACS_ENABLE_RUNTIME_LIMITS") == "1"
