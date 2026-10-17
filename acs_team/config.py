@@ -3,14 +3,14 @@ import os
 from pathlib import Path
 
 # Base Paths
-ORCHESTRATOR_HOME = Path(os.path.expanduser("~/.local/share/acs-orchestrator"))
+ORCHESTRATOR_HOME = Path(os.environ.get("ACS_HOME", str(Path(os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))) / "acs-orchestrator"))).expanduser().resolve()
 STATE_DIR = ORCHESTRATOR_HOME / "state"
 CONTEXT_DIR = ORCHESTRATOR_HOME / "context"
 CONTEXT_FILE = CONTEXT_DIR / "ACS_VERIFIED_PROJECT_STATE.md"
 WORKTREES_DIR = ORCHESTRATOR_HOME / "worktrees"
 WORKSPACES_DIR = ORCHESTRATOR_HOME / "workspaces"
 LOGS_DIR = ORCHESTRATOR_HOME / "logs"
-BACKUPS_DIR = Path(os.path.expanduser("~/.local/share/acs-orchestrator-backups"))
+BACKUPS_DIR = Path(os.environ.get("ACS_BACKUPS_DIR", str(ORCHESTRATOR_HOME.parent / "acs-orchestrator-backups"))).expanduser()
 
 # Executables
 VENV_BIN = ORCHESTRATOR_HOME / "venv" / "bin"
@@ -53,7 +53,7 @@ def get_router_api_key() -> str:
     """Retrieve 9router API key from environment or ~/.claude/settings.json."""
     if os.environ.get("NINE_ROUTER_API_KEY"):
         return os.environ["NINE_ROUTER_API_KEY"]
-    claude_settings = Path(os.path.expanduser("~/.claude/settings.json"))
+    claude_settings = Path(os.environ.get("ACS_CREDENTIALS_FILE", os.path.expanduser("~/.claude/settings.json")))
     if claude_settings.exists():
         try:
             data = json.loads(claude_settings.read_text(encoding="utf-8"))
