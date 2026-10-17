@@ -65,6 +65,10 @@ def make_manifest(repo_path: str, *, max_retries: int = 1):
 
 
 def patch_scheduler_executor(monkeypatch, fake: FakeExecutor) -> None:
+    # Every backend is fake in this test; do not route according to host binaries.
+    from agpair.executors.policy import EXECUTOR_SPECS
+    monkeypatch.setattr("agpair.executors.policy.executor_health_snapshot",
+                        lambda **kwargs: {name: {"available": True} for name in EXECUTOR_SPECS})
     monkeypatch.setattr("agpair.workflows.scheduler.get_executor", lambda *args, **kwargs: fake)
     monkeypatch.setattr("agpair.workflows.scheduler.is_local_cli_backend", lambda executor_id: True)
 
