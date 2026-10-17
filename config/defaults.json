@@ -1,0 +1,21 @@
+{
+  "protected_paths": [
+    "~/autonomous-coding-system"
+  ],
+  "features": {
+    "recovery": false,
+    "supervision": false,
+    "runtime_limits": false,
+    "daemon_execution": false,
+    "coordination": false,
+    "intelligence": false,
+    "review_workflow": false,
+    "notifications": false,
+    "multi_solution": false,
+    "mcp_external": false,
+    "emergency_stop": false,
+    "mcp_scopes": false,
+    "periodic_backups": false,
+    "test_sandbox": false
+  }
+}

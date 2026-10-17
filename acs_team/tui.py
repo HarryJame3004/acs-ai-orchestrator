@@ -654,7 +654,7 @@ class ACSControlCenterApp(App):
         # Refresh Guardian Audit
         t_audit = self.query_one("#guardian_audit_table", DataTable)
         t_audit.clear()
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             cur = con.execute("SELECT * FROM audit_events ORDER BY event_id DESC LIMIT 15")
             for r in cur.fetchall():
                 t_audit.add_row(

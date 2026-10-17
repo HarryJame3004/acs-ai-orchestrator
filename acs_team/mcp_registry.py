@@ -69,6 +69,7 @@ class MCPRegistry:
                     "description": tool.description,
                     "category": tool.category.value,
                     "required_permissions": list(tool.required_permissions),
+                    "available": tool.handler is not None,
                 })
         return results
 
@@ -88,6 +89,12 @@ class MCPRegistry:
             full_path = target_path
 
         canonical_target = os.path.realpath(full_path)
+        from .security import contained_path
+        try:
+            relative = str(Path(canonical_target).relative_to(canonical_worktree))
+            contained_path(Path(canonical_worktree), relative)
+        except (ValueError, PermissionError) as error:
+            raise PathEscapeError("MCP path violates workspace policy") from error
         
         # Verify commonpath
         try:
@@ -117,6 +124,8 @@ class MCPRegistry:
         - 'admin': ALL categories if human approved.
         """
         tool = self.get_tool(tool_name)
+        if caller_role not in {"planner", "reviewer", "worker", "admin"}:
+            raise MCPPermissionError("Unknown role is denied")
         if not tool:
             raise MCPPermissionError(f"Unknown MCP tool: '{tool_name}'")
 
@@ -142,9 +151,20 @@ class MCPRegistry:
         caller_role: str,
         worktree_dir: str,
         is_human_approved: bool = False,
+        allowed_tools: Optional[Set[str]] = None,
+        permissions: Optional[Set[str]] = None,
     ) -> Dict[str, Any]:
         """Validates permissions, sanitizes path arguments, and executes the requested tool."""
         tool = self.authorize(tool_name, caller_role, is_human_approved=is_human_approved)
+        if allowed_tools is not None and tool_name not in allowed_tools:
+            raise MCPPermissionError("Tool is not in the mission allowlist")
+        import os
+        strict = os.environ.get("ACS_ENABLE_MCP_SCOPES") == "1"
+        if strict and allowed_tools is None:
+            raise MCPPermissionError("An explicit mission tool allowlist is required")
+        granted = permissions if permissions is not None else (set() if strict else {"filesystem:read", "filesystem:write"} if caller_role == "worker" else {"filesystem:read"})
+        if not tool.required_permissions.issubset(granted):
+            raise MCPPermissionError("Required tool permissions are missing")
 
         # Check all common path argument names to enforce worktree boundaries
         sanitized_args = dict(arguments)
@@ -155,10 +175,10 @@ class MCPRegistry:
 
         if not tool.handler:
             return {
-                "success": True,
+                "success": False,
                 "tool": tool_name,
-                "mock": True,
-                "message": f"Tool '{tool_name}' authorized and validated.",
+                "unavailable": True,
+                "message": f"Tool '{tool_name}' has no installed handler.",
                 "sanitized_arguments": sanitized_args,
             }
 
@@ -193,6 +213,7 @@ class MCPRegistry:
             name="read_file",
             description="Reads file contents from within the worktree.",
             category=ToolCategory.READ_ONLY,
+            required_permissions={"filesystem:read"},
             parameters_schema={"file_path": "string"},
             handler=_read_file_handler,
         ))
@@ -201,6 +222,7 @@ class MCPRegistry:
             name="write_file",
             description="Writes file contents strictly within the worktree.",
             category=ToolCategory.MUTATING,
+            required_permissions={"filesystem:write"},
             parameters_schema={"file_path": "string", "content": "string"},
             handler=_write_file_handler,
         ))
@@ -209,6 +231,7 @@ class MCPRegistry:
             name="list_directory",
             description="Lists entries inside a worktree directory.",
             category=ToolCategory.READ_ONLY,
+            required_permissions={"filesystem:read"},
             parameters_schema={"directory": "string"},
             handler=_list_dir_handler,
         ))

@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .config import AGY_BIN, AGY_B_BIN, AGY_B_HOME, CODEX_BIN
+from .managed_worker import worker_run
+from .security import redact
 
 logger = logging.getLogger("acs_ai.workers")
 
@@ -58,7 +60,7 @@ class CodexPrimaryWorker(BaseWorker):
     """Codex CLI Worker running in non-interactive workspace-write sandbox."""
 
     def __init__(self, codex_bin: Optional[Path] = None):
-        super().__init__(worker_id="codex-primary", is_verified=True)
+        super().__init__(worker_id="codex-primary", is_verified=False)
         self.codex_bin = Path(codex_bin or CODEX_BIN)
 
     def execute_task(
@@ -77,6 +79,9 @@ class CodexPrimaryWorker(BaseWorker):
         for banned in BANNED_FLAGS:
             if banned in combined:
                 raise PermissionError(f"Prohibited flag/instruction '{banned}' detected.")
+
+        if not self.is_verified:
+            raise WorkerUnverifiedError("Real worker requires explicit local verification")
 
         prompt = f"""Task ID: {task_id}
 Goal: {goal}
@@ -106,8 +111,9 @@ Requirements:
         env["GIT_TERMINAL_PROMPT"] = "0"
 
         try:
-            proc = subprocess.run(
+            proc = worker_run(
                 cmd,
+                task_id=task_id,
                 cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
@@ -115,8 +121,8 @@ Requirements:
                 stdin=subprocess.DEVNULL,
                 env=env,
             )
-            stdout = proc.stdout
-            stderr = proc.stderr
+            stdout = redact(proc.stdout)
+            stderr = redact(proc.stderr)
             returncode = proc.returncode
 
             # Extract changed files from git
@@ -178,7 +184,7 @@ class AGYGoogleAWorker(BaseWorker):
     """AGY CLI Worker using authenticated Google Account A."""
 
     def __init__(self, agy_bin: Optional[Path] = None):
-        super().__init__(worker_id="agy-google-a", is_verified=True)
+        super().__init__(worker_id="agy-google-a", is_verified=False)
         self.agy_bin = Path(agy_bin or AGY_BIN)
 
     def execute_task(
@@ -196,6 +202,9 @@ class AGYGoogleAWorker(BaseWorker):
         for banned in BANNED_FLAGS:
             if banned in combined:
                 raise PermissionError(f"Prohibited flag/instruction '{banned}' detected.")
+
+        if not self.is_verified:
+            raise WorkerUnverifiedError("Real worker requires explicit local verification")
 
         prompt = f"""Task ID: {task_id}
 Goal: {goal}
@@ -223,8 +232,9 @@ Requirements:
         env["GIT_TERMINAL_PROMPT"] = "0"
 
         try:
-            proc = subprocess.run(
+            proc = worker_run(
                 cmd,
+                task_id=task_id,
                 cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
@@ -232,8 +242,8 @@ Requirements:
                 stdin=subprocess.DEVNULL,
                 env=env,
             )
-            stdout = proc.stdout
-            stderr = proc.stderr
+            stdout = redact(proc.stdout)
+            stderr = redact(proc.stderr)
             returncode = proc.returncode
 
             changed_files = self._get_changed_files(worktree_path)
@@ -298,7 +308,7 @@ class AGYGoogleBWorker(BaseWorker):
     def __init__(self, agy_b_bin: Optional[Path] = None, agy_b_home: Optional[Path] = None):
         self.agy_b_bin = Path(agy_b_bin or AGY_B_BIN)
         self.agy_b_home = Path(agy_b_home or AGY_B_HOME)
-        is_verified = self.agy_b_bin.exists() and (self.agy_b_home / ".gemini").is_dir()
+        is_verified = False  # Executable/profile presence is not authentication evidence.
         super().__init__(worker_id="agy-google-b", is_verified=is_verified)
 
     def _build_env(self) -> Dict[str, str]:
@@ -352,8 +362,9 @@ Requirements:
         env = self._build_env()
 
         try:
-            proc = subprocess.run(
+            proc = worker_run(
                 cmd,
+                task_id=task_id,
                 cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
@@ -361,8 +372,8 @@ Requirements:
                 stdin=subprocess.DEVNULL,
                 env=env,
             )
-            stdout = proc.stdout
-            stderr = proc.stderr
+            stdout = redact(proc.stdout)
+            stderr = redact(proc.stderr)
             returncode = proc.returncode
 
             changed_files = self._get_changed_files(worktree_path)
@@ -446,13 +457,13 @@ class WorkerRegistry:
                 "backend": "codex-cli",
                 "status": "READY" if self._workers["codex-primary"].is_verified else "UNAVAILABLE",
                 "verified": self._workers["codex-primary"].is_verified,
-                "notes": "Verified in non-interactive workspace-write sandbox",
+                "notes": "Requires explicit local authentication and harmless task verification",
             },
             "agy-google-a": {
                 "backend": "agy-cli",
                 "status": "READY" if self._workers["agy-google-a"].is_verified else "UNAVAILABLE",
                 "verified": self._workers["agy-google-a"].is_verified,
-                "notes": "Verified with Google Account A",
+                "notes": "Requires explicit local authentication and harmless task verification",
             },
             "agy-google-b": {
                 "backend": "agy-cli (Account B)",

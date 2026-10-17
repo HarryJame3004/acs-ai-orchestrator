@@ -47,6 +47,9 @@ def setup_logging(verbose: bool = False):
         format="[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
         datefmt="%H:%M:%S",
     )
+    from .security import RedactingFormatter
+    for handler in logging.getLogger().handlers:
+        handler.setFormatter(RedactingFormatter("%(levelname)s %(name)s: %(message)s"))
 
 
 def cmd_ui(args):
@@ -743,6 +746,10 @@ def main():
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    from .upgrade_cli import register as register_recovery
+    register_recovery(subparsers)
+    from .runtime_cli import register as register_runtime
+    register_runtime(subparsers)
 
     # ui
     p_ui = subparsers.add_parser("ui", help="Launch interactive Textual Control Center TUI")

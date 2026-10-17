@@ -1,0 +1,770 @@
+{
+  "ruff": [
+    {
+      "file": "acs_team/api_server.py",
+      "line": 14,
+      "code": "F401",
+      "message": "`.auth.get_or_create_auth_token` imported but unused"
+    },
+    {
+      "file": "acs_team/api_server.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`.config.API_HOST` imported but unused"
+    },
+    {
+      "file": "acs_team/api_server.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`.config.API_PORT` imported but unused"
+    },
+    {
+      "file": "acs_team/api_server.py",
+      "line": 190,
+      "code": "E401",
+      "message": "Multiple imports on one line"
+    },
+    {
+      "file": "acs_team/autonomous_planner.py",
+      "line": 13,
+      "code": "F401",
+      "message": "`datetime` imported but unused"
+    },
+    {
+      "file": "acs_team/autonomous_planner.py",
+      "line": 17,
+      "code": "F401",
+      "message": "`shutil` imported but unused"
+    },
+    {
+      "file": "acs_team/autonomous_planner.py",
+      "line": 21,
+      "code": "F401",
+      "message": "`typing.List` imported but unused"
+    },
+    {
+      "file": "acs_team/autonomous_planner.py",
+      "line": 24,
+      "code": "F401",
+      "message": "`.config.LOGS_DIR` imported but unused"
+    },
+    {
+      "file": "acs_team/autonomous_planner.py",
+      "line": 24,
+      "code": "F401",
+      "message": "`.config.STATE_DIR` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.Any` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.Dict` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.List` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.Optional` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 20,
+      "code": "F401",
+      "message": "`.config.AGPAIR_BIN` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 22,
+      "code": "F401",
+      "message": "`.config.CODEX_BIN` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 23,
+      "code": "F401",
+      "message": "`.config.CONTEXT_FILE` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 26,
+      "code": "F401",
+      "message": "`.config.MODEL_PLANNER` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 27,
+      "code": "F401",
+      "message": "`.config.MODEL_REVIEWER` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 29,
+      "code": "F401",
+      "message": "`.config.ROUTER_BASE_URL` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 30,
+      "code": "F401",
+      "message": "`.config.STATE_DIR` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 36,
+      "code": "F401",
+      "message": "`.llm_client.query_llm` imported but unused"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 70,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 123,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 136,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 147,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 326,
+      "code": "E401",
+      "message": "Multiple imports on one line"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 526,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 570,
+      "code": "F821",
+      "message": "Undefined name `datetime`"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 773,
+      "code": "F841",
+      "message": "Local variable `p_appr_list` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 813,
+      "code": "F841",
+      "message": "Local variable `p_mcp_list` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 814,
+      "code": "F841",
+      "message": "Local variable `p_mcp_status` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 815,
+      "code": "F841",
+      "message": "Local variable `p_mcp_tools` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 821,
+      "code": "F841",
+      "message": "Local variable `p_repo_list` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/cli.py",
+      "line": 822,
+      "code": "F841",
+      "message": "Local variable `p_repo_status` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/coordinator.py",
+      "line": 109,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/coordinator.py",
+      "line": 146,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/daemon.py",
+      "line": 17,
+      "code": "F401",
+      "message": "`pathlib.Path` imported but unused"
+    },
+    {
+      "file": "acs_team/daemon.py",
+      "line": 120,
+      "code": "F821",
+      "message": "Undefined name `Any`"
+    },
+    {
+      "file": "acs_team/db.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "acs_team/db.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`typing.Tuple` imported but unused"
+    },
+    {
+      "file": "acs_team/db.py",
+      "line": 546,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    },
+    {
+      "file": "acs_team/db.py",
+      "line": 550,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.List` imported but unused"
+    },
+    {
+      "file": "acs_team/guardian.py",
+      "line": 24,
+      "code": "F401",
+      "message": "`.human_approval.RiskLevel` imported but unused"
+    },
+    {
+      "file": "acs_team/human_approval.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`dataclasses.dataclass` imported but unused"
+    },
+    {
+      "file": "acs_team/llm_client.py",
+      "line": 6,
+      "code": "F401",
+      "message": "`typing.List` imported but unused"
+    },
+    {
+      "file": "acs_team/mcp_manager.py",
+      "line": 12,
+      "code": "F401",
+      "message": "`subprocess` imported but unused"
+    },
+    {
+      "file": "acs_team/mcp_manager.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`typing.Optional` imported but unused"
+    },
+    {
+      "file": "acs_team/mcp_manager.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`.mcp_registry.ToolCategory` imported but unused"
+    },
+    {
+      "file": "acs_team/mcp_registry.py",
+      "line": 134,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/mission.py",
+      "line": 132,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/planner.py",
+      "line": 2,
+      "code": "F401",
+      "message": "`typing.Optional` imported but unused"
+    },
+    {
+      "file": "acs_team/planner.py",
+      "line": 97,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/quality.py",
+      "line": 17,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "acs_team/quality.py",
+      "line": 149,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    },
+    {
+      "file": "acs_team/rea_adapter.py",
+      "line": 13,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "acs_team/rea_adapter.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`typing.Any` imported but unused"
+    },
+    {
+      "file": "acs_team/rea_adapter.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`typing.Dict` imported but unused"
+    },
+    {
+      "file": "acs_team/rea_adapter.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`typing.Optional` imported but unused"
+    },
+    {
+      "file": "acs_team/repo_manager.py",
+      "line": 9,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "acs_team/repo_manager.py",
+      "line": 60,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    },
+    {
+      "file": "acs_team/reviewer.py",
+      "line": 1,
+      "code": "F401",
+      "message": "`json` imported but unused"
+    },
+    {
+      "file": "acs_team/reviewer.py",
+      "line": 133,
+      "code": "F541",
+      "message": "f-string without any placeholders"
+    },
+    {
+      "file": "acs_team/scope_and_integration.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`typing.Optional` imported but unused"
+    },
+    {
+      "file": "acs_team/scope_and_integration.py",
+      "line": 168,
+      "code": "F841",
+      "message": "Local variable `res` is assigned to but never used"
+    },
+    {
+      "file": "acs_team/test_tracker.py",
+      "line": 11,
+      "code": "F401",
+      "message": "`pathlib.Path` imported but unused"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 18,
+      "code": "F401",
+      "message": "`sys` imported but unused"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 20,
+      "code": "F401",
+      "message": "`pathlib.Path` imported but unused"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 24,
+      "code": "F401",
+      "message": "`textual.containers.Container` imported but unused"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 40,
+      "code": "F401",
+      "message": "`.config.LOGS_DIR` imported but unused"
+    },
+    {
+      "file": "acs_team/worker.py",
+      "line": 6,
+      "code": "F401",
+      "message": "`.config.CODEX_BIN` imported but unused"
+    },
+    {
+      "file": "acs_team/worker_adapters.py",
+      "line": 10,
+      "code": "F401",
+      "message": "`json` imported but unused"
+    },
+    {
+      "file": "acs_team/worker_adapters.py",
+      "line": 13,
+      "code": "F401",
+      "message": "`shutil` imported but unused"
+    },
+    {
+      "file": "acs_team/worktree_manager.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`typing.Dict` imported but unused"
+    },
+    {
+      "file": "acs_team/worktree_manager.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`typing.List` imported but unused"
+    },
+    {
+      "file": "tests/test_gate2_daemon_and_db.py",
+      "line": 4,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "tests/test_gate2_daemon_and_db.py",
+      "line": 5,
+      "code": "F401",
+      "message": "`tempfile` imported but unused"
+    },
+    {
+      "file": "tests/test_gate2_daemon_and_db.py",
+      "line": 10,
+      "code": "F401",
+      "message": "`pathlib.Path` imported but unused"
+    },
+    {
+      "file": "tests/test_gate2_daemon_and_db.py",
+      "line": 14,
+      "code": "F401",
+      "message": "`acs_team.auth.verify_token` imported but unused"
+    },
+    {
+      "file": "tests/test_gate3_workers_and_worktrees.py",
+      "line": 3,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "tests/test_gate3_workers_and_worktrees.py",
+      "line": 4,
+      "code": "F401",
+      "message": "`shutil` imported but unused"
+    },
+    {
+      "file": "tests/test_gate3_workers_and_worktrees.py",
+      "line": 12,
+      "code": "F401",
+      "message": "`acs_team.scope_and_integration.ResourceManager` imported but unused"
+    },
+    {
+      "file": "tests/test_gate3_workers_and_worktrees.py",
+      "line": 17,
+      "code": "F401",
+      "message": "`acs_team.worker_adapters.AGYGoogleAWorker` imported but unused"
+    },
+    {
+      "file": "tests/test_gate3_workers_and_worktrees.py",
+      "line": 19,
+      "code": "F401",
+      "message": "`acs_team.worker_adapters.CodexPrimaryWorker` imported but unused"
+    },
+    {
+      "file": "tests/test_gate5_guardian_and_security.py",
+      "line": 12,
+      "code": "F401",
+      "message": "`acs_team.guardian.CoreLockViolation` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 4,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 11,
+      "code": "F401",
+      "message": "`acs_team.config.AUTH_TOKEN_PATH` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`acs_team.human_approval.HumanApprovalGate` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 15,
+      "code": "F401",
+      "message": "`acs_team.human_approval.RiskLevel` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 16,
+      "code": "F401",
+      "message": "`acs_team.quality.QualityEngine` imported but unused"
+    },
+    {
+      "file": "tests/test_gate6_e2e_and_cli.py",
+      "line": 94,
+      "code": "F841",
+      "message": "Local variable `worker_head` is assigned to but never used"
+    },
+    {
+      "file": "tests/test_gate7_audit_and_reliability.py",
+      "line": 3,
+      "code": "F401",
+      "message": "`json` imported but unused"
+    },
+    {
+      "file": "tests/test_gate7_audit_and_reliability.py",
+      "line": 4,
+      "code": "F401",
+      "message": "`pytest` imported but unused"
+    },
+    {
+      "file": "tests/test_gate8_natural_language_and_v2_2.py",
+      "line": 24,
+      "code": "F401",
+      "message": "`os` imported but unused"
+    },
+    {
+      "file": "tests/test_gate8_natural_language_and_v2_2.py",
+      "line": 35,
+      "code": "F401",
+      "message": "`acs_team.config.WORKSPACES_DIR` imported but unused"
+    },
+    {
+      "file": "tests/test_gate8_natural_language_and_v2_2.py",
+      "line": 38,
+      "code": "F401",
+      "message": "`acs_team.guardian.GuardianVerdict` imported but unused"
+    },
+    {
+      "file": "tests/test_gate8_natural_language_and_v2_2.py",
+      "line": 42,
+      "code": "F401",
+      "message": "`acs_team.worker_adapters.WorkerRegistry` imported but unused"
+    },
+    {
+      "file": "tests/test_gate8_natural_language_and_v2_2.py",
+      "line": 168,
+      "code": "E741",
+      "message": "Ambiguous variable name: `l`"
+    }
+  ],
+  "mypy": [
+    {
+      "file": "acs_team/rea_adapter.py",
+      "line": 84,
+      "message": "Argument 1 to \"run\" has incompatible type \"list[str | None]\"; expected \"str | bytes | PathLike[str] | PathLike[bytes] | Sequence[str | bytes | PathLike[str] | PathLike[bytes]]\"",
+      "code": "arg-type"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 122,
+      "message": "Item \"None\" of \"Any | None\" has no attribute \"lower\"",
+      "code": "union-attr"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 130,
+      "message": "Argument \"mission_id\" to \"_canonical_payload\" of \"EvidenceEngine\" has incompatible type \"Any | None\"; expected \"str\"",
+      "code": "arg-type"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 132,
+      "message": "Argument \"commit_sha\" to \"_canonical_payload\" of \"EvidenceEngine\" has incompatible type \"Any | None\"; expected \"str\"",
+      "code": "arg-type"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 135,
+      "message": "Argument \"timestamp\" to \"_canonical_payload\" of \"EvidenceEngine\" has incompatible type \"Any | None\"; expected \"str\"",
+      "code": "arg-type"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 138,
+      "message": "Value of type variable \"AnyStr\" of \"compare_digest\" cannot be \"str | Any | None\"",
+      "code": "type-var"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 145,
+      "message": "Item \"None\" of \"Any | None\" has no attribute \"encode\"",
+      "code": "union-attr"
+    },
+    {
+      "file": "acs_team/evidence.py",
+      "line": 149,
+      "message": "Value of type variable \"AnyStr\" of \"compare_digest\" cannot be \"str | Any | None\"",
+      "code": "type-var"
+    },
+    {
+      "file": "acs_team/state_machine.py",
+      "line": 192,
+      "message": "Incompatible return value type (got \"list[dict[str, Any] | None]\", expected \"list[dict[str, Any]]\")",
+      "code": "return-value"
+    },
+    {
+      "file": "acs_team/daemon_client.py",
+      "line": 96,
+      "message": "Item \"None\" of \"Any | None\" has no attribute \"get\"",
+      "code": "union-attr"
+    },
+    {
+      "file": "acs_team/reviewer.py",
+      "line": 150,
+      "message": "Value of type \"object\" is not indexable",
+      "code": "index"
+    },
+    {
+      "file": "acs_team/daemon.py",
+      "line": 120,
+      "message": "Name \"Any\" is not defined",
+      "code": "name-defined"
+    },
+    {
+      "file": "acs_team/tui.py",
+      "line": 691,
+      "message": "Argument 2 to \"_submit_mission_pipeline\" of \"ACSControlCenterApp\" has incompatible type \"Any | NoSelection | None\"; expected \"str | None\"",
+      "code": "arg-type"
+    }
+  ],
+  "secret_candidates": [
+    {
+      "file": "agpair/agpair/executors/claude_auth.py",
+      "line": 185,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb"
+    },
+    {
+      "file": "agpair/companion-extension/src/__tests__/bridgeAuth.test.ts",
+      "line": 497,
+      "type": "Secret Keyword",
+      "fingerprint": "20b83e6cfd2a8010feac4ffa9848f9bce95f0817"
+    },
+    {
+      "file": "agpair/companion-extension/src/bridge/authResolver.ts",
+      "line": 21,
+      "type": "Secret Keyword",
+      "fingerprint": "7337a28a8dda1aa9fd02147f24b031c7a61c3551"
+    },
+    {
+      "file": "agpair/tests/integration/test_claude_cli.py",
+      "line": 111,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb"
+    },
+    {
+      "file": "agpair/tests/integration/test_completion_policy.py",
+      "line": 300,
+      "type": "Hex High Entropy String",
+      "fingerprint": "6740d1ecb48c5c9ca3b2a3cb1ca2f4b4d4487473"
+    },
+    {
+      "file": "agpair/tests/integration/test_completion_policy.py",
+      "line": 305,
+      "type": "Hex High Entropy String",
+      "fingerprint": "fe44eb76a1f3f388a3b8b1912e10d1e0c3dc9e63"
+    },
+    {
+      "file": "agpair/tests/integration/test_doctor.py",
+      "line": 740,
+      "type": "Secret Keyword",
+      "fingerprint": "ca88c6098d0d433a8a5fe1b237cd2aa52fd55373"
+    },
+    {
+      "file": "agpair/tests/unit/test_claude_code_executor.py",
+      "line": 161,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734"
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "line": 392,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734"
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "line": 490,
+      "type": "Secret Keyword",
+      "fingerprint": "feb0d6043824d6433ba8a68dacd6fb5d53d4254a"
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "line": 525,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb"
+    },
+    {
+      "file": "agpair/tests/unit/test_local_cli_executor.py",
+      "line": 43,
+      "type": "Secret Keyword",
+      "fingerprint": "dbdab9be92cacdae6a97e8601332bfaa8545800f"
+    },
+    {
+      "file": "reports/baseline_tests.json",
+      "line": 3,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ffe960bcda5285ae6570bdfab1c32e85736aee22"
+    },
+    {
+      "file": "reports/secret_scan.json",
+      "line": 4,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ffe960bcda5285ae6570bdfab1c32e85736aee22"
+    },
+    {
+      "file": "tests/test_gate5_guardian_and_security.py",
+      "line": 64,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ccdd30d64e668771bc1efb2028e833b044b6be3b"
+    }
+  ]
+}

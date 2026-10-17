@@ -1,0 +1,317 @@
+{
+  "schema_version": 1,
+  "revision": "eecbce4a8a834d3cd6ac835f587f02bafa88bb08",
+  "python": "3.12.14",
+  "pytest_exit_code": 1,
+  "duration_s": 5.386,
+  "counts": {
+    "collected": 42,
+    "passed": 37,
+    "failed": 5,
+    "skipped": 0,
+    "errors": 0
+  },
+  "tests": [
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_db_pragmas_and_schema",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_state_machine_valid_transitions",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_state_machine_invalid_transition_fails_closed",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_cryptographic_checkpoint_integrity",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_crash_reconciliation",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate2_daemon_and_db.py::test_local_api_server",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_worker_registry_and_banned_flags",
+      "outcome": "failed",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "local_reason": "Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.",
+      "status": "NOT_TESTED",
+      "failure_type": "AssertionError"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_worktree_isolation_and_lifecycle",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_disk_space_circuit_breaker",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_scope_reservation_and_diff_verification",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate3_workers_and_worktrees.py::test_integration_manager_merge_and_conflict_handling",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_memory_engine_record_and_search",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_mcp_registry_permissions_and_path_security",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate4_memory_mcp_rea.py::test_rea_adapter_inspection",
+      "outcome": "failed",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "local_reason": "Requires working bubblewrap user namespaces; cloud probe failed setting up uid map. Verify real boundaries on the local machine.",
+      "status": "NOT_TESTED",
+      "failure_type": "AssertionError"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_quality_engine_scoring_and_vetoes",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_evidence_engine_integrity",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_human_approval_gate",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate5_guardian_and_security.py::test_guardian_security_boundaries",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_e2e_autonomous_lifecycle",
+      "outcome": "passed",
+      "label": "CLOUD_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_cli_subcommands",
+      "outcome": "failed",
+      "label": "CLOUD_REAL",
+      "status": "FAIL",
+      "failure_type": "FileNotFoundError"
+    },
+    {
+      "nodeid": "tests/test_gate6_e2e_and_cli.py::test_tui_app_instantiation",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_test_tracker_roundtrip",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_check_daemon_health_online",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_check_daemon_health_offline",
+      "outcome": "passed",
+      "label": "CLOUD_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_agy_b_worker_isolation",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate7_audit_and_reliability.py::test_all_three_workers_in_registry",
+      "outcome": "failed",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "local_reason": "Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.",
+      "status": "NOT_TESTED",
+      "failure_type": "AssertionError"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_1_nl_mission_without_repo",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_2_nl_mission_with_existing_repo",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_3_multiline_prompts",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_4_dashboard_mission_submission",
+      "outcome": "passed",
+      "label": "CLOUD_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_5_automatic_worker_selection",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_6_explicit_worker_selection",
+      "outcome": "failed",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "local_reason": "Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.",
+      "status": "NOT_TESTED",
+      "failure_type": "WorkerUnverifiedError"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_7_sqlite_mission_persistence",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_8_mission_logs_and_progress",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_9_mission_cancellation",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_10_resume_after_restart",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_11_real_coding_task_execution",
+      "outcome": "passed",
+      "label": "CLOUD_SIMULATED",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_12_pytest_execution_in_worktree",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_13_guardian_evaluation_and_hmac",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_14_mcp_inventory_and_verification",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_15_repository_inventory",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    },
+    {
+      "nodeid": "tests/test_gate8_natural_language_and_v2_2.py::test_16_protected_acs_core_rejection",
+      "outcome": "passed",
+      "label": "CLOUD_REAL",
+      "status": "PASS"
+    }
+  ],
+  "warnings": [],
+  "dependencies": {
+    "acs-ai-orchestrator": "2.2.0",
+    "Pygments": "2.21.0",
+    "mdurl": "0.1.2",
+    "pip": "25.0.1",
+    "markdown-it-py": "4.2.0",
+    "rich": "15.0.0",
+    "iniconfig": "2.3.1",
+    "packaging": "26.3",
+    "annotated-doc": "0.0.5",
+    "pytest": "9.1.1",
+    "shellingham": "1.5.4",
+    "typer": "0.27.3",
+    "textual": "8.2.8",
+    "typing_extensions": "4.16.0",
+    "pluggy": "1.7.0",
+    "linkify-it-py": "2.2.0",
+    "agpair": "1.0.0",
+    "mdit-py-plugins": "0.6.1",
+    "platformdirs": "4.13.3"
+  },
+  "by_label": {
+    "CLOUD_REAL": {
+      "passed": 33,
+      "failed": 1
+    },
+    "CLOUD_SIMULATED": {
+      "passed": 4
+    },
+    "LOCAL_VERIFICATION_REQUIRED": {
+      "failed": 4
+    }
+  },
+  "isolation": "Before imports, os.path.expanduser(~) redirected to temporary runtime paths without changing HOME; tempfile root and pytest basetemp temporary. No real worker execution. Existing tests and assertions unmodified.",
+  "scope": "Root tests/ only; nested agpair and companion extension are separate optional workflows.",
+  "environment_notes": [
+    "Cloud attempt failures under LOCAL_VERIFICATION_REQUIRED are diagnostic observations, not completed local verification.",
+    "Raw baseline retained all 42 original test cases. CI explicitly skips 4 local cases and compares the remaining known failure, retaining pytest exit status."
+  ]
+}

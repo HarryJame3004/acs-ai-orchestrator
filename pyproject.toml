@@ -36,11 +36,14 @@ test = [
 ]
 
 [project.scripts]
-acsai = "acs_team.cli:app"
+acsai = "acs_team.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["acs_team*"]
+
+[tool.setuptools.package-data]
+acs_team = ["defaults.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

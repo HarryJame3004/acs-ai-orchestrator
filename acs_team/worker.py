@@ -1,9 +1,9 @@
 import json
 import logging
-import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from .config import AGPAIR_BIN, CODEX_BIN
+from .managed_worker import worker_run
 
 logger = logging.getLogger("acs_team.worker")
 
@@ -54,8 +54,9 @@ Requirements:
         ]
 
         logger.debug(f"Running command: {' '.join(cmd)}")
-        result = subprocess.run(
+        result = worker_run(
             cmd,
+            task_id=task_name,
             capture_output=True,
             text=True,
             cwd=str(repo_path),
