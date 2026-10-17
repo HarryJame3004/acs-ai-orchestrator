@@ -30,3 +30,9 @@ LOCAL_VERIFICATION_REQUIRED: real worker authentication and harmless missions,
 bwrap UID/mount/network/auth boundary, systemd watchdog/restart/cgroups, laptop
 backup/deployment/restore, real MCP server behavior. No local deployment, ACS Core
 access, main push or merge performed. Continue V2.4 using a dependent branch.
+
+Hosted CI follow-up: annotations identified the periodic-backup test failing on
+fresh GitHub VM uptime below 3600 seconds. The first scheduled backup must be
+immediately due (last_backup=0); interval gating now applies only after a backup
+exists. The regression test injects uptime=10 seconds. Actions log download hosts
+are separately blocked with 403; API metadata/annotations remain accessible.

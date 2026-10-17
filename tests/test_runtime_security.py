@@ -188,6 +188,9 @@ def test_periodic_backup_is_opt_in_and_interval_bounded(tmp_path, monkeypatch):
     daemon._periodic_backup()
     assert not (tmp_path / "backups").exists()
     monkeypatch.setenv("ACS_ENABLE_PERIODIC_BACKUPS", "1")
+    # Fresh CI VMs may have uptime below the backup interval. First backup is
+    # due immediately; subsequent calls are interval bounded.
+    monkeypatch.setattr("acs_team.daemon.time.monotonic", lambda: 10.0)
     daemon._periodic_backup()
     daemon._periodic_backup()
     backups = list((tmp_path / "backups").iterdir())

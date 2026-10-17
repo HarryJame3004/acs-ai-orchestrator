@@ -59,7 +59,7 @@ class ACSDaemon:
         if os.environ.get("ACS_ENABLE_PERIODIC_BACKUPS") != "1":
             return
         interval = max(60, int(os.environ.get("ACS_BACKUP_INTERVAL_SECONDS", "3600")))
-        if time.monotonic() - self.last_backup < interval:
+        if self.last_backup and time.monotonic() - self.last_backup < interval:
             return
         from .config import BACKUPS_DIR
         from .recovery import create_backup
