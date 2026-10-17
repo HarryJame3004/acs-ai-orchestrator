@@ -4,6 +4,7 @@
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import pytest
 from pathlib import Path
@@ -157,8 +158,14 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
     assert not worktree_path.exists()
 
 
-def test_cli_subcommands():
-    venv_py = "/home/khoi/.local/share/acs-orchestrator/venv/bin/python3"
+def test_cli_subcommands(tmp_path, monkeypatch):
+    # Exercise the same installed Python/package in isolated state, never a
+    # workstation-specific interpreter or the operational service/database.
+    venv_py = sys.executable
+    monkeypatch.setenv("ACS_HOME", str(tmp_path / "runtime"))
+    monkeypatch.setenv("ACS_BACKUPS_DIR", str(tmp_path / "backups"))
+    monkeypatch.setenv("ACS_CREDENTIALS_FILE", str(tmp_path / "absent-settings.json"))
+    monkeypatch.setenv("ACS_API_PORT", "0")
     
     # 1. Test acsai status
     res_status = subprocess.run(
