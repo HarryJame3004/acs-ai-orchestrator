@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 import re
@@ -62,10 +63,22 @@ def collect() -> dict[str, Any]:
 
 
 def new_findings(previous: dict[str, Any], current: dict[str, Any]) -> dict[str, list[Any]]:
-    return {
-        tool: [row for row in rows if row not in previous.get(tool, [])]
-        for tool, rows in current.items()
-    }
+    # Line movement is not new debt. Keep multiplicity and secret fingerprints
+    # so duplicate errors or a changed secret at the same location still fail.
+    def identity(row: dict[str, Any]) -> str:
+        return json.dumps({k: v for k, v in row.items() if k != "line"}, sort_keys=True)
+
+    findings: dict[str, list[Any]] = {}
+    for tool, rows in current.items():
+        remaining = Counter(identity(row) for row in previous.get(tool, []))
+        findings[tool] = []
+        for row in rows:
+            key = identity(row)
+            if remaining[key]:
+                remaining[key] -= 1
+            else:
+                findings[tool].append(row)
+    return findings
 
 
 def main() -> int:
