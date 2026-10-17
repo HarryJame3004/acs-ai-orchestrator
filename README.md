@@ -2,10 +2,11 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Arch%20Linux%20%7C%20Linux-blue)](https://archlinux.org/)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://python.org/)
-[![Tests](https://img.shields.io/badge/Tests-42%2F42%20Passing-brightgreen)](tests/)
-[![Security](https://img.shields.io/badge/Guardian-Fail--Closed%20%26%20HMAC-success)](SECURITY.md)
+[![Cloud baseline regression](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml)
 
-**ACS AI** is a production-grade, local-first, multi-agent autonomous software development orchestration platform. It converts natural-language instructions into decomposed, tested, and verified code implementations across isolated git worktrees using a coordinated multi-worker pool (`codex-primary`, `agy-google-a`, `agy-google-b`), governed by an independent fail-closed **Guardian**.
+**ACS AI** is an experimental, local-first Python coding orchestrator with planner, worker adapters, git worktrees, SQLite persistence and a **Guardian** evidence gate. Coordinated multi-agent execution and security guarantees remain under audit.
+
+The unchanged orchestrator baseline is **37 passed / 5 failed**, with cloud and simulated results distinguished in [the audit](reports/PHASE_0_BASELINE_AUDIT.md). CI compares against disclosed existing failures; a green regression check does not mean all tests pass. Real worker authentication, MCP connectivity and the user's local deployment remain unverified. See [TESTING.md](TESTING.md) and [stage progress](docs/progress/PROGRESS.md) before development.
 
 ---
 
@@ -56,8 +57,8 @@
    - Human approval requirement for remote branch publishing.
 
 6. **MCP Inventory & Governance**
-   - Discovers and audits MCP servers across native tools, Antigravity configs, and Codex plugins (51 servers, 68 usable tools).
-   - Zero credential leakage: Tokens and API keys are automatically masked (`github_pat_***`).
+   - Inventories native tool definitions, Antigravity configs and Codex plugins; configured entries are not proof of connectivity.
+   - Auth display masking exists, but comprehensive credential redaction is pending security hardening.
 
 7. **SQLite WAL Persistence & Crash Recovery**
    - Full state persistence across systemd daemon restarts.
@@ -129,7 +130,7 @@ For comprehensive architectural specifications, see [ARCHITECTURE.md](ARCHITECTU
 
 ### Prerequisites
 - Linux OS (Arch Linux, EndeavourOS, Debian/Ubuntu, Fedora)
-- Python 3.11+
+- Python 3.12+ for the shared orchestrator and agpair installation
 - Git 2.30+
 
 ### Installation
@@ -144,11 +145,12 @@ pip install -e ./agpair
 
 For complete systemd daemon service installation, see [INSTALL.md](INSTALL.md).
 
-### Running Tests
+### Cloud Development and Tests
 ```bash
-pytest tests/ -v
+bash scripts/cloud_setup.sh
+.venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json
 ```
-All 42 unit and integration tests execute in <4 seconds.
+The runner isolates runtime paths and explicitly lists local-only checks. One existing CLI test still fails because it hardcodes the original workstation's interpreter path. Use `python -m acs_team.cli` for the CLI: the installed `acsai` entry point also needs a separate packaging fix. See [TESTING.md](TESTING.md) for exact counts, labels and the incremental CI comparison command.
 
 ---
 
