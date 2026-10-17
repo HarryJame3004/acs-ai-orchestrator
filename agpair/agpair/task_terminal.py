@@ -94,11 +94,24 @@ def finalize_executor_receipt(
         payload["report_path"] = report_path
     receipt_path = str(attempt_dir / "receipt.json")
     payload["receipt_path"] = receipt_path
+    # Controller identity comes from the host-persisted attempt, never a worker
+    # receipt. Preserve it when a fast worker reaches terminal before CLI status.
+    attempt = tasks.current_attempt(task.task_id)
+    previous_policy = {}
+    if attempt is not None and attempt.effective_policy_json:
+        decoded = json.loads(attempt.effective_policy_json)
+        if not isinstance(decoded, dict):
+            raise ValueError("Invalid stored attempt policy")
+        previous_policy = decoded
+    controller = previous_policy.get("controller")
+    if controller is not None and not isinstance(controller, str):
+        raise ValueError("Invalid stored controller identity")
     requested_policy = getattr(task, "completion_policy", None) or "auto"
     effective_policy = resolve_effective_task_policy(
         requested_completion_policy=requested_policy,
         authorization_profile=task.authorization_profile,
         body=original_body,
+        controller=controller,
     )
     _merge_worktree_evidence(task, payload, effective_policy.effective_completion_policy)
     scope_validation = _scope_validation_payload(task, payload)
@@ -233,13 +246,16 @@ def finalize_executor_receipt(
             terminal_receipt_json=terminal_body,
         )
         journal.append(task.task_id, source, "blocked", terminal_body)
+    persisted_policy = effective_policy.to_dict()
+    if isinstance(previous_policy.get("requested_executor"), str):
+        persisted_policy["requested_executor"] = previous_policy["requested_executor"]
     tasks.record_attempt_terminal(
         task_id=task.task_id,
         attempt_no=task.attempt_no,
         phase=decision.phase,
         terminal_receipt_json=terminal_body,
         terminal_source=source,
-        effective_policy_json=json.dumps(effective_policy.to_dict(), ensure_ascii=False, sort_keys=True),
+        effective_policy_json=json.dumps(persisted_policy, ensure_ascii=False, sort_keys=True),
     )
     tasks.update_attempt_adoption(
         task_id=task.task_id,
