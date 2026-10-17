@@ -96,7 +96,7 @@ class ProcessSupervisor:
                         stream.close()
             self.slots.release()
 
-    def terminate(self, process: subprocess.Popen, expected: ProcessIdentity, grace: float = 0.3) -> None:
+    def terminate(self, process: subprocess.Popen, expected: ProcessIdentity, grace: float = 3.0) -> None:
         with self._lock:
             if self._owned.get(process.pid) != (process, expected):
                 raise PermissionError("Refusing to terminate an unowned process")

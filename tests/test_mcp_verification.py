@@ -97,7 +97,10 @@ def test_fake_server_failure_timeout_and_cleanup(tmp_path, mode, exception):
     server = fake_server(tmp_path, mode)
     with pytest.raises(exception):
         with StdioClient(
-            [sys.executable, str(server)], tmp_path, timeout=0.2
+            [sys.executable, str(server)], tmp_path,
+            # Protocol rejection must be observed after interpreter startup;
+            # only the timeout scenario tests a 200ms response deadline.
+            timeout=0.2 if mode == "timeout" else 2.0
         ) as client:
             process = client.process
             client.initialize()

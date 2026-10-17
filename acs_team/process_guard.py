@@ -16,10 +16,32 @@ import sys
 import time
 
 
+def _scan_descendants(root: int) -> dict[int, str]:
+    # Some kernels omit /proc/.../children (CONFIG_CHECKPOINT_RESTORE).
+    records = {}
+    for path in Path("/proc").iterdir():
+        if not path.name.isdigit():
+            continue
+        try:
+            raw = (path / "stat").read_text()
+            fields = raw[raw.rfind(")") + 2:].split()
+            records[int(path.name)] = (int(fields[1]), fields[19])
+        except (OSError, ValueError, IndexError):
+            continue
+    found = {root}
+    while True:
+        additions = {pid for pid, (parent, _) in records.items() if parent in found} - found
+        if not additions:
+            break
+        found.update(additions)
+    return {pid: records[pid][1] for pid in found - {root}}
+
+
 def _descendants(root: int) -> dict[int, str]:
     # Traverse only this owned tree. A full /proc scan can miss a cleanup deadline
     # on busy hosts and is unnecessary; children may belong to any worker thread.
     found: dict[int, str] = {}
+    children_available = False
     pending = [root]
     visited = {root}
     while pending:
@@ -31,6 +53,7 @@ def _descendants(root: int) -> dict[int, str]:
         for thread in threads:
             try:
                 children = (thread / "children").read_text().split()
+                children_available = True
             except OSError:
                 continue
             for text in children:
@@ -48,7 +71,7 @@ def _descendants(root: int) -> dict[int, str]:
                     pending.append(pid)
                 except (OSError, ValueError, IndexError):
                     continue
-    return found
+    return found if children_available else _scan_descendants(root)
 
 
 def _signal_owned(root: int, sig: signal.Signals) -> None:

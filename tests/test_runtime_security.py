@@ -354,3 +354,25 @@ def test_legacy_review_requires_real_tests_and_valid_independent_verdict(monkeyp
         result = reviewer.review('Fixture', tmp_path, ['module.py'], 'pytest')
         assert result['approved'] is False
         assert result['test_passed'] is True
+
+
+def test_guard_discovers_owned_child_when_kernel_omits_children_files(monkeypatch):
+    from acs_team.process_guard import _descendants
+
+    original = Path.read_text
+
+    def without_children(path, *args, **kwargs):
+        if path.name == 'children' and str(path).startswith('/proc/'):
+            raise FileNotFoundError('Kernel omits CONFIG_CHECKPOINT_RESTORE children files')
+        return original(path, *args, **kwargs)
+
+    child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(10)'])
+    try:
+        monkeypatch.setattr(Path, 'read_text', without_children)
+        found = _descendants(__import__('os').getpid())
+        assert child.pid in found
+        fields = original(Path(f'/proc/{child.pid}/stat')).rsplit(')', 1)[1].split()
+        assert found[child.pid] == fields[19]
+    finally:
+        child.terminate()
+        child.wait(timeout=5)
