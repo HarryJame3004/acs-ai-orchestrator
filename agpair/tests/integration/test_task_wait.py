@@ -629,10 +629,10 @@ def test_task_wait_json_uses_same_recovery_decision_for_soft_no_progress(tmp_pat
     finally:
         from agpair.executors import get_executor
         task = TaskRepository(_make_paths(tmp_path).db_path).get_task('TASK-WAIT-RECOVERY')
-        if task and task.session_id:
+        if task and task.executor_session_id:
             executor = get_executor('antigravity-cli')
-            executor.cancel(task.task_id, task.session_id)
-            executor.cleanup(task.session_id)
+            executor.cancel(task.task_id, task.executor_session_id)
+            executor.cleanup(task.executor_session_id)
 
 
 def test_task_wait_json_normalizes_committed_result_list_fields(tmp_path: Path, monkeypatch):
