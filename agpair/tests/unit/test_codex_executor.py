@@ -107,14 +107,14 @@ def test_codex_executor_dispatch_uses_isolated_worktree_for_command_and_cwd(tmp_
     assert kwargs["cwd"] == str(worktree_path.resolve())
 
 
-def test_codex_executor_dispatch_uses_bypass_all_by_default(monkeypatch):
+def test_codex_executor_dispatch_keeps_sandbox_by_default(monkeypatch):
     monkeypatch.delenv("AGPAIR_CODEX_APPROVAL_MODE", raising=False)
     executor = CodexExecutor(codex_bin="fake-codex")
 
     cmd = executor._build_codex_cmd("Do something", "/fake/repo", pathlib.Path("/tmp"))
 
-    assert "--dangerously-bypass-approvals-and-sandbox" in cmd
-    assert "--full-auto" not in cmd
+    assert "--dangerously-bypass-approvals-and-sandbox" not in cmd
+    assert "--full-auto" in cmd
     assert "--ignore-user-config" not in cmd
     assert "--ignore-rules" not in cmd
 

@@ -72,7 +72,6 @@ def test_antigravity_cli_command_is_agy_print_driven(monkeypatch) -> None:
 
     assert cmd == [
         "fake-agy",
-        "--dangerously-skip-permissions",
         "--add-dir",
         "/tmp/repo",
         "--print-timeout",
