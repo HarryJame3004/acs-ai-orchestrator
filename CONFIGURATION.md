@@ -24,3 +24,10 @@ All new mutating runtime paths are off by default.
 Flags for coordination/intelligence/review/notifications/multi-solution and
 external MCP in defaults do not imply implementations are operational.
 Do not enable an entire release based only on cloud test results.
+
+ACS_ENABLE_COORDINATION=1 enables the host-configured TeamRunner API; it does not
+automatically wire the legacy daemon. ACS_ENABLE_INTELLIGENCE=1 enables bounded
+context/advisory lessons and measured selection in the existing planner.
+ACS_ENABLE_MULTI_SOLUTION=1 additionally permits the explicitly configured
+alternatives API; need/quota checks still apply. Real provider role adapters are
+unverified. `bench --workers fake` explicitly selects simulation.

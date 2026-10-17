@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .config import GIT_BIN, MAX_CONCURRENT_WORKERS, WORKTREES_DIR
+from .ownership import matches, overlaps, scope
 
 logger = logging.getLogger("acs_ai.integration")
 
@@ -46,7 +47,7 @@ class ScopeManager:
         declared_files: List[str],
     ) -> None:
         """Reserves a set of target files for a task. Raises ScopeConflictError if overlapping."""
-        norm_files = {os.path.normpath(f) for f in declared_files if f}
+        norm_files = {scope(f) for f in declared_files if f}
         if not norm_files:
             return
 
@@ -55,7 +56,7 @@ class ScopeManager:
             for other_tid, other_files in mission_res.items():
                 if other_tid == task_id:
                     continue
-                intersection = norm_files.intersection(other_files)
+                intersection = {(a, b) for a in norm_files for b in other_files if overlaps(a, b)}
                 if intersection:
                     raise ScopeConflictError(
                         f"Scope conflict: Task '{task_id}' targets {intersection} which is already "
@@ -95,8 +96,8 @@ class ScopeManager:
             new_files = [name for name in untracked.stdout.split("\0") if name and not generated.intersection(Path(name).parts)]
             actual_files = sorted(set(filter(None, res.stdout.split("\0"))) | set(new_files))
 
-            norm_declared = {os.path.normpath(f) for f in declared_files if f}
-            unexpected = [f for f in actual_files if f not in norm_declared]
+            norm_declared = {scope(f) for f in declared_files if f}
+            unexpected = [f for f in actual_files if not any(matches(pattern, f) for pattern in norm_declared)]
 
             is_valid = len(unexpected) == 0
             if not is_valid:
@@ -112,8 +113,9 @@ class ScopeManager:
 class IntegrationManager:
     """Manages integration branch creation, ancestry verification, and merge conflict detection."""
 
-    def __init__(self, repo_path: Path):
+    def __init__(self, repo_path: Path, worktrees_dir: Optional[Path] = None):
         self.repo_path = Path(repo_path)
+        self.worktrees_dir = Path(worktrees_dir or WORKTREES_DIR)
         self.integration_path: Optional[Path] = None
 
     def ensure_integration_branch(self, mission_id: str, base_ref: str = "master") -> str:
@@ -197,8 +199,8 @@ class IntegrationManager:
         if not integration_branch.startswith("acsai/mission/"):
             raise PermissionError("Integration requires a dedicated mission branch")
         if self.integration_path is None:
-            WORKTREES_DIR.mkdir(parents=True, exist_ok=True)
-            path = Path(tempfile.mkdtemp(prefix="integration-", dir=WORKTREES_DIR))
+            self.worktrees_dir.mkdir(parents=True, exist_ok=True)
+            path = Path(tempfile.mkdtemp(prefix="integration-", dir=self.worktrees_dir))
             path.rmdir()  # Only our just-created empty directory.
             subprocess.run([str(GIT_BIN), "worktree", "add", str(path), integration_branch],
                            cwd=self.repo_path, check=True, capture_output=True)
@@ -240,7 +242,7 @@ class IntegrationManager:
         }
 
     def rollback_integration(self, commit: str) -> None:
-        if self.integration_path is None or WORKTREES_DIR.resolve() not in self.integration_path.resolve().parents:
+        if self.integration_path is None or self.worktrees_dir.resolve() not in self.integration_path.resolve().parents:
             raise PermissionError("Only the manager's own integration worktree may be reset")
         subprocess.run([str(GIT_BIN), "reset", "--hard", commit], cwd=self.integration_path,
                        check=True, capture_output=True)

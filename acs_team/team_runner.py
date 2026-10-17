@@ -168,7 +168,7 @@ class TeamRunner:
                     "Baseline test modification requires explicit review"
                 )
             _, names, _ = ScopeManager().verify_diff_against_scope(
-                worktree, [], base_ref=base
+                worktree, [*task.owns, *protected], base_ref=base
             )
             validate_changes(
                 worktree, [n for n in names if n not in protected], task.owns
@@ -284,7 +284,7 @@ class TeamRunner:
             ):
                 raise PermissionError("Worktree changed after commit-bound review")
             _, final_names, _ = ScopeManager().verify_diff_against_scope(
-                worktree, [], base_ref=base
+                worktree, [*task.owns, *protected], base_ref=base
             )
             if final_names != names:
                 raise PermissionError("Task file set changed after review")
@@ -324,7 +324,9 @@ class TeamRunner:
         self.control.require_dispatch()
         Guardian(self.store.db, self.key).verify_corelock_safety(str(repository), [])
         self.store.register(plan, str(repository))
-        integration = IntegrationManager(repository)
+        integration = IntegrationManager(
+            repository, worktrees_dir=self.worktrees.worktrees_dir
+        )
         branch = integration.ensure_integration_branch(plan.mission_id, "HEAD")
         busy: set[str] = set()
         running: dict = {}

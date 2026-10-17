@@ -501,72 +501,152 @@
       "requirement": "Lessons learned",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.2",
       "requirement": "Better task decomposition",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.3",
       "requirement": "Context selection",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.4",
       "requirement": "Structured worker output",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.5",
       "requirement": "Golden benchmark suite",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.6",
       "requirement": "Adaptive scheduling",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.7",
       "requirement": "Multi-solution mode",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "6.8",
       "requirement": "V2.5 acceptance criteria",
       "stage": "V2.5",
       "label": "CLOUD_REAL",
-      "status": "NOT_TESTED",
-      "implementation": [],
-      "evidence": []
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
     },
     {
       "id": "7.1",

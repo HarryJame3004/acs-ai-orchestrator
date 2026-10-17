@@ -55,7 +55,27 @@ class AutonomousMissionPlanner:
         self.auth_token = get_or_create_auth_token(STATE_DIR / "evidence.key")
         self.control = RuntimeControl(self.db, initialize=False)
 
-    def run_mission(
+    def run_mission(self, mission_id: str, prompt: str, repo_path: Path,
+                    worker_preference: str = "auto", test_command: Optional[str] = None,
+                    max_retries: int = 3, log_callback: Optional[Callable[[str], None]] = None) -> Dict[str, Any]:
+        started = time.monotonic()
+        result = self._run_mission(mission_id, prompt, repo_path, worker_preference,
+                                   test_command, max_retries, log_callback)
+        if os.environ.get("ACS_ENABLE_INTELLIGENCE") == "1" and result.get("worker_used"):
+            from .intelligence import WorkerMetrics
+            from .context_selection import relevance
+            audits = self.db.get_audit_trail(mission_id)
+            selected = next((event['details'] for event in audits if event['action'] == 'CONTEXT_SELECTED'), {})
+            self.db.record_audit_event(mission_id, 'context-selector', 'CONTEXT_RELEVANCE',
+                {'selected_fraction_touched': relevance(selected, result.get('files_modified', [])),
+                 'estimated_tokens': selected.get('estimated_tokens', 0)})
+            WorkerMetrics(self.db).record(result["worker_used"], mission_id,
+                success=result.get("status") == "COMPLETED", tests_passed=result.get("approved", False),
+                review_rejected=not result.get("approved", False), runtime=time.monotonic()-started,
+                retries=max(0, result.get("attempts", 1)-1), context_tokens=selected.get('estimated_tokens', 0))
+        return result
+
+    def _run_mission(
         self,
         mission_id: str,
         prompt: str,
@@ -110,7 +130,15 @@ class AutonomousMissionPlanner:
 
         # Step 1: Inspect repository structure
         _log("Step 1: Inspecting repository structure...")
-        repo_summary = self._inspect_repo(repo_path)
+        if os.environ.get("ACS_ENABLE_INTELLIGENCE") == "1":
+            from .context_selection import select_context
+            from .intelligence import Lessons
+            context = select_context(repo_path, prompt)
+            self.db.record_audit_event(mission_id, "context-selector", "CONTEXT_SELECTED", context["metrics"])
+            repo_summary = json.dumps({"untrusted_advisory_context": context["advisory_context"]})
+            repo_summary += "\n" + Lessons(self.db).advisory(repo_path.name, ["python", "testing"])
+        else:
+            repo_summary = self._inspect_repo(repo_path)
         _log(f"Repository inspected ({len(repo_summary.splitlines())} lines context).")
 
         # Step 2: Generate Actionable Task Graph via Planner
@@ -131,7 +159,7 @@ class AutonomousMissionPlanner:
 
         # Step 3: Multi-Agent Worker Scheduling
         _log("Step 3: Scheduling worker...")
-        worker_id, worker = self._schedule_worker(worker_preference, plan)
+        worker_id, worker = self._schedule_worker(worker_preference, plan, mission_id=mission_id)
         _log(f"Assigned worker: {worker_id}")
 
         with self.db.connection() as con:
@@ -185,7 +213,7 @@ class AutonomousMissionPlanner:
             if current_mission is None:
                 raise RuntimeError("Mission state disappeared during execution")
             if self.control.stopped() or current_mission["state"] == MissionState.CANCELLED.value:
-                return {"mission_id": mission_id, "status": "CANCELLED", "worktree_path": str(worktree_path)}
+                return {"mission_id": mission_id, "status": "CANCELLED", "worker_used": worker_id, "worktree_path": str(worktree_path)}
             last_worker_result = dispatch_res
 
             if not dispatch_res.get("success", False):
@@ -233,6 +261,7 @@ class AutonomousMissionPlanner:
             return {
                 "mission_id": mission_id,
                 "status": "FAILED",
+                "worker_used": worker_id,
                 "error": last_error,
                 "attempts": attempt,
             }
@@ -242,7 +271,7 @@ class AutonomousMissionPlanner:
         valid_scope, unstaged_files, unexpected = self.scope_mgr.verify_diff_against_scope(worktree_path, current_files, base_ref=base_sha)
         if not valid_scope:
             self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info=f"Scope violation: {unexpected}")
-            return {"mission_id": mission_id, "status": "BLOCKED", "unexpected_files": unexpected}
+            return {"mission_id": mission_id, "status": "BLOCKED", "worker_used": worker_id, "unexpected_files": unexpected}
         if unstaged_files:
             subprocess.run([str(GIT_BIN), "add", "-A", "--", *unstaged_files], cwd=str(worktree_path), check=True)
         commit_msg = f"Implement: {plan.get('goal_summary', prompt)[:80]} (Worker: {worker_id})"
@@ -261,7 +290,7 @@ class AutonomousMissionPlanner:
         valid_scope, actual_files, unexpected = self.scope_mgr.verify_diff_against_scope(worktree_path, current_files, base_ref=base_sha)
         if not valid_scope:
             self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info=f"Scope violation: {unexpected}")
-            return {"mission_id": mission_id, "status": "BLOCKED", "unexpected_files": unexpected}
+            return {"mission_id": mission_id, "status": "BLOCKED", "worker_used": worker_id, "unexpected_files": unexpected}
         # Prepare integration; Guardian must approve BEFORE the branch advances.
         _log("Step 8: Preparing independent pre-integration verification...")
         int_mgr = IntegrationManager(repo_path)
@@ -324,7 +353,7 @@ class AutonomousMissionPlanner:
             self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info=str(verdict.veto_reasons))
             return {
                 "mission_id": mission_id,
-                "status": "BLOCKED",
+                "status": "BLOCKED", "worker_used": worker_id,
                 "approved": False,
                 "quality_score": verdict.quality_score,
                 "veto_reasons": verdict.veto_reasons,
@@ -338,10 +367,12 @@ class AutonomousMissionPlanner:
         if not integrated_tests["passed"]:
             int_mgr.rollback_integration(merge_result["previous_commit_sha"])
             self.state_machine.transition(mission_id, MissionState.BLOCKED, error_info="Post-integration tests failed; mission branch rolled back")
-            return {"mission_id": mission_id, "status": "BLOCKED", "error": "Post-integration verification failed"}
+            return {"mission_id": mission_id, "status": "BLOCKED", "worker_used": worker_id, "error": "Post-integration verification failed"}
+        merged_diff = subprocess.run(["git", "diff", f"{base_sha}..{integrated_sha}"],
+                                     cwd=merge_result["integration_worktree"], capture_output=True, text=True, check=True).stdout
         final_evidence = evidence_eng.create_evidence(mission_id, task_id, integrated_sha,
                                                      {"executed": True, **integrated_tests},
-                                                     {"diff_text": diff_text}).to_dict()
+                                                     {"diff_text": merged_diff}).to_dict()
         final_path = persist_evidence(final_evidence, STATE_DIR / "artifacts")
         self.worktree_mgr.remove_worktree(repo_path, worktree_path, force=True)
         # Step 11: Final Completion
@@ -403,7 +434,7 @@ class AutonomousMissionPlanner:
 
         return "\n".join(summary_lines)
 
-    def _schedule_worker(self, worker_pref: str, plan: Dict[str, Any]) -> Tuple[str, BaseWorker]:
+    def _schedule_worker(self, worker_pref: str, plan: Dict[str, Any], mission_id: str = "unspecified") -> Tuple[str, BaseWorker]:
         """Schedules appropriate worker based on preference, availability, and task needs."""
         available = self.registry.list_available_workers()
         if not available:
@@ -427,6 +458,12 @@ class AutonomousMissionPlanner:
                     f"Requested worker '{target_id}' is unavailable or unverified in WorkerRegistry."
                 )
             return target_id, self.registry.get_worker(target_id)
+
+        if os.environ.get("ACS_ENABLE_INTELLIGENCE") == "1":
+            from .intelligence import WorkerMetrics
+            selected, reason = WorkerMetrics(self.db).choose(available, mission_id)
+            self.db.record_audit_event(mission_id, "scheduler", "WORKER_SELECTED", {"worker": selected, "reason": reason})
+            return selected, self.registry.get_worker(selected)
 
         # 2. Auto Scheduling
         # Priority order: agy-google-b -> agy-google-a -> codex-primary

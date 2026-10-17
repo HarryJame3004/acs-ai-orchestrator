@@ -44,7 +44,7 @@ where = ["."]
 include = ["acs_team*"]
 
 [tool.setuptools.package-data]
-acs_team = ["defaults.json"]
+acs_team = ["defaults.json", "golden_cases.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

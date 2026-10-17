@@ -160,3 +160,28 @@ def plan_lint(plan: Plan) -> list[str]:
         for task in plan.tasks
         if not any(re.search(r"(^|/)(test|tests)", p) for p in task.owns)
     ]
+
+
+class FailureReport(Data):
+    task_id: Identifier
+    worker: Identifier
+    category: Literal["auth", "quota", "transient", "permanent", "unknown"]
+    summary: Text
+    retryable: bool
+    evidence: list[Text] = Field(default_factory=list, max_length=32)
+
+
+class GuardianEvidence(Data):
+    mission_id: Identifier
+    task_id: Identifier
+    commit_sha: Annotated[str, Field(pattern="^[a-f0-9]{40,64}$")]
+    executed_tests: int = Field(gt=0)
+    approved: bool
+    evidence_ref: Text
+
+
+class MissionSummary(Data):
+    mission_id: Identifier
+    status: Literal["COMPLETED", "FAILED", "BLOCKED", "CANCELLED"]
+    results: list[TaskResult] = Field(max_length=64)
+    issues: list[Text] = Field(default_factory=list, max_length=64)

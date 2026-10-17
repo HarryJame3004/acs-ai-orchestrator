@@ -752,6 +752,8 @@ def main():
     register_runtime(subparsers)
     from .team_cli import register as register_team
     register_team(subparsers)
+    from .intelligence_cli import register as register_intelligence
+    register_intelligence(subparsers)
 
     # ui
     p_ui = subparsers.add_parser("ui", help="Launch interactive Textual Control Center TUI")

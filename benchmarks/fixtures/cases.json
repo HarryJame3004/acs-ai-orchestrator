@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "name": "calculator",
+      "category": "python",
+      "goal": "Implement integer addition",
+      "initial": {},
+      "solution": {
+        "calculator.py": "def add(a, b): return a + b\n"
+      },
+      "test": "from calculator import add\ndef test_add(): assert add(2, 3) == 5 and add(-2, 2) == 0\n"
+    },
+    {
+      "name": "debug-division",
+      "category": "debugging",
+      "goal": "Fix division and zero error",
+      "initial": {
+        "arithmetic.py": "def divide(a,b): return a*b\n"
+      },
+      "solution": {
+        "arithmetic.py": "def divide(a,b): return a/b\n"
+      },
+      "test": "import pytest\nfrom arithmetic import divide\ndef test_divide():\n assert divide(6,2)==3\n with pytest.raises(ZeroDivisionError): divide(1,0)\n"
+    },
+    {
+      "name": "refactor-average",
+      "category": "refactoring",
+      "goal": "Preserve average behavior",
+      "initial": {
+        "stats.py": "def average(xs): return sum(xs)/len(xs)\n"
+      },
+      "solution": {
+        "stats.py": "def average(xs):\n total=sum(xs)\n return total/len(xs)\n"
+      },
+      "test": "from stats import average\ndef test_average(): assert average([2,4,6])==4 and average((1,3))==2\n"
+    },
+    {
+      "name": "web-health",
+      "category": "web",
+      "goal": "Add WSGI health response",
+      "initial": {},
+      "solution": {
+        "app.py": "def application(environ,start_response):\n start_response(\"200 OK\",[(\"Content-Type\",\"application/json\")])\n return [b'{\"status\":\"ok\"}']\n"
+      },
+      "test": "import json\nfrom app import application\ndef test_health():\n status=[]\n body=application({},lambda s,h:status.append(s))\n assert status==[\"200 OK\"] and json.loads(b\"\".join(body))=={\"status\":\"ok\"}\n"
+    },
+    {
+      "name": "generate-tests",
+      "category": "test-generation",
+      "goal": "Write substantive tests for multiply",
+      "initial": {
+        "maths.py": "def multiply(a,b): return a*b\n"
+      },
+      "solution": {
+        "test_generated.py": "from maths import multiply\ndef test_product(): assert multiply(4,3)==12\n"
+      },
+      "test": "import ast\nfrom pathlib import Path\ndef test_generated_contract():\n tree=ast.parse(Path(\"test_generated.py\").read_text())\n assert any(isinstance(n,ast.Assert) for n in ast.walk(tree))\n"
+    },
+    {
+      "name": "documentation",
+      "category": "documentation",
+      "goal": "Document installation and test commands",
+      "initial": {},
+      "solution": {
+        "GUIDE.md": "# Usage\nInstall with pip install -e .\nRun python -m pytest to verify.\n"
+      },
+      "test": "from pathlib import Path\ndef test_guide():\n text=Path(\"GUIDE.md\").read_text()\n assert \"pip install\" in text and \"python -m pytest\" in text\n"
+    },
+    {
+      "name": "multifile-model",
+      "category": "multi-file",
+      "goal": "Add public greeting API and model",
+      "initial": {},
+      "solution": {
+        "model.py": "NAME=\"ACS\"\n",
+        "api.py": "from model import NAME\ndef greeting(): return \"Hello \"+NAME\n"
+      },
+      "test": "from api import greeting\ndef test_greeting(): assert greeting()==\"Hello ACS\"\n"
+    },
+    {
+      "name": "safe-path",
+      "category": "security",
+      "goal": "Reject path traversal in public helper",
+      "initial": {},
+      "solution": {
+        "paths.py": "from pathlib import PurePosixPath\ndef valid(name):\n p=PurePosixPath(name)\n return bool(name) and not p.is_absolute() and \"..\" not in p.parts\n"
+      },
+      "test": "from paths import valid\ndef test_traversal(): assert valid(\"src/a.py\") and not valid(\"../private\") and not valid(\"/private\")\n"
+    },
+    {
+      "name": "cpp-header",
+      "category": "cpp",
+      "goal": "Provide an inline integer sum function",
+      "initial": {},
+      "solution": {
+        "sum.hpp": "#pragma once\ninline int add(int a,int b) { return a+b; }\n"
+      },
+      "test": "from pathlib import Path\nimport subprocess\nimport shutil\ndef test_cpp(tmp_path):\n compiler=shutil.which(\"c++\")\n assert compiler, \"C++ compiler required\"\n source=tmp_path/\"main.cpp\"\n source.write_text('#include \"sum.hpp\"\\nint main(){return add(2,3)==5?0:1;}\\n')\n target=tmp_path/\"check\"\n subprocess.run([compiler,\"-I\",str(Path.cwd()),str(source),\"-o\",str(target)],check=True)\n assert subprocess.run([str(target)]).returncode==0\n"
+    },
+    {
+      "name": "json-contract",
+      "category": "structured-output",
+      "goal": "Validate an explicit JSON API contract",
+      "initial": {},
+      "solution": {
+        "schema.json": "{\"schema_version\": 1, \"required\": [\"name\"], \"additionalProperties\": false}"
+      },
+      "test": "import json\nfrom pathlib import Path\ndef test_schema():\n value=json.loads(Path(\"schema.json\").read_text())\n assert value[\"schema_version\"]==1 and value[\"required\"]==[\"name\"] and value[\"additionalProperties\"] is False\n"
+    },
+    {
+      "name": "multi-agent",
+      "category": "collaboration",
+      "goal": "Build independent left and right functions",
+      "initial": {},
+      "solution": {
+        "left.py": "def value(): return 42\n",
+        "right.py": "def value(): return 42\n"
+      },
+      "test": "from {module} import value\ndef test_contract(): assert value()==42\n"
+    },
+    {
+      "name": "lease-recovery",
+      "category": "failure-recovery",
+      "goal": "Recover a confirmed dead expired worker",
+      "initial": {},
+      "solution": {
+        "recovered.py": "def value(): return 42\n"
+      },
+      "test": "from recovered import value\ndef test_recovery(): assert value()==42\n"
+    }
+  ]
+}

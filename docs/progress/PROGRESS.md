@@ -1,5 +1,13 @@
 # Upgrade progress
 
+## Current checkpoint — V2.5 PARTIAL
+
+117 passed / 4 local-only skips; no regressions/new static findings. Full fake
+golden harness 12/12 passed; real provider scoring remains BLOCKED. Context,
+advisory lessons, measured worker selection and gated proposal comparison added.
+See reports/V2_5_INTELLIGENCE_REPORT.md for exact gaps. PRs #3 and #4 hosted CI
+passed; first-backup uptime failure is resolved. Continue V2.6 safely.
+
 ## Current checkpoint — V2.4 PARTIAL
 
 110 passed / 4 local-only skips, no regressions. Real coordinated production API
