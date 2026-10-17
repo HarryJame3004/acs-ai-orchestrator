@@ -155,7 +155,7 @@ def test_codex_lifecycle_success(tmp_path: pathlib.Path, monkeypatch) -> None:
 def write_failing_codex_bin(tmp_path: pathlib.Path) -> pathlib.Path:
     bin_path = tmp_path / "fake-codex-fail"
     script = """#!/bin/bash
-    if [[ "$1" == "--version" ]]; then
+    if [[ "$1" == "--version" || "$1" == "--help" ]]; then
         echo "codex fixture-version"
         exit 0
     fi
