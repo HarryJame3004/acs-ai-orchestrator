@@ -10,7 +10,7 @@ ACS Core access occurred.
 
 Saved production milestones: Stage 0 8906cd1 (PR #1), Stage 1 071cc2a (#2),
 V2.3 cebfd08 (#3), V2.4 e960726 (#4), V2.5 e933d72 (#5), V2.6 21831cd (#6),
-Stage 7 490fbb0/e69f67e/54e598e/8595f48/2892d6c/46ff7ad plus final fixes/evidence (#7, draft).
+Stage 7 490fbb0/e69f67e/54e598e/8595f48/2892d6c/46ff7ad/329e402 plus final fixes/evidence (#7, draft).
 All are dependent branches targeting main; none merged by this task. Continue
 upgrade/stage-7-verification-release and fast-forward upgrade/overnight-integration.
 
@@ -37,7 +37,7 @@ review-driven execution. Additional schema/metrics/template/MCP details and full
 20-step demonstration remain partial. Laptop-only checks require local evidence;
 installing a CLI cannot fix missing integration source.
 
-All three hosted jobs passed at source checkpoint 46ff7ad; static/history gates
+All three hosted jobs passed at source checkpoint 329e402; static/history gates
 contain zero new findings. Reports are a snapshot, not release acceptance.
 
 Read reports/FINAL_ACCEPTANCE_REPORT.md and reports/REQUIREMENTS.json for coverage,

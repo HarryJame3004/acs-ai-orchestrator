@@ -1,6 +1,6 @@
 # Stage 7 checkpoint
 
-Status PARTIAL. Source checkpoints 490fbb0, e69f67e 54e598e and follow-up 8595f48/2892d6c/46ff7ad are on the stage
+Status PARTIAL. Source checkpoints 490fbb0, e69f67e 54e598e and follow-up 8595f48/2892d6c/46ff7ad/329e402 are on the stage
 branch and cumulative integration branch. Root 151 passed / 5 explicit local
 skips (126 CLOUD_REAL, 25 CLOUD_SIMULATED); bridge recorded full container run
 847 passed; companion 138 passed; full fake golden 12/12 passed. Scoped lint/type

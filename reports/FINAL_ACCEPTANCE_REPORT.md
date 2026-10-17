@@ -42,7 +42,7 @@ REQUIREMENTS.json. Section status never implies all its individual bullets passe
 ## C. Test results
 
 Intermediate failures and their corrections are preserved in
-VERIFICATION_FAILURE_HISTORY.md. At production checkpoint 46ff7ad, all three hosted CI jobs succeeded.
+VERIFICATION_FAILURE_HISTORY.md. At production checkpoint 329e402, all three hosted CI jobs succeeded.
 Final machine-readable results are authoritative; check the final committed
 reports if a subsequent verification changes these checkpoint numbers.
 
@@ -102,7 +102,9 @@ assignments, credential URLs and CLI token arguments.
 These tests do not establish a complete threat-model proof. Aggregate controller/
 MCP/worker limits, storage quotas and provider auth/toolchain binds remain HIGH.
 The heuristic scanner is offline and does not validate/revoke credentials; known
-candidate metadata contains no copied values. History scan has a detector canary;
+candidate metadata contains no copied values. History scan has a detector canary and exact identity validation for its own
+known fingerprint/public Git metadata; unknown values/source fields remain
+failures, with explicit negative tests. No report-wide exclusion was added;
 see stage_7_history.json for the final committed-history result. PyPI's version
 metadata reported no published advisories for 34 pins; it is not a complete
 vulnerability or license audit. npm's zero-advisory result is time-dependent.
@@ -147,7 +149,7 @@ the cumulative candidate. Refresh PR/check metadata before reviewing or merging.
 | [#4](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/4) | upgrade/v2.4-coordination | e960726 |
 | [#5](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/5) | upgrade/v2.5-intelligence | e933d72 |
 | [#6](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/6) | upgrade/v2.6-review-workflow | 21831cd |
-| [#7](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7) | upgrade/stage-7-verification-release | 490fbb0, e69f67e, 54e598e, 8595f48, 2892d6c, 46ff7ad plus final evidence commits |
+| [#7](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7) | upgrade/stage-7-verification-release | 490fbb0, e69f67e, 54e598e, 8595f48, 2892d6c, 46ff7ad, 329e402 plus final evidence commits |
 
 Cumulative branch: upgrade/overnight-integration. Main was eecbce4 at task start;
 final remote comparison is recorded with the CI checkpoint. No push to main.
