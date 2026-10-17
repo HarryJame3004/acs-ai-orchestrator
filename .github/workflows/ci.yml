@@ -64,7 +64,7 @@ jobs:
           ACS_HOME: ${{ runner.temp }}/acs-bridge-fixture
           AGPAIR_HOME: ${{ runner.temp }}/agpair-fixture
           NO_COLOR: '1'
-          COLUMNS: '200'
+          COLUMNS: '1000'
         run: ../.venv/bin/python -m pytest tests -q -p no:cacheprovider --junitxml=/tmp/acs-bridge.xml
       - name: Expose sanitized failures through check annotations
         if: ${{ always() }}

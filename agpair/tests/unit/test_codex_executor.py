@@ -9,6 +9,7 @@ from agpair.executors.base import DispatchResult, TaskState
 
 
 def test_codex_executor_uses_env_binary_when_not_explicit(monkeypatch):
+    monkeypatch.delenv("AGPAIR_CODEX_BIN", raising=False)
     monkeypatch.setenv("AGPAIR_CODEX_CLI", "/tmp/fake-codex-env")
 
     executor = CodexExecutor()
