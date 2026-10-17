@@ -6,7 +6,6 @@ and ensures ACS Core is NEVER automatically selected as a writable workspace.
 from __future__ import annotations
 
 import logging
-import os
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -57,7 +56,7 @@ class RepoManager:
                         text=True,
                         timeout=3.0,
                     )
-                    uncommitted = [l for l in res_s.stdout.splitlines() if l.strip()]
+                    uncommitted = [line for line in res_s.stdout.splitlines() if line.strip()]
                     tree_state = "clean" if not uncommitted else f"dirty ({len(uncommitted)} uncommitted files)"
                 except Exception as e:
                     tree_state = f"error: {e}"

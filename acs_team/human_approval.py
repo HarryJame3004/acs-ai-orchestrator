@@ -12,7 +12,6 @@ import datetime
 import enum
 import logging
 import uuid
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from .db import DatabaseManager

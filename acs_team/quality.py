@@ -14,7 +14,6 @@ Threshold: Q >= 0.85 for automated approval.
 from __future__ import annotations
 
 import logging
-import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -106,7 +105,7 @@ class QualityEngine:
                 score -= 0.4
 
         lines = diff_text.splitlines()
-        added_lines = [l for l in lines if l.startswith("+") and not l.startswith("+++")]
+        added_lines = [line for line in lines if line.startswith("+") and not line.startswith("+++")]
         
         # Penalize excessive diffs (> 1500 lines changed in a single task)
         if len(added_lines) > 1500:

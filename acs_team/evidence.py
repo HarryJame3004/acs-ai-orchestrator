@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import os
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger("acs_ai.evidence")
 
@@ -127,7 +127,16 @@ class EvidenceEngine:
             payload_sha256 = evidence_dict.get("payload_sha256")
             signature = evidence_dict.get("signature")
 
-            if not all([mission_id, commit_sha, timestamp, payload_sha256, signature]):
+            if (
+                not isinstance(mission_id, str) or not mission_id
+                or not isinstance(commit_sha, str) or not commit_sha
+                or not isinstance(timestamp, str) or not timestamp
+                or not isinstance(payload_sha256, str) or not payload_sha256
+                or not isinstance(signature, str) or not signature
+                or (task_id is not None and not isinstance(task_id, str))
+                or not isinstance(test_results, dict)
+                or not isinstance(diff_summary, dict)
+            ):
                 logger.warning("Evidence package missing mandatory fields.")
                 return False
 

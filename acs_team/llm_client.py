@@ -3,7 +3,7 @@ import logging
 import re
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from .config import ROUTER_BASE_URL, ROUTER_API_KEY, MODEL_FALLBACK
 from .resilience import CircuitBreaker, FailureKind, RetryPolicy, classify
 import time

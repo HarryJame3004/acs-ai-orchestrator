@@ -63,7 +63,25 @@ jobs:
         env:
           ACS_HOME: ${{ runner.temp }}/acs-bridge-fixture
           AGPAIR_HOME: ${{ runner.temp }}/agpair-fixture
-        run: ../.venv/bin/python -m pytest tests -q -p no:cacheprovider
+        run: ../.venv/bin/python -m pytest tests -q -p no:cacheprovider --junitxml=/tmp/acs-bridge.xml
+      - name: Expose sanitized failures through check annotations
+        if: ${{ always() }}
+        run: |
+          .venv/bin/python - <<'PYTHON'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          from acs_team.security import redact
+          path = Path('/tmp/acs-bridge.xml')
+          if path.exists():
+              for case in ET.parse(path).iter('testcase'):
+                  for result in list(case):
+                      if result.tag not in {'failure', 'error'}:
+                          continue
+                      message = redact(f"{case.get('classname')}.{case.get('name')}: {result.get('message', '')}")[:1200]
+                      for before, after in [('%', '%25'), ('\r', '%0D'), ('\n', '%0A')]:
+                          message = message.replace(before, after)
+                      print(f'::error title=CLOUD_SIMULATED bridge regression::{message}')
+          PYTHON
 
   companion:
     runs-on: ubuntu-latest

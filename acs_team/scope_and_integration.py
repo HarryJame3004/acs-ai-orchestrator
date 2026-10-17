@@ -170,7 +170,7 @@ class IntegrationManager:
         env["GIT_COMMITTER_EMAIL"] = author_email
 
         subprocess.run([str(GIT_BIN), "add", "."], cwd=str(worktree_path), check=True, env=env)
-        res = subprocess.run(
+        subprocess.run(
             [str(GIT_BIN), "commit", "-m", commit_message],
             cwd=str(worktree_path),
             capture_output=True,

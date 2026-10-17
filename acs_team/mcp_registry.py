@@ -144,7 +144,7 @@ class MCPRegistry:
 
         if caller_role == "worker":
             if tool.category == ToolCategory.ADMIN and not is_human_approved:
-                raise MCPPermissionError(f"Workers cannot execute ADMIN tools without human approval.")
+                raise MCPPermissionError("Workers cannot execute ADMIN tools without human approval.")
 
         return tool
 

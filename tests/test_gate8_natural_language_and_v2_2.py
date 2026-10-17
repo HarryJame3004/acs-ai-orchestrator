@@ -21,7 +21,6 @@ Verifies all 16 acceptance test criteria from Feature 9:
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -32,10 +31,10 @@ from unittest.mock import MagicMock, patch
 
 
 from acs_team.autonomous_planner import AutonomousMissionPlanner
-from acs_team.config import ACS_CORE_DIR, GIT_BIN, WORKSPACES_DIR
+from acs_team.config import ACS_CORE_DIR, GIT_BIN
 from acs_team.db import DatabaseManager
 from acs_team.evidence import EvidenceEngine
-from acs_team.guardian import Guardian, GuardianVerdict
+from acs_team.guardian import Guardian
 from acs_team.mcp_manager import MCPManager
 from acs_team.repo_manager import RepoManager
 from acs_team.state_machine import MissionState, StateMachine
@@ -171,7 +170,7 @@ def test_4_dashboard_mission_submission(temp_env):
             repo_path=temp_env["repo_dir"],
             worker_preference="auto",
             test_command=f"{sys.executable} -m pytest",
-            log_callback=lambda l: logs_collected.append(l),
+            log_callback=lambda line: logs_collected.append(line),
         )
 
 

@@ -329,3 +329,28 @@ def test_unverified_foreground_preflight_avoids_model_and_repository_writes(tmp_
     with pytest.raises(SystemExit,match='unverified'):
         cli.cmd_natural_language_mission(args)
     assert list(tmp_path.iterdir())==[]
+
+
+@pytest.mark.simulated
+def test_legacy_review_requires_real_tests_and_valid_independent_verdict(monkeypatch, tmp_path):
+    from acs_team.reviewer import CodeReviewer
+
+    reviewer = CodeReviewer()
+    monkeypatch.setattr(reviewer, 'get_git_diff', lambda repo: 'fixture diff')
+    monkeypatch.setattr(reviewer, 'run_tests', lambda *args: {
+        'passed': True, 'returncode': 0, 'output': '1 passed'
+    })
+    valid = {
+        'approved': True, 'summary': 'Reviewed fixture',
+        'defects': [], 'recommendations': 'None'
+    }
+    import json
+    monkeypatch.setattr('acs_team.reviewer.query_llm', lambda *args, **kwargs: json.dumps(valid))
+    assert reviewer.review('Fixture', tmp_path, ['module.py'], 'pytest')['approved'] is True
+    assert reviewer.review('Fixture', tmp_path, ['module.py'])['approved'] is False
+    for response in ('not JSON', '{}', json.dumps({**valid, 'approved': 'true'}),
+                     json.dumps({**valid, 'defects': ['Unresolved correctness issue']})):
+        monkeypatch.setattr('acs_team.reviewer.query_llm', lambda *args, **kwargs: response)
+        result = reviewer.review('Fixture', tmp_path, ['module.py'], 'pytest')
+        assert result['approved'] is False
+        assert result['test_passed'] is True

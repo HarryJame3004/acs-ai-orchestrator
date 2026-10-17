@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional
 
 from .db import DatabaseManager
 from .evidence import EvidenceEngine
-from .human_approval import HumanApprovalGate, RiskLevel
+from .human_approval import HumanApprovalGate
 from .quality import QualityEngine, QualityReport
 from .config import PROTECTED_PATHS
 from .security import contained_path

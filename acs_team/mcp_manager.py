@@ -9,13 +9,12 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .config import AGY_B_HOME
-from .mcp_registry import MCPRegistry, ToolCategory
+from .mcp_registry import MCPRegistry
 from .security import redact
 
 logger = logging.getLogger("acs_ai.mcp_manager")

@@ -11,7 +11,7 @@ import pytest
 
 from acs_team.db import DatabaseManager
 from acs_team.evidence import EvidenceEngine
-from acs_team.guardian import Guardian, CoreLockViolation
+from acs_team.guardian import Guardian
 from acs_team.human_approval import HumanApprovalGate, HumanApprovalError, RiskLevel, ApprovalStatus
 from acs_team.quality import QualityEngine
 

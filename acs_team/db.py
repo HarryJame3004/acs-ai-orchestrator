@@ -16,7 +16,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional
 
 from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR, PROTECTED_PATHS
 from .security import redact
@@ -579,11 +579,11 @@ class DatabaseManager:
             cur = con.execute("SELECT logs FROM missions WHERE mission_id = ?", (mission_id,))
             row = cur.fetchone()
             if row and row["logs"]:
-                return [l for l in row["logs"].splitlines() if l.strip()]
+                return [line for line in row["logs"].splitlines() if line.strip()]
         log_file = LOGS_DIR / f"mission_{mission_id}.log"
         if log_file.exists():
             try:
-                return [l for l in log_file.read_text(encoding="utf-8", errors="replace").splitlines() if l.strip()]
+                return [line for line in log_file.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
             except Exception:
                 pass
         return []

@@ -1,7 +1,6 @@
 """Tests for Gate 6: End-to-End (E2E) Multi-Agent Workflow, CLI subcommands, and TUI instantiation.
 """
 
-import os
 import shutil
 import subprocess
 import sys
@@ -9,12 +8,9 @@ import tempfile
 import pytest
 from pathlib import Path
 
-from acs_team.config import AUTH_TOKEN_PATH
 from acs_team.db import DatabaseManager
 from acs_team.evidence import EvidenceEngine
 from acs_team.guardian import Guardian
-from acs_team.human_approval import HumanApprovalGate, RiskLevel
-from acs_team.quality import QualityEngine
 from acs_team.scope_and_integration import IntegrationManager, ScopeManager
 from acs_team.state_machine import MissionState, StateMachine
 from acs_team.tui import ACSControlCenterApp
@@ -93,7 +89,7 @@ def test_e2e_autonomous_lifecycle(temp_workspace):
     subprocess.run(["git", "add", "app.py", "test_app.py"], cwd=str(worktree_path), check=True)
     subprocess.run(["git", "commit", "-m", "Implement add function"], cwd=str(worktree_path), check=True)
 
-    worker_head = subprocess.run(
+    subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=str(worktree_path), capture_output=True, text=True, check=True
     ).stdout.strip()
 

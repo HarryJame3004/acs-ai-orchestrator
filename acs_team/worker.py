@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from .config import AGPAIR_BIN, CODEX_BIN
+from .config import AGPAIR_BIN
 from .managed_worker import worker_run
 
 logger = logging.getLogger("acs_team.worker")

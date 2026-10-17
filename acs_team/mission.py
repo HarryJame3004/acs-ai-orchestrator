@@ -129,7 +129,7 @@ class MissionManager:
         evidence_file = docs_dir / "ACS_TEST_EVIDENCE.md"
         ev_lines = [
             f"# ACS Test Evidence Log — Mission {self.mission_id}",
-            f"**Verified Evidence Ledger**\n",
+            "**Verified Evidence Ledger**\n",
         ]
         for pid, pstate in self.state["phases_state"].items():
             ev_lines.append(f"## {pstate.get('name', pid)} (`{pid}`)")

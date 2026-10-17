@@ -5,6 +5,7 @@ Supports both modern `acsai` commands and backward-compatible `acs-team` workflo
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import logging
 import os
@@ -13,27 +14,18 @@ import signal
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 from .config import (
     ACS_CORE_DIR,
-    AGPAIR_BIN,
     API_PORT,
-    CODEX_BIN,
-    CONTEXT_FILE,
     DB_PATH,
     DISK_MIN_FREE_BYTES,
-    MODEL_PLANNER,
-    MODEL_REVIEWER,
     PID_FILE,
-    ROUTER_BASE_URL,
-    STATE_DIR,
 )
 from .coordinator import TeamCoordinator
 from .daemon_client import check_daemon_health
 from .db import DatabaseManager
 from .human_approval import ApprovalStatus, HumanApprovalGate
-from .llm_client import query_llm
 from .memory import MemoryEngine
 from .planner import AIPlanner
 from .test_tracker import get_test_health
@@ -70,7 +62,7 @@ def cmd_status(args):
         pid_info = f" (PID: {health['pid']})" if health["pid"] else ""
         print(f"✓ Background Daemon: RUNNING{pid_info}")
         print(f"  - Endpoint: {health['endpoint']}")
-        print(f"  - Health:   OK")
+        print("  - Health:   OK")
         print(f"  - Database: {health['db'].upper()}")
     elif health["running"]:
         print(f"⚠ Background Daemon: UNHEALTHY ({health['details']})")
@@ -123,7 +115,7 @@ def cmd_status(args):
         gate = HumanApprovalGate(db)
         pending_apprs = gate.list_pending_approvals()
 
-        print(f"\n--- Missions & Approvals ---")
+        print("\n--- Missions & Approvals ---")
         print(f"Missions: {len(missions)} total ({active} active, {completed} completed)")
         print(f"Human Approvals Pending: {len(pending_apprs)}")
         if pending_apprs:
@@ -136,7 +128,7 @@ def cmd_status(args):
     try:
         from .mcp_manager import MCPManager
         mcp_stats = MCPManager().get_summary_stats()
-        print(f"\n--- MCP Inventory & Tool Verification ---")
+        print("\n--- MCP Inventory & Tool Verification ---")
         print(f"Configured: {mcp_stats['configured_servers']} | Connected: {mcp_stats['connected_servers']} | Usable: {mcp_stats['usable_servers']} | Discovered Tools: {mcp_stats['total_tools']}")
         print("Security: Masked credentials (Zero token leaks)")
     except Exception as e:
@@ -147,7 +139,7 @@ def cmd_status(args):
         from .repo_manager import RepoManager
         rm = RepoManager(db)
         repos = rm.list_repositories()
-        print(f"\n--- Managed Repositories ---")
+        print("\n--- Managed Repositories ---")
         print(f"Total Repositories: {len(repos)}")
         for r in repos:
             prot_str = "[PROTECTED RO]" if r["is_protected"] else "[WRITABLE]"
@@ -328,7 +320,8 @@ def cmd_natural_language_mission(args):
     """Execute or background a direct natural-language mission."""
     from .autonomous_planner import AutonomousMissionPlanner
     from .repo_manager import RepoManager
-    import datetime, uuid
+    import datetime
+    import uuid
 
     raw_prompt = args.mission
     if raw_prompt == "-":
@@ -546,8 +539,8 @@ def cmd_mission(args):
         file_log = LOGS_DIR / f"mission_{target_id}.log"
         print(f"\n=== Mission Logs: {target_id} ===")
         if logs:
-            for l in logs:
-                print(l)
+            for line in logs:
+                print(line)
         elif file_log.exists():
             print(file_log.read_text(encoding="utf-8", errors="replace"))
         else:
@@ -810,7 +803,7 @@ def main():
     # approval
     p_appr = subparsers.add_parser("approval", help="Manage human approval gates")
     appr_subs = p_appr.add_subparsers(dest="approval_action", required=True)
-    p_appr_list = appr_subs.add_parser("list", help="List pending approvals")
+    appr_subs.add_parser("list", help="List pending approvals")
     p_appr_approve = appr_subs.add_parser("approve", help="Approve a request")
     p_appr_approve.add_argument("approval_id", help="Approval ID")
     p_appr_approve.add_argument("--by", default=None, help="Approver identity")
@@ -850,9 +843,9 @@ def main():
     # mcp
     p_mcp = subparsers.add_parser("mcp", help="Inspect and verify MCP servers and tools")
     mcp_subs = p_mcp.add_subparsers(dest="mcp_action", required=False)
-    p_mcp_list = mcp_subs.add_parser("list", help="List all configured MCP servers")
-    p_mcp_status = mcp_subs.add_parser("status", help="Show MCP inventory and verification status")
-    p_mcp_tools = mcp_subs.add_parser("tools", help="List all discovered MCP tools")
+    mcp_subs.add_parser("list", help="List all configured MCP servers")
+    mcp_subs.add_parser("status", help="Show MCP inventory and verification status")
+    mcp_subs.add_parser("tools", help="List all discovered MCP tools")
     p_mcp.set_defaults(func=cmd_mcp)
     from .verification_cli import register as register_verification
     register_verification(subparsers, mcp_subs)
@@ -860,8 +853,8 @@ def main():
     # repo
     p_repo = subparsers.add_parser("repo", help="Inspect and manage development repositories")
     repo_subs = p_repo.add_subparsers(dest="repo_action", required=False)
-    p_repo_list = repo_subs.add_parser("list", help="List registered repositories")
-    p_repo_status = repo_subs.add_parser("status", help="Show repository inventory and health")
+    repo_subs.add_parser("list", help="List registered repositories")
+    repo_subs.add_parser("status", help="Show repository inventory and health")
     p_repo_add = repo_subs.add_parser("add", help="Register a new repository")
     p_repo_add.add_argument("path", help="Path to repository directory")
     p_repo_add.add_argument("--name", default=None, help="Display name for repository")

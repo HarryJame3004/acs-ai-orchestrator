@@ -189,5 +189,8 @@ class StateMachine:
                         new_state=MissionState.BLOCKED.value,
                         error_info=f"Interrupted during {m['state']}; no valid checkpoint found",
                     )
-                reconciled.append(self.db.get_mission(mid))
+                updated = self.db.get_mission(mid)
+                if updated is None:
+                    raise RuntimeError("Mission disappeared during reconciliation")
+                reconciled.append(updated)
         return reconciled

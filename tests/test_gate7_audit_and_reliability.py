@@ -1,6 +1,5 @@
 """Gate 7 Verification Suite: Daemon Health Probing, Dynamic Test Tracking, and AGY Google B Isolation."""
 
-import json
 import pytest
 from pathlib import Path
 from unittest.mock import patch, MagicMock

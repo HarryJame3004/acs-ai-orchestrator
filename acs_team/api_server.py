@@ -11,8 +11,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, Dict, Optional
 
-from .auth import get_or_create_auth_token, verify_token
-from .config import API_HOST, API_PORT
+from .auth import verify_token
 from .db import DatabaseManager
 from .state_machine import MissionState, StateMachine
 
@@ -203,7 +202,8 @@ class ACSRequestHandler(BaseHTTPRequestHandler):
                 return
 
             # Generate mission ID
-            import datetime, uuid
+            import datetime
+            import uuid
             mission_id = f"mission-{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}"
             mission = db.create_mission(
                 mission_id=mission_id,

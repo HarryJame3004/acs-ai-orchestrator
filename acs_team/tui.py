@@ -13,15 +13,12 @@ Provides real-time visibility and control into:
 from __future__ import annotations
 
 import datetime
-import os
 import shutil
-import sys
 import uuid
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical, VerticalScroll
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import (
     Button,
@@ -37,7 +34,7 @@ from textual.widgets import (
     TextArea,
 )
 
-from .config import API_PORT, DB_PATH, DISK_MIN_FREE_BYTES, LOGS_DIR
+from .config import API_PORT, DB_PATH, DISK_MIN_FREE_BYTES
 from .daemon_client import check_daemon_health
 from .db import DatabaseManager
 from .human_approval import HumanApprovalGate
@@ -150,7 +147,8 @@ class NewMissionModal(ModalScreen):
             return
         repo_sel = self.query_one("#modal_select_repo", Select)
         worker_sel = self.query_one("#modal_select_worker", Select)
-        repo_val = repo_sel.value if repo_sel.value != "__isolated__" else None
+        selected = repo_sel.value
+        repo_val = selected if isinstance(selected, str) and selected != "__isolated__" else None
         worker_val = str(worker_sel.value or "auto")
 
         self.dismiss()
@@ -688,7 +686,8 @@ class ACSControlCenterApp(App):
             return
         repo_sel = self.query_one("#dash_select_repo", Select)
         worker_sel = self.query_one("#dash_select_worker", Select)
-        repo_val = repo_sel.value if repo_sel.value != "__isolated__" else None
+        selected = repo_sel.value
+        repo_val = selected if isinstance(selected, str) and selected != "__isolated__" else None
         worker_val = str(worker_sel.value or "auto")
 
         prompt_area.text = ""

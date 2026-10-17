@@ -8,7 +8,6 @@ from __future__ import annotations
 import datetime
 import json
 import logging
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .config import STATE_DIR

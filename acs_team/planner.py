@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from .config import MODEL_PLANNER, CONTEXT_FILE
 from .llm_client import query_llm, extract_json_block
 
@@ -121,7 +121,7 @@ Respond ONLY with a JSON object with this schema:
   "acceptance_criteria": ["All automated tests pass", "Defect resolved"]
 }}
 """
-        logger.info(f"AI Planner formulating correction task...")
+        logger.info("AI Planner formulating correction task...")
         resp = query_llm(
             prompt, system_prompt=PLANNER_SYSTEM_PROMPT, model=self.model
         )

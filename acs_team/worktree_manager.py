@@ -13,7 +13,7 @@ import shutil
 import subprocess
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 from .config import GIT_BIN, MIN_DISK_FREE_GB, WORKTREES_DIR
 

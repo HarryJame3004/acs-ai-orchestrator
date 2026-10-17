@@ -1,7 +1,5 @@
 """Gate 3 Verification Suite: Workers, Worktree Isolation, Scope Reservation, and Integration."""
 
-import os
-import shutil
 import subprocess
 from pathlib import Path
 import pytest
@@ -9,14 +7,11 @@ import pytest
 from acs_team.scope_and_integration import (
     IntegrationManager,
     MergeConflictError,
-    ResourceManager,
     ScopeConflictError,
     ScopeManager,
 )
 from acs_team.worker_adapters import (
-    AGYGoogleAWorker,
     AGYGoogleBWorker,
-    CodexPrimaryWorker,
     WorkerRegistry,
     WorkerUnverifiedError,
 )
