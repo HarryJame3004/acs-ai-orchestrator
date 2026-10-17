@@ -11,6 +11,7 @@ logger = logging.getLogger("acs_team.worker")
 class CodexWorker:
     def __init__(self, agpair_bin: Path = AGPAIR_BIN):
         self.agpair_bin = agpair_bin
+        self.is_verified = False
 
     def execute_task(
         self,
@@ -21,6 +22,8 @@ class CodexWorker:
         timeout_seconds: float = 300.0,
     ) -> Dict[str, Any]:
         """Dispatch a coding task to Codex CLI via agpair lifecycle."""
+        if not self.is_verified:
+            raise PermissionError('Legacy worker requires explicit local verification before dispatch')
         logger.info(
             f"Dispatching task '{task_name}' to Codex CLI worker in {repo_path}..."
         )

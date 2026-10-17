@@ -48,8 +48,9 @@ class QualityReport:
 class QualityEngine:
     """Evaluates code quality, test results, static analysis, and diff sanity."""
 
-    def __init__(self, threshold: float = 0.85):
+    def __init__(self, threshold: float = 0.85, verification_runner=None):
         self.threshold = threshold
+        self.verification_runner = verification_runner
 
     def run_tests(
         self,
@@ -61,7 +62,7 @@ class QualityEngine:
         from .security import run_verification
         worktree_path = Path(worktree_path)
         try:
-            return run_verification(test_command or "pytest", worktree_path, timeout_sec)
+            return (self.verification_runner or run_verification)(test_command or "pytest", worktree_path, timeout_sec)
         except Exception as error:
             return {"executed": False, "passed": False, "exit_code": -1,
                     "output": str(error), "counts": {}}

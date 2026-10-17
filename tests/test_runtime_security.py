@@ -287,6 +287,45 @@ def test_database_new_files_private_and_readonly_missing_is_nonmutating(tmp_path
     with pytest.raises(FileNotFoundError):
         DatabaseManager(absent,read_only=True)
     assert not absent.parent.exists()
-    linked=tmp_path/'alias.db';linked.symlink_to(database)
+    linked=tmp_path/'alias.db'
+    linked.symlink_to(database)
     with pytest.raises(PermissionError):
         DatabaseManager(linked)
+
+
+@pytest.mark.simulated
+def test_production_verification_requests_private_sandbox_without_runtime_escape(tmp_path, monkeypatch):
+    from acs_team import security
+    runtime = getattr(security, '_runtime_verification_under_test', security.run_verification)
+    captured = {}
+    def execute(self, argv, cwd, **kwargs):
+        captured.update(argv=argv, env=kwargs.get('env'))
+        return {'exit_code':0,'output':'1 passed','reason':'completed'}
+    monkeypatch.setattr(ProcessSupervisor,'run',execute)
+    result = runtime(['pytest','-q'],tmp_path)
+    assert result['passed'] and result['isolation']=='BWRAP_REQUESTED'
+    assert captured['argv'][0]=='/usr/bin/bwrap' and '--unshare-all' in captured['argv']
+    assert '--share-net' not in captured['argv']
+    assert captured['env']['ACS_HOME'] != str(tmp_path)
+    assert 'OPENAI_API_KEY' not in captured['env']
+    from acs_team.worker import CodexWorker
+    with pytest.raises(PermissionError):
+        CodexWorker().execute_task('fixture','harmless',tmp_path)
+
+
+def test_redaction_covers_basic_cli_arguments_and_openai_style_keys():
+    key = 'sk-' + 'syntheticfixture' * 3
+    output = redact('Basic Zml4dHVyZTpkdW1teQ== --token syntheticvalue ' + key)
+    assert 'Zml4dHVyZTpkdW1teQ==' not in output and 'syntheticvalue' not in output and key not in output
+    quoted = redact('password="long synthetic phrase"')
+    assert 'synthetic phrase' not in quoted
+
+
+def test_unverified_foreground_preflight_avoids_model_and_repository_writes(tmp_path, monkeypatch):
+    from argparse import Namespace
+    from acs_team import cli
+    monkeypatch.setattr(cli, 'DatabaseManager', lambda: pytest.fail('Unverified dispatch initialized state'))
+    args=Namespace(mission='Harmless fixture',dry_run=False,bg=False,repo=str(tmp_path),worker='auto')
+    with pytest.raises(SystemExit,match='unverified'):
+        cli.cmd_natural_language_mission(args)
+    assert list(tmp_path.iterdir())==[]

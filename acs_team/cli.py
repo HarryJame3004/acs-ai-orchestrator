@@ -301,6 +301,8 @@ def cmd_run(args):
         sys.exit(1)
 
     coordinator = TeamCoordinator(max_retries=args.retries)
+    if not getattr(coordinator.worker, 'is_verified', False):
+        raise SystemExit('Worker is unverified; no provider planning or execution attempted')
     result = coordinator.run_development_cycle(
         goal=args.goal,
         repo_path=repo_path,
@@ -346,6 +348,9 @@ def cmd_natural_language_mission(args):
         return
     from .security import redact
     prompt = redact(prompt)
+    daemon_queue = getattr(args, 'bg', False) and os.environ.get('ACS_ENABLE_DAEMON_EXECUTION') == '1'
+    if not daemon_queue and not WorkerRegistry().list_available_workers():
+        raise SystemExit('Workers are unverified; complete local activation/role checks before execution. Use --dry-run for read-only planning.')
 
     db = DatabaseManager()
     rm = RepoManager(db)
@@ -675,8 +680,8 @@ def cmd_mcp(args):
         print(f"Connected MCP Servers:  {stats['connected_servers']}")
         print(f"Usable MCP Servers:     {stats['usable_servers']}")
         print(f"Total Discovered Tools: {stats['total_tools']}")
-        print("Authentication Security: Masked credentials (Zero token leaks)")
-        print("Invokable Capabilities:  Native tools, Antigravity, AGY B, Codex")
+        print("Authentication display: redacted; real credential boundaries require local checks")
+        print("Invokable capabilities: installed native handlers; external profiles NOT_TESTED")
         print("==================================================\n")
 
     elif sub == "tools":

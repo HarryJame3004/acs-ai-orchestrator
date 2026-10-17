@@ -59,11 +59,12 @@ class Guardian:
         db: DatabaseManager,
         auth_token: str,
         quality_threshold: float = 0.85,
+        verification_runner=None,
     ):
         self.db = db
         self.auth_token = auth_token
         self.evidence_engine = EvidenceEngine(auth_token)
-        self.quality_engine = QualityEngine(threshold=quality_threshold)
+        self.quality_engine = QualityEngine(threshold=quality_threshold, verification_runner=verification_runner)
         self.approval_gate = HumanApprovalGate(db)
 
     def verify_corelock_safety(self, repository_path: str, changed_files: List[str]) -> None:

@@ -37,7 +37,7 @@ class MCPServerInfo:
     tools: List[Dict[str, Any]]
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return redact(asdict(self))
 
 
 class MCPManager:
@@ -114,7 +114,6 @@ class MCPManager:
             for name, s_cfg in mcp_servers.items():
                 cmd = s_cfg.get("command", "")
                 url = s_cfg.get("serverUrl") or s_cfg.get("url", "")
-                args = s_cfg.get("args", [])
                 env = s_cfg.get("env", {})
 
                 # Check auth status without leaking tokens
@@ -125,8 +124,10 @@ class MCPManager:
                         break
 
                 server_type = "http" if url else "stdio"
-                command_summary = url if url else f"{cmd} {' '.join(args[:2])}"
-                command_summary = redact(command_summary)
+                from urllib.parse import urlparse
+                parsed_url = urlparse(url) if url else None
+                command_summary = (f"{parsed_url.scheme}://{parsed_url.hostname} [endpoint details redacted]"
+                                   if parsed_url else f"{cmd} [arguments redacted]")
 
                 # Test if command binary is installed
                 is_installed = bool(cmd and shutil.which(cmd)) or bool(url)
@@ -184,7 +185,7 @@ class MCPManager:
                 results.append(MCPServerInfo(
                     name=f"codex-{plugin_name}-{name}",
                     source_config=f"codex:plugin/{plugin_name}",
-                    command_or_url=url or cmd,
+                    command_or_url="[configured endpoint redacted]" if url else cmd,
                     server_type="http" if url else "stdio",
                     enabled=True,
                     status="INSTALLED" if is_installed else "CONFIGURED",

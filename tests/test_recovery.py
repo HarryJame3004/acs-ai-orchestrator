@@ -111,6 +111,12 @@ def test_stage_never_activates_or_modifies_original(database, tmp_path):
     source.mkdir()
     (source / "main.py").write_text("print('working')")
     (source / ".env").write_text("synthetic fixture only")
+    nested = source / 'agpair/companion-extension/src/state'
+    nested.mkdir(parents=True)
+    (nested / 'store.ts').write_text('export const state = new Map();')
+    generated = source / 'node_modules'
+    generated.mkdir()
+    (generated / 'excluded.js').write_text('generated dependency')
     original = database.read_bytes()
     observed = []
     result = stage_upgrade(source, tmp_path / "candidate", database,
@@ -118,6 +124,8 @@ def test_stage_never_activates_or_modifies_original(database, tmp_path):
     assert result["health"] == "PASS" and result["activated"] is False
     assert observed == [tmp_path / "candidate" / "application"]
     assert not (observed[0] / ".env").exists()
+    assert (observed[0] / 'agpair/companion-extension/src/state/store.ts').is_file()
+    assert not (observed[0] / 'node_modules').exists()
     assert database.read_bytes() == original
 
 

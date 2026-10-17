@@ -132,10 +132,19 @@ def main() -> int:
                  patch("socket.socket.connect", connect), patch("socket.socket.bind", bind), patch.dict(os.environ, {
                      "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
                  }):
-                exit_code = int(pytest.main([
-                    str(ROOT / "tests"), "-q", "-p", "no:cacheprovider",
-                    "--rootdir", str(ROOT), "--basetemp", str(scratch / "pytest"),
-                ], plugins=[capture]))
+                # All project-executed tests in this harness are fixed temp
+                # fixtures, not authenticated/model worker output. Keep this
+                # dependency injection in the harness; no runtime escape flag.
+                from acs_team.benchmarks import fixture_verification
+                from acs_team import security
+                runtime_verification = security.run_verification
+                with patch('acs_team.security.run_verification', fixture_verification), \
+                     patch('acs_team.team_runner.run_verification', fixture_verification), \
+                     patch.object(security, '_runtime_verification_under_test', runtime_verification, create=True):
+                    exit_code = int(pytest.main([
+                        str(ROOT / "tests"), "-q", "-p", "no:cacheprovider",
+                        "--rootdir", str(ROOT), "--basetemp", str(scratch / "pytest"),
+                    ], plugins=[capture]))
         finally:
             os.chdir(previous_cwd)
             sys.path.remove(str(ROOT))

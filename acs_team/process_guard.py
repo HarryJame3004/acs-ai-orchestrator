@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import resource
 from pathlib import Path
 import signal
 import sys
@@ -58,6 +59,7 @@ def run(argv: list[str]) -> int:
         raise ValueError("Guard requires a child argv")
     if not sys.platform.startswith("linux"):
         raise RuntimeError("Process guard requires Linux")
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     library = ctypes.CDLL(None, use_errno=True)
     if library.prctl(36, 1, 0, 0, 0) != 0:
         raise OSError(ctypes.get_errno(), "Cannot enable child subreaper")

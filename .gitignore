@@ -86,3 +86,7 @@ agy_b_home/
 *.swp
 *.swo
 *~
+
+# The companion's state directory is source code, not runtime state.
+!agpair/companion-extension/src/state/
+!agpair/companion-extension/src/state/*.ts

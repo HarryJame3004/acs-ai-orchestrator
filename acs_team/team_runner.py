@@ -48,6 +48,7 @@ class TeamRunner:
         artifacts: Path,
         evidence_key: str,
         concurrency: int = 2,
+        verification_runner: Callable | None = None,
     ):
         if not 1 <= concurrency <= 3 or not reviewers:
             raise ValueError("Bounded concurrency and independent reviewers required")
@@ -63,6 +64,7 @@ class TeamRunner:
             evidence_key,
             concurrency,
         )
+        self.verify = verification_runner or run_verification
         self.control = RuntimeControl(store.db, initialize=False)
         self._allocation = threading.Lock()
 
@@ -176,10 +178,9 @@ class TeamRunner:
             if not names:
                 raise ValueError("Task produced no changes")
             tests = [
-                run_verification(command, worktree)
-                for command in task.verification_commands
+                self.verify(command, worktree) for command in task.verification_commands
             ]
-            independent = run_verification(["pytest", "-q", *protected], worktree)
+            independent = self.verify(["pytest", "-q", *protected], worktree)
             if not independent["passed"] or not all(t["passed"] for t in tests):
                 raise ValueError(
                     "Task verification or independent contract tests failed"
@@ -262,7 +263,9 @@ class TeamRunner:
                 .to_dict()
             )
             persist_evidence(evidence, self.artifacts)
-            verdict = Guardian(self.store.db, self.key).evaluate(
+            verdict = Guardian(
+                self.store.db, self.key, verification_runner=self.verify
+            ).evaluate(
                 plan.mission_id,
                 root,
                 worktree,
@@ -386,7 +389,7 @@ class TeamRunner:
                             )
                             try:
                                 all_tests = [
-                                    run_verification(
+                                    self.verify(
                                         cmd, Path(merged["integration_worktree"])
                                     )
                                     for completed in plan.tasks
@@ -394,7 +397,7 @@ class TeamRunner:
                                     or states[completed.task_id] == "INTEGRATED"
                                     for cmd in completed.verification_commands
                                 ]
-                                contract_tests = run_verification(
+                                contract_tests = self.verify(
                                     ["pytest", "-q", "tests"],
                                     Path(merged["integration_worktree"]),
                                 )

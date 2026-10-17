@@ -8,11 +8,12 @@ from pathlib import Path, PurePosixPath
 import re
 import shlex
 import sys
+import tempfile
 from typing import Any
 
 
 _SENSITIVE = re.compile(r"(?i)(token|secret|password|api[_-]?key|authorization|cookie)")
-_VALUES = re.compile(r"(?i)(bearer\s+)[^\s\"']+|((?:password|token|secret|api[_-]?key)\s*[=:]\s*)[^\s,;]+|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)")
+_VALUES = re.compile(r"""(?i)((?:bearer|basic)\s+)[^\s"']+|((?:password|token|secret|api[_-]?key)\s*[=:]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)|(--(?:password|token|secret|api[_-]?key)\s+)(?:"[^"]*"|'[^']*'|[^\s,;]+)|(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{16,})""")
 
 
 def redact(value: Any) -> Any:
@@ -22,7 +23,7 @@ def redact(value: Any) -> Any:
         return [redact(item) for item in value]
     if isinstance(value, str):
         value = re.sub(r"(https?://)[^/@\s]+:[^/@\s]+@", r"\1[REDACTED]@", value)
-        return _VALUES.sub(lambda m: (m.group(1) or m.group(2) or "") + "[REDACTED]", value)
+        return _VALUES.sub(lambda m: (m.group(1) or m.group(2) or m.group(3) or "") + "[REDACTED]", value)
     return value
 
 
@@ -65,7 +66,24 @@ def verification_argv(command: str | list[str]) -> list[str]:
 
 def run_verification(command: str | list[str], workspace: Path, timeout: float = 180) -> dict:
     from .supervision import ProcessSupervisor
-    result = ProcessSupervisor().run(verification_argv(command), workspace, timeout=timeout)
+    from .config import STATE_DIR, AUTH_TOKEN_PATH
+    argv = verification_argv(command)
+    # Verification code/conftest is as untrusted as a worker. Never expose the
+    # controller key/DB or run model-selected tests directly in the host context.
+    with tempfile.TemporaryDirectory(prefix='acs-verification-home-') as temporary:
+        home = Path(temporary)
+        (home/'tmp').mkdir(mode=0o700)
+        roots = tuple(dict.fromkeys((Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve())))
+        isolated = sandbox_argv(workspace, argv, home=home, private_paths=(STATE_DIR, AUTH_TOKEN_PATH),
+                                read_only_roots=roots)
+        environment = {'HOME':str(home), 'TMPDIR':str(home/'tmp'), 'ACS_HOME':str(home/'acs'),
+                       'ACS_BACKUPS_DIR':str(home/'backups'), 'ACS_CREDENTIALS_FILE':str(home/'absent.json'),
+                       'PYTHONNOUSERSITE':'1', 'PYTHONDONTWRITEBYTECODE':'1'}
+        result = ProcessSupervisor().run(isolated, workspace, timeout=timeout, env=environment)
+    return verification_summary({**result, 'isolation':'BWRAP_REQUESTED'})
+
+
+def verification_summary(result: dict) -> dict:
     output = result["output"]
     counts = {"passed": 0, "failed": 0, "skipped": 0, "xfailed": 0, "xpassed": 0, "errors": 0}
     for number, state in re.findall(r"(\d+) (passed|failed|skipped|xfailed|xpassed|errors?)\b", output):
@@ -79,21 +97,28 @@ def run_verification(command: str | list[str], workspace: Path, timeout: float =
 
 
 def sandbox_argv(workspace: Path, command: list[str], *, home: Path, network: bool = False,
-                 private_paths: tuple[Path, ...] = (), read_only_workspace: bool = False) -> list[str]:
+                 private_paths: tuple[Path, ...] = (), read_only_workspace: bool = False,
+                 read_only_roots: tuple[Path, ...] = ()) -> list[str]:
     workspace, home = workspace.resolve(), home.resolve()
     if workspace == Path("/") or workspace == home or home in workspace.parents:
         raise ValueError("Sandbox requires separate bounded workspace and home")
-    bound = (workspace, home, *(Path(p).resolve() for p in ("/usr", "/bin", "/lib", "/lib64")))
+    extras = tuple(root.resolve() for root in read_only_roots)
+    if any(root in {Path('/'), Path('/home'), Path('/tmp'), Path('/workspace')} for root in extras):
+        raise PermissionError('Verification toolchain binds must be narrowly scoped')
+    bound = (workspace, home, *extras, *(Path(p).resolve() for p in ("/usr", "/bin", "/lib", "/lib64")))
     for private in private_paths:
         if any(private.resolve() == root or root in private.resolve().parents for root in bound):
             raise PermissionError("Sandbox bind would expose private controller state")
     # Never bind / or the operational home. The evidence key/state is absent.
-    argv = ["bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
+    argv = ["/usr/bin/bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
     if network:
         argv.append("--share-net")
     for path in ("/usr", "/bin", "/lib", "/lib64"):
         if Path(path).exists():
             argv += ["--ro-bind", path, path]
+    for root in extras:
+        if root.exists() and root not in {Path('/usr'), Path('/bin'), Path('/lib'), Path('/lib64')}:
+            argv += ['--ro-bind', str(root), str(root)]
     argv += ["--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp",
              "--ro-bind" if read_only_workspace else "--bind", str(workspace), str(workspace), "--bind", str(home), str(home),
              "--chdir", str(workspace), "--", *command]

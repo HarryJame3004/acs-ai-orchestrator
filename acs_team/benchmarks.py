@@ -64,6 +64,21 @@ class FixtureWorker(BaseWorker):
         }
 
 
+def fixture_verification(command, workspace, timeout=180):
+    """ONLY fixed trusted golden/test fixtures; never used for real provider output.
+
+    Cloud fixtures prove orchestration/test counting without claiming OS isolation.
+    Production run_verification always requests bwrap and fails closed if unavailable.
+    """
+    from .security import verification_argv, verification_summary
+    from .supervision import ProcessSupervisor
+
+    result = ProcessSupervisor().run(
+        verification_argv(command), workspace, timeout=timeout
+    )
+    return verification_summary({**result, "isolation": "TRUSTED_FIXTURE_SIMULATION"})
+
+
 def run_benchmarks(
     suite: str = "smoke", workers: str = "fake", cases_path: Path | None = None
 ) -> dict:
@@ -184,6 +199,7 @@ def run_benchmarks(
                 WorktreeManager(root / "worktrees", min_free_gb=0),
                 root / "artifacts",
                 "disposable-benchmark-signing-key",
+                verification_runner=fixture_verification,
             )
             previous = os.environ.get("ACS_ENABLE_COORDINATION")
             os.environ["ACS_ENABLE_COORDINATION"] = "1"

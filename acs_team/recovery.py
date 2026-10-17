@@ -74,11 +74,17 @@ def snapshot(source: Path, target: Path) -> None:
     integrity(target)
 
 
-def sensitive_reference(path: Path, content: bytes) -> bool:
+def named_sensitive_reference(path: Path) -> bool:
     name = path.name.lower()
     if name.startswith(".env") or name in {"credentials.json", "auth.json", "auth.token", ".netrc", "id_rsa", "id_ed25519"}:
         return True
     if path.suffix.lower() in {".pem", ".key", ".p12", ".db", ".sqlite", ".sqlite3"}:
+        return True
+    return False
+
+
+def sensitive_reference(path: Path, content: bytes) -> bool:
+    if named_sensitive_reference(path):
         return True
     return bool(re.search(rb"(?i)BEGIN [A-Z ]*PRIVATE KEY|(?:password|api[_-]?key|access[_-]?token)\s*[=:]\s*['\"][^'\"\r\n]+", content))
 
@@ -95,7 +101,7 @@ def create_backup(source: Path, destination: Path, references: tuple[Path, ...] 
         if reference.is_symlink() or not reference.is_file():
             raise ValueError("References must be regular files, never symlinks/directories")
         # Never read real .env files unless the local operator explicitly opts in.
-        if not include_credentials and reference.name.lower().startswith(".env"):
+        if not include_credentials and named_sensitive_reference(reference):
             manifest["references"].append({"name": reference.name, "included": False})
             continue
         if reference.stat().st_size > 4 * 1024 * 1024:
@@ -231,15 +237,18 @@ def stage_upgrade(source: Path, destination: Path, database: Path,
     root = new_directory(destination)
     application = root / "application"
     application.mkdir(mode=0o700)
-    excluded = {".git", ".venv", "venv", "state", "logs", "backups", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+    excluded = {".git", ".venv", "venv", "node_modules", "dist", "build", "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache"}
+    runtime_roots = {"state", "logs", "backups", "worktrees", "workspaces", "agy_b_home", ".agpair"}
     for parent, dirs, files in os.walk(source, followlinks=False):
-        dirs[:] = [name for name in dirs if name not in excluded and not (Path(parent) / name).is_symlink()]
+        dirs[:] = [name for name in dirs if name not in excluded
+                   and not (Path(parent) == source and name in runtime_roots)
+                   and not (Path(parent) / name).is_symlink()]
         relative = Path(parent).relative_to(source)
         output = application / relative
         output.mkdir(mode=0o700, parents=True, exist_ok=True)
         for name in files:
             path = Path(parent) / name
-            if path.is_symlink() or name.lower().startswith(".env") or path.stat().st_size > 4 * 1024 * 1024:
+            if path.is_symlink() or named_sensitive_reference(path) or path.stat().st_size > 4 * 1024 * 1024:
                 continue
             data = path.read_bytes()
             if not sensitive_reference(path, data):

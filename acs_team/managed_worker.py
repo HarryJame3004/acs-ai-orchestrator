@@ -26,7 +26,7 @@ def worker_context(control, mission_id):
 
 def worker_run(command, *, task_id=None, **kwargs):
     if os.environ.get("ACS_ENABLE_SUPERVISION") != "1":
-        return subprocess.run(command, **kwargs)
+        raise PermissionError('Real worker execution requires ACS_ENABLE_SUPERVISION=1; no unsupervised fallback is permitted')
     from .db import DatabaseManager
     from .runtime_control import RuntimeControl
     from .config import STATE_DIR, AUTH_TOKEN_PATH
