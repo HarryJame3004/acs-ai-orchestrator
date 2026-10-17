@@ -252,6 +252,8 @@ class ACSServer(ThreadingHTTPServer):
     """Custom HTTP Server holding shared database connection and worker registry."""
 
     def __init__(self, host: str, port: int, db: DatabaseManager, auth_token: str):
+        if host not in {"127.0.0.1", "localhost", "::1"}:
+            raise ValueError("API binding must be loopback")
         super().__init__((host, port), ACSRequestHandler)
         self.db = db
         self.auth_token = auth_token

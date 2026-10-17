@@ -2,10 +2,11 @@
 
 [![Platform](https://img.shields.io/badge/Platform-Arch%20Linux%20%7C%20Linux-blue)](https://archlinux.org/)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://python.org/)
-[![Tests](https://img.shields.io/badge/Tests-42%2F42%20Passing-brightgreen)](tests/)
-[![Security](https://img.shields.io/badge/Guardian-Fail--Closed%20%26%20HMAC-success)](SECURITY.md)
+[![Cloud baseline regression](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml)
 
-**ACS AI** is a production-grade, local-first, multi-agent autonomous software development orchestration platform. It converts natural-language instructions into decomposed, tested, and verified code implementations across isolated git worktrees using a coordinated multi-worker pool (`codex-primary`, `agy-google-a`, `agy-google-b`), governed by an independent fail-closed **Guardian**.
+**ACS AI** is an experimental, local-first Python coding orchestrator with planner, worker adapters, git worktrees, SQLite persistence and a **Guardian** evidence gate. Coordinated multi-agent execution and security guarantees remain under audit.
+
+The original audit baseline was **37 passed / 5 failed**, with cloud and simulated results distinguished in [the audit](reports/PHASE_0_BASELINE_AUDIT.md). The continuation fixed the portable CLI test and entry point; current results are **47 passed / 4 local-only skipped**. Real worker authentication, MCP connectivity and the user's local deployment remain unverified. See [TESTING.md](TESTING.md) and [stage progress](docs/progress/PROGRESS.md) before development.
 
 ---
 
@@ -40,9 +41,9 @@
    - Fullscreen mission modal (`Ctrl+N`).
 
 3. **Multi-Agent Worker Pool**
-   - **`codex-primary`**: OpenAI Codex CLI executed inside non-interactive bubblewrap sandboxes.
-   - **`agy-google-a`**: Google Antigravity CLI authenticated with Google Account A.
-   - **`agy-google-b`**: Google Antigravity CLI authenticated with Google Account B running in a dedicated isolated home directory.
+   - **`codex-primary`**: Adapter for non-interactive OpenAI Codex CLI; actual sandbox boundaries require local verification.
+   - **`agy-google-a`**: Adapter for the primary Google Antigravity CLI profile; authentication is unverified.
+   - **`agy-google-b`**: Adapter with a dedicated home/XDG configuration; authentication and isolation require local verification.
 
 4. **Autonomous Mission Planner & Verification Engine**
    - Automated git worktree isolation under `~/.local/share/acs-orchestrator/worktrees/`.
@@ -52,16 +53,16 @@
 
 5. **Fail-Closed Guardian & CoreLock Security**
    - Protected path immutability: Rejects any attempt to write or merge to protected core repositories (CoreLock).
-   - Strict gatekeeper evaluation: Code is rejected if tests fail, diffs violate scope, or HMAC signatures do not verify.
+   - Gatekeeper evaluation checks tests, quality and HMAC evidence; integration ordering and complete path/scope enforcement need the hardening described in the audit.
    - Human approval requirement for remote branch publishing.
 
 6. **MCP Inventory & Governance**
-   - Discovers and audits MCP servers across native tools, Antigravity configs, and Codex plugins (51 servers, 68 usable tools).
-   - Zero credential leakage: Tokens and API keys are automatically masked (`github_pat_***`).
+   - Inventories native tool definitions, Antigravity configs and Codex plugins; configured entries are not proof of connectivity.
+   - Auth display masking exists, but comprehensive credential redaction is pending security hardening.
 
 7. **SQLite WAL Persistence & Crash Recovery**
    - Full state persistence across systemd daemon restarts.
-   - Automatic reconciliation of interrupted missions with safe checkpoint resumption.
+   - Startup reconciliation marks interrupted missions recovering or blocked using checkpoints; automatic worker resumption is not established.
 
 ---
 
@@ -129,7 +130,7 @@ For comprehensive architectural specifications, see [ARCHITECTURE.md](ARCHITECTU
 
 ### Prerequisites
 - Linux OS (Arch Linux, EndeavourOS, Debian/Ubuntu, Fedora)
-- Python 3.11+
+- Python 3.12+ for the shared orchestrator and agpair installation
 - Git 2.30+
 
 ### Installation
@@ -144,11 +145,12 @@ pip install -e ./agpair
 
 For complete systemd daemon service installation, see [INSTALL.md](INSTALL.md).
 
-### Running Tests
+### Cloud Development and Tests
 ```bash
-pytest tests/ -v
+bash scripts/cloud_setup.sh
+.venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json
 ```
-All 42 unit and integration tests execute in <4 seconds.
+The runner isolates runtime paths and explicitly lists local-only checks. The CLI test uses the active interpreter and temporary state; both `acsai` and `python -m acs_team.cli` now use the correct main function. See [TESTING.md](TESTING.md) for labels and the incremental CI comparison command, and [stage progress](docs/progress/PROGRESS.md) for current results.
 
 ---
 
@@ -177,10 +179,10 @@ All 42 unit and integration tests execute in <4 seconds.
 
 ## 🔒 Security & Verification
 
-ACS AI enforces **strict fail-closed security**:
-- **CoreLock Protected Paths**: Read-only protection prevents accidental modification of critical repositories.
+ACS AI includes these security mechanisms, with coverage gaps documented in the audit:
+- **CoreLock Protected Paths**: Canonical repository-path checks; configuration consistency and complete escape coverage remain pending.
 - **HMAC Evidence Verification**: Diffs and test runs are bound to commit SHAs using HMAC signatures.
-- **Credential Masking**: Sensitive tokens are never printed in logs or UI.
+- **Credential Masking**: Partial masking exists; complete log/UI redaction is not verified.
 
 For details on security design and threat models, see [SECURITY.md](SECURITY.md).
 
@@ -189,7 +191,7 @@ For details on security design and threat models, see [SECURITY.md](SECURITY.md)
 ## ⚠️ Current Limitations
 
 1. **Non-Interactive Execution**: Workers execute in non-interactive batch modes. Interactive prompts (e.g. `read -p`) will timeout.
-2. **Remote Push Isolation**: Remote pushing to GitHub branches requires explicit human confirmation via `acsai approval approve <id>`.
+2. **Remote Publishing**: Approval records exist for sensitive operations; complete binding and enforcement need security hardening. Never publish autonomously without the user's authorization.
 
 ---
 

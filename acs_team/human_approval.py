@@ -56,7 +56,7 @@ class HumanApprovalGate:
         approval_id = f"appr-{uuid.uuid4().hex[:8]}"
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             con.execute(
                 """
                 INSERT INTO human_approvals (
@@ -95,7 +95,7 @@ class HumanApprovalGate:
             raise HumanApprovalError(f"Autonomous worker '{resolved_by}' is forbidden from resolving approval gates.")
 
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             cur = con.execute(
                 """
                 UPDATE human_approvals
@@ -112,13 +112,13 @@ class HumanApprovalGate:
         return updated
 
     def get_approval(self, approval_id: str) -> Optional[Dict[str, Any]]:
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             cur = con.execute("SELECT * FROM human_approvals WHERE approval_id = ?", (approval_id,))
             row = cur.fetchone()
             return dict(row) if row else None
 
     def list_pending_approvals(self, mission_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             if mission_id:
                 cur = con.execute(
                     "SELECT * FROM human_approvals WHERE mission_id = ? AND status = 'PENDING' ORDER BY created_at DESC",
@@ -130,7 +130,15 @@ class HumanApprovalGate:
                 )
             return [dict(r) for r in cur.fetchall()]
 
-    def is_operation_approved(self, approval_id: str) -> bool:
+    def is_operation_approved(self, approval_id: str, *, mission_id: str | None = None,
+                              target_repo: str | None = None, commit_sha: str | None = None,
+                              action: str | None = None) -> bool:
         """Returns True only if the specified approval has status APPROVED."""
         rec = self.get_approval(approval_id)
-        return rec is not None and rec.get("status") == ApprovalStatus.APPROVED.value
+        if rec is None or rec.get("status") != ApprovalStatus.APPROVED.value:
+            return False
+        from pathlib import Path
+        expected = {"mission_id": mission_id, "commit_sha": commit_sha, "action": action}
+        if any(value is not None and rec.get(key) != value for key, value in expected.items()):
+            return False
+        return target_repo is None or Path(rec["target_repo"]).resolve() == Path(target_repo).resolve()

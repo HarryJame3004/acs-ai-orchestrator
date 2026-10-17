@@ -1,0 +1,913 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "0.1",
+      "requirement": "Existing system (reported by the user, NOT verified by you)",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "0.2",
+      "requirement": "Repository and branches",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "0.3",
+      "requirement": "Absolutely protected project",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "1.1",
+      "requirement": "Approval policy **[CLOUD ADAPTED]**",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.1",
+      "requirement": "Repository discovery",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.2",
+      "requirement": "Worker adapter analysis (static) **[CLOUD ADAPTED]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.3",
+      "requirement": "MCP inventory **[CLOUD ADAPTED]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.4",
+      "requirement": "Baseline tests",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.5",
+      "requirement": "Audit report",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "2.6",
+      "requirement": "AGENTS.md **[NEW]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "3.1",
+      "requirement": "Upgrade deployment tooling",
+      "stage": "STAGE-1",
+      "label": "CLOUD_SIMULATED",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "acs_team/recovery.py",
+        "UPGRADE_GUIDE.md"
+      ],
+      "evidence": [
+        "tests/test_recovery.py::test_application_health_failure_restores_previous_pointer"
+      ]
+    },
+    {
+      "id": "4.1",
+      "requirement": "Secret scanning",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.2",
+      "requirement": "Static analysis",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.3",
+      "requirement": "Guardian security hardening",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.4",
+      "requirement": "Sandbox verification **[CLOUD ADAPTED]**",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.5",
+      "requirement": "MCP least privilege",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.6",
+      "requirement": "Worker process supervision",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.7",
+      "requirement": "Resource management",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.8",
+      "requirement": "Network and quota resilience",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.9",
+      "requirement": "Database reliability",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.10",
+      "requirement": "Systemd watchdog",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.11",
+      "requirement": "Emergency stop",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "4.12",
+      "requirement": "V2.3 acceptance criteria",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json"
+      ]
+    },
+    {
+      "id": "5.1",
+      "requirement": "Structured task planning",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.2",
+      "requirement": "File ownership",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.3",
+      "requirement": "SQLite claims",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.4",
+      "requirement": "Contract-first development",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.5",
+      "requirement": "Blackboard communication",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.6",
+      "requirement": "Dynamic worker roles",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.7",
+      "requirement": "Independent testing",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.8",
+      "requirement": "Cross-review",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.9",
+      "requirement": "Sequential integration",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.10",
+      "requirement": "Multi-agent failure recovery",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "5.11",
+      "requirement": "V2.4 acceptance criteria **[CLOUD ADAPTED]**",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json"
+      ]
+    },
+    {
+      "id": "6.1",
+      "requirement": "Lessons learned",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.2",
+      "requirement": "Better task decomposition",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.3",
+      "requirement": "Context selection",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.4",
+      "requirement": "Structured worker output",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.5",
+      "requirement": "Golden benchmark suite",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.6",
+      "requirement": "Adaptive scheduling",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.7",
+      "requirement": "Multi-solution mode",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "6.8",
+      "requirement": "V2.5 acceptance criteria",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json"
+      ]
+    },
+    {
+      "id": "7.1",
+      "requirement": "Natural-language interface",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.2",
+      "requirement": "Dry-run",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.3",
+      "requirement": "Review package",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.4",
+      "requirement": "Escalation package",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.5",
+      "requirement": "Structured review import",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.6",
+      "requirement": "Mission templates",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.7",
+      "requirement": "Notifications",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.8",
+      "requirement": "Dashboard improvements",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "7.9",
+      "requirement": "V2.6 acceptance criteria",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.1",
+      "requirement": "Existing MCP preservation",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.2",
+      "requirement": "MCP candidates (evaluate; integrate only when missing and useful)",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.3",
+      "requirement": "Supply-chain safety for MCP servers **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.4",
+      "requirement": "CLI tooling candidates",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.5",
+      "requirement": "Frameworks for reference only",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.6",
+      "requirement": "Routing architecture",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "8.7",
+      "requirement": "MCP verification (delivered as local tooling)",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.1",
+      "requirement": "Unit tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.2",
+      "requirement": "Integration tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.3",
+      "requirement": "Security tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.4",
+      "requirement": "Failure-injection tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.5",
+      "requirement": "End-to-end missions",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "9.6",
+      "requirement": "Flaky-test policy **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "12.1",
+      "requirement": "Autonomous continuation within a task",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "17.1",
+      "requirement": "Command",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "17.2",
+      "requirement": "Report format",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "17.3",
+      "requirement": "Feature-flag rollout order **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "NOT_TESTED",
+      "implementation": [],
+      "evidence": []
+    },
+    {
+      "id": "3",
+      "requirement": "Consistent backup, verify and scratch restore",
+      "stage": "STAGE-1",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "acs_team/recovery.py",
+        "acs_team/upgrade_cli.py"
+      ],
+      "evidence": [
+        "tests/test_recovery.py",
+        "reports/stage_1_tests.json"
+      ]
+    },
+    {
+      "id": "3.local",
+      "requirement": "Live backup, scratch restore, staged install and service rollback on user laptop",
+      "stage": "STAGE-1",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "NOT_TESTED",
+      "implementation": [
+        "BACKUP_AND_RECOVERY.md",
+        "UPGRADE_GUIDE.md"
+      ],
+      "evidence": []
+    }
+  ]
+}

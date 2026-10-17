@@ -15,13 +15,16 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .api_server import ACSServer
 from .auth import get_or_create_auth_token
 from .config import API_HOST, API_PORT, DB_PATH, LOGS_DIR, PID_FILE, STATE_DIR
 from .db import DatabaseManager
 from .state_machine import MissionState, StateMachine
+from .security import RedactingFormatter
+from logging.handlers import RotatingFileHandler
+from .watchdog import notify
 
 # Configure logging
 LOG_FILE = LOGS_DIR / "daemon.log"
@@ -29,10 +32,12 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
-        logging.FileHandler(str(LOG_FILE), encoding="utf-8"),
+        RotatingFileHandler(str(LOG_FILE), maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8"),
         logging.StreamHandler(sys.stdout),
     ],
 )
+for handler in logging.getLogger().handlers:
+    handler.setFormatter(RedactingFormatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
 logger = logging.getLogger("acs_ai.daemon")
 
 STATUS_FILE = STATE_DIR / "daemon.json"
@@ -48,6 +53,19 @@ class ACSDaemon:
         self.auth_token = get_or_create_auth_token()
         self.http_server: Optional[ACSServer] = None
         self.http_thread: Optional[threading.Thread] = None
+        self.last_backup = 0.0
+
+    def _periodic_backup(self) -> None:
+        if os.environ.get("ACS_ENABLE_PERIODIC_BACKUPS") != "1":
+            return
+        interval = max(60, int(os.environ.get("ACS_BACKUP_INTERVAL_SECONDS", "3600")))
+        if self.last_backup and time.monotonic() - self.last_backup < interval:
+            return
+        from .config import BACKUPS_DIR
+        from .recovery import create_backup
+        import uuid
+        create_backup(DB_PATH, BACKUPS_DIR / f"scheduled-{uuid.uuid4().hex}.acs-backup")
+        self.last_backup = time.monotonic()
 
     def start(self) -> None:
         """Starts the persistent daemon and API server."""
@@ -74,6 +92,7 @@ class ACSDaemon:
             self.http_thread = threading.Thread(target=self.http_server.serve_forever, daemon=True)
             self.http_thread.start()
             logger.info(f"Local API Server listening on http://{self.host}:{self.port}")
+            notify("READY=1")
         except Exception as e:
             logger.error(f"Failed to bind Local API Server: {e}")
             self.stop()
@@ -98,6 +117,9 @@ class ACSDaemon:
 
                 # Update heartbeat in status file
                 self._update_status("running")
+                if self.http_thread and self.http_thread.is_alive():
+                    notify("WATCHDOG=1")
+                self._periodic_backup()
                 time.sleep(2.0)
             except Exception as e:
                 logger.error(f"Error in daemon supervisor loop: {e}")
@@ -124,6 +146,7 @@ class ACSDaemon:
     def stop(self) -> None:
         """Gracefully shuts down the daemon and frees ports and resources."""
         self.running = False
+        notify("STOPPING=1")
         if self.http_server:
             try:
                 self.http_server.shutdown()

@@ -65,7 +65,7 @@ class RepoManager:
             # Query last mission on this repo
             last_mission = "None"
             try:
-                with self.db.get_connection() as con:
+                with self.db.connection() as con:
                     cur = con.execute(
                         "SELECT mission_id, state, updated_at FROM missions WHERE repository_path = ? ORDER BY created_at DESC LIMIT 1",
                         (str(path.resolve()),),
