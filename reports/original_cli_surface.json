@@ -1,0 +1,41 @@
+{
+  "source_commit": "eecbce4",
+  "source": "acs_team/cli.py",
+  "commands": [
+    "add",
+    "approval",
+    "approve",
+    "daemon",
+    "list",
+    "mcp",
+    "memory",
+    "mission",
+    "missions",
+    "plan",
+    "reject",
+    "repo",
+    "run",
+    "status",
+    "tools",
+    "ui",
+    "worker"
+  ],
+  "flags": [
+    "--bg",
+    "--by",
+    "--fg-internal",
+    "--limit",
+    "--mission",
+    "--name",
+    "--no-resume",
+    "--reason",
+    "--repo",
+    "--retries",
+    "--test-cmd",
+    "--verbose",
+    "--worker",
+    "-m",
+    "-v"
+  ],
+  "note": "Original parser surface reconstructed from immutable Git source; current command help executed in tests. Historical help text was not captured before edits."
+}

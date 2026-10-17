@@ -25,7 +25,8 @@ class ACSRequestHandler(BaseHTTPRequestHandler):
     server: ACSServer  # type hint
 
     def _send_json(self, status_code: int, data: Any) -> None:
-        payload = json.dumps(data, indent=2).encode("utf-8")
+        from .security import redact
+        payload = json.dumps(redact(data), indent=2).encode("utf-8")
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
@@ -48,12 +49,19 @@ class ACSRequestHandler(BaseHTTPRequestHandler):
     def _read_json_body(self) -> Optional[Dict[str, Any]]:
         try:
             content_length = int(self.headers.get("Content-Length", 0))
-            if content_length <= 0:
+            if content_length < 0 or content_length > 65536:
+                self._send_error(413, 'Request body exceeds 64 KiB')
+                return None
+            if content_length == 0:
                 return {}
+            self.connection.settimeout(5)
             raw_body = self.rfile.read(content_length).decode("utf-8")
-            return json.loads(raw_body)
-        except Exception as e:
-            self._send_error(400, f"Malformed JSON request body: {e}")
+            value = json.loads(raw_body)
+            if not isinstance(value, dict):
+                raise ValueError('Object required')
+            return value
+        except (ValueError, UnicodeError, OSError, RecursionError):
+            self._send_error(400, "Malformed JSON request body")
             return None
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -83,6 +91,11 @@ class ACSRequestHandler(BaseHTTPRequestHandler):
             return
 
         db: DatabaseManager = self.server.db
+
+        if path == '/runtime':
+            from .runtime_view import runtime_snapshot
+            self._send_json(200, runtime_snapshot(db))
+            return
 
         if path == "/status":
             missions = db.list_missions(limit=10)
@@ -179,12 +192,15 @@ class ACSRequestHandler(BaseHTTPRequestHandler):
         if path == "/missions":
             # Submit new mission (supports goal or prompt)
             goal = body.get("goal") or body.get("prompt")
-            if not goal:
-                self._send_error(400, "Missing required field: 'goal' or 'prompt'")
+            if not isinstance(goal, str) or not goal.strip() or len(goal.encode()) > 16384:
+                self._send_error(400, "Goal must be a nonempty string within 16 KiB")
                 return
             project_id = body.get("project_id", "default")
             repo_path = body.get("repository_path", "") or body.get("repo_path", "")
             workers = body.get("assigned_workers", ["auto"])
+            if not isinstance(project_id, str) or len(project_id)>128 or not isinstance(repo_path, str) or len(repo_path)>4096 or not isinstance(workers, list) or len(workers)>3 or not all(isinstance(w, str) and len(w)<65 for w in workers):
+                self._send_error(400, 'Invalid mission metadata')
+                return
 
             # Generate mission ID
             import datetime, uuid
@@ -252,6 +268,8 @@ class ACSServer(ThreadingHTTPServer):
     """Custom HTTP Server holding shared database connection and worker registry."""
 
     def __init__(self, host: str, port: int, db: DatabaseManager, auth_token: str):
+        if host not in {"127.0.0.1", "localhost", "::1"}:
+            raise ValueError("API binding must be loopback")
         super().__init__((host, port), ACSRequestHandler)
         self.db = db
         self.auth_token = auth_token

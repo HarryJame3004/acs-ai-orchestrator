@@ -54,6 +54,7 @@ def temp_env():
     subprocess.run([str(GIT_BIN), "config", "user.name", "Test Engineer"], cwd=str(repo_dir), check=True)
     subprocess.run([str(GIT_BIN), "config", "user.email", "test@acsai.local"], cwd=str(repo_dir), check=True)
 
+    (repo_dir / "test_fixture.py").write_text("from pathlib import Path\ndef test_readme_contract(): assert Path('README.md').read_text().startswith('# Sample')\n")
     init_file = repo_dir / "README.md"
     init_file.write_text("# Sample Calculator Project\n")
     subprocess.run([str(GIT_BIN), "add", "."], cwd=str(repo_dir), check=True)
@@ -144,7 +145,7 @@ def test_4_dashboard_mission_submission(temp_env):
             "task_name": "helper_module",
             "goal_summary": "Helper module",
             "files_to_modify": ["helper.py"],
-            "test_command": "true",
+            "test_command": f"{sys.executable} -m pytest",
         }
         mock_worker = MagicMock(spec=BaseWorker)
         mock_worker.execute_task.return_value = {
@@ -156,7 +157,12 @@ def test_4_dashboard_mission_submission(temp_env):
 
         mock_int_inst = mock_int_cls.return_value
         mock_int_inst.ensure_integration_branch.return_value = "acsai/mission/test-dash-submission"
-        mock_int_inst.merge_task_branch.return_value = {"success": True, "integrated_commit_sha": "123456"}
+        fixture_sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=temp_env["repo_dir"],
+                                     capture_output=True, text=True, check=True).stdout.strip()
+        mock_int_inst.merge_task_branch.return_value = {
+            "success": True, "integrated_commit_sha": fixture_sha,
+            "integration_worktree": str(temp_env["repo_dir"]),
+        }
 
         logs_collected = []
         res = planner.run_mission(
@@ -164,7 +170,7 @@ def test_4_dashboard_mission_submission(temp_env):
             prompt=prompt,
             repo_path=temp_env["repo_dir"],
             worker_preference="auto",
-            test_command="true",
+            test_command=f"{sys.executable} -m pytest",
             log_callback=lambda l: logs_collected.append(l),
         )
 
@@ -176,11 +182,15 @@ def test_4_dashboard_mission_submission(temp_env):
 
 
 # Test 5: Automatic worker selection
+@pytest.mark.simulated
 def test_5_automatic_worker_selection(temp_env):
     db: DatabaseManager = temp_env["db"]
     planner = AutonomousMissionPlanner(db=db)
 
-    # Test auto selection logic
+    # Scheduling logic uses an explicit fake registry, never inferred real auth.
+    planner.registry = MagicMock(spec=WorkerRegistry)
+    planner.registry.list_available_workers.return_value = ["codex-primary"]
+    planner.registry.get_worker.return_value = MagicMock(spec=BaseWorker)
     worker_id, worker = planner._schedule_worker("auto", {"files_to_modify": ["test.py"]})
     assert worker_id in ("codex-primary", "agy-google-a", "agy-google-b")
     assert worker is not None
@@ -372,7 +382,7 @@ def test_13_guardian_evaluation_and_hmac(temp_env):
         mission_id="test-guardian-mid",
         task_id="task-1",
         commit_sha=head_sha,
-        test_results={"passed": True, "output": "1 passed"},
+        test_results={"executed": True, "passed": True, "output": "1 passed"},
         diff_summary={"changed_files": ["README.md"]},
     )
     assert ev.signature is not None

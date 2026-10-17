@@ -275,6 +275,7 @@ class DashboardView(VerticalScroll):
         # Row 4: Recent Missions Table
         yield Label("📋 [bold]NHIỆM VỤ GẦN ĐÂY (RECENT MISSIONS)[/bold]")
         yield DataTable(id="dash_missions_table")
+        yield Static("Runtime state loading", id="runtime_details", markup=False)
 
         yield Static("", classes="spacer")
 
@@ -542,6 +543,9 @@ class ACSControlCenterApp(App):
             pass
 
     def refresh_all_data(self) -> None:
+        from .runtime_view import runtime_snapshot
+        import json
+        self.query_one("#runtime_details", Static).update(json.dumps(runtime_snapshot(self.db), ensure_ascii=False, indent=2))
         # Metric 1: Daemon status
         box_daemon = self.query_one("#box_daemon", Static)
         health = check_daemon_health()
@@ -654,7 +658,7 @@ class ACSControlCenterApp(App):
         # Refresh Guardian Audit
         t_audit = self.query_one("#guardian_audit_table", DataTable)
         t_audit.clear()
-        with self.db.get_connection() as con:
+        with self.db.connection() as con:
             cur = con.execute("SELECT * FROM audit_events ORDER BY event_id DESC LIMIT 15")
             for r in cur.fetchall():
                 t_audit.add_row(

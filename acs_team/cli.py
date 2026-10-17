@@ -47,6 +47,9 @@ def setup_logging(verbose: bool = False):
         format="[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s",
         datefmt="%H:%M:%S",
     )
+    from .security import RedactingFormatter
+    for handler in logging.getLogger().handlers:
+        handler.setFormatter(RedactingFormatter("%(levelname)s %(name)s: %(message)s"))
 
 
 def cmd_ui(args):
@@ -336,6 +339,14 @@ def cmd_natural_language_mission(args):
         print("Error: Empty mission prompt provided.")
         sys.exit(1)
 
+    if getattr(args, "dry_run", False):
+        from .mission_templates import dry_run
+        print(json.dumps(dry_run(prompt, Path(args.repo or Path.cwd()),
+                                 template=args.template, worker=args.worker, risk=args.risk)))
+        return
+    from .security import redact
+    prompt = redact(prompt)
+
     db = DatabaseManager()
     rm = RepoManager(db)
 
@@ -372,7 +383,11 @@ def cmd_natural_language_mission(args):
             state="QUEUED",
             assigned_workers=[worker_pref],
             prompt=prompt,
+            plan_json=json.dumps({'dispatch_options': {'test_command': args.test_cmd, 'risk': getattr(args, 'risk', None)}}),
         )
+        if os.environ.get('ACS_ENABLE_DAEMON_EXECUTION') == '1':
+            print(json.dumps({'mission_id':mission_id,'status':'QUEUED','execution':'daemon','repository':str(repo_path)}))
+            return
 
         cmd = [
             sys.executable,
@@ -389,6 +404,8 @@ def cmd_natural_language_mission(args):
         ]
         if args.test_cmd:
             cmd.extend(["--test-cmd", args.test_cmd])
+        if getattr(args, 'risk', None):
+            cmd.extend(['--risk', args.risk])
 
         with open(log_file, "a", encoding="utf-8") as out_f:
             subprocess.Popen(cmd, stdout=out_f, stderr=subprocess.STDOUT, start_new_session=True)
@@ -431,6 +448,7 @@ def cmd_natural_language_mission(args):
             worker_preference=worker_pref,
             test_command=args.test_cmd,
             log_callback=_cli_log,
+            risk_profile=getattr(args, 'risk', None),
         )
     except PermissionError as pe:
         print(f"\n[SECURITY REJECTION] {pe}\n")
@@ -554,6 +572,9 @@ def cmd_mission(args):
         if not m:
             print(f"Error: Mission '{target_id}' not found.")
             sys.exit(1)
+        if m['state'] not in {'CREATED', 'QUEUED'}:
+            print(json.dumps({'status':'BLOCKED','reason':'Inspect retained worktree/checkpoint and create a reviewed recovery plan; terminal/active missions are not restarted blindly'}))
+            raise SystemExit(1)
         prompt = m.get("prompt") or m.get("goal") or "Resume mission"
         repo = Path(m.get("repository_path", "."))
         workers = m.get("assigned_workers", ["auto"])
@@ -742,7 +763,21 @@ def main():
         "--test-cmd", default=None, help="Optional test command override"
     )
 
+    parser.add_argument("--dry-run", action="store_true", help="Preview a mission without target writes or provider calls")
+    parser.add_argument("--template", default="add-feature", choices=["fix-tests","add-feature","refactor","write-docs","security-audit","review-pr","debug","performance-check"])
+    parser.add_argument("--risk", choices=["low","medium","high"], help="Dry-run risk profile; execution still requires Guardian")
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    from .upgrade_cli import register as register_recovery
+    register_recovery(subparsers)
+    from .runtime_cli import register as register_runtime
+    register_runtime(subparsers)
+    from .team_cli import register as register_team
+    register_team(subparsers)
+    from .intelligence_cli import register as register_intelligence
+    register_intelligence(subparsers)
+    from .workflow_cli import register as register_workflow
+    register_workflow(subparsers)
 
     # ui
     p_ui = subparsers.add_parser("ui", help="Launch interactive Textual Control Center TUI")

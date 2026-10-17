@@ -151,6 +151,7 @@ class StateMachine:
             review_status=review_status,
             quality_score=quality_score,
             evidence_ref=evidence_ref,
+            expected_state=current_state.value,
         )
 
         logger.info(

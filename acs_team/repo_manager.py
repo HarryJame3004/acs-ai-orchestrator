@@ -65,7 +65,7 @@ class RepoManager:
             # Query last mission on this repo
             last_mission = "None"
             try:
-                with self.db.get_connection() as con:
+                with self.db.connection() as con:
                     cur = con.execute(
                         "SELECT mission_id, state, updated_at FROM missions WHERE repository_path = ? ORDER BY created_at DESC LIMIT 1",
                         (str(path.resolve()),),
@@ -124,8 +124,9 @@ class RepoManager:
         """Determines if a path is strictly protected under CoreLock rules."""
         try:
             canon = Path(path).expanduser().resolve()
-            canon_core = ACS_CORE_DIR.expanduser().resolve()
-            return canon == canon_core or str(canon).startswith(str(canon_core) + "/")
+            from .config import PROTECTED_PATHS
+            protected = (*PROTECTED_PATHS, ACS_CORE_DIR)
+            return any(canon == p.expanduser().resolve() or p.expanduser().resolve() in canon.parents for p in protected)
         except Exception:
             return True
 
@@ -170,6 +171,12 @@ class RepoManager:
         # 3. Create isolated mission workspace under WORKSPACES_DIR
         clean_mid = (mission_id or "default").replace("/", "_").replace(":", "_")
         workspace_dir = WORKSPACES_DIR / f"workspace_{clean_mid}"
+        if workspace_dir.is_symlink() or WORKSPACES_DIR.resolve() not in workspace_dir.resolve().parents:
+            raise PermissionError('Isolated workspace escapes the managed root')
+        if self.is_corelock_protected(workspace_dir):
+            raise PermissionError('Isolated workspace overlaps protected paths')
+        if workspace_dir.exists() and not (workspace_dir / '.git').exists():
+            raise FileExistsError('Existing non-Git workspace is retained; refusing to initialize over user files')
         workspace_dir.mkdir(parents=True, exist_ok=True)
 
         if not (workspace_dir / ".git").exists():
