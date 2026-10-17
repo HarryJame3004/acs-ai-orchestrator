@@ -27,7 +27,7 @@ jobs:
         run: bash scripts/cloud_setup.sh
       - name: Lint, type check and offline secret candidate regression
         run: .venv/bin/python scripts/cloud_static.py --report /tmp/acs-static.json
-      - name: Tests compared with the disclosed failing baseline
+      - name: Original baseline coverage and zero current test failures
         if: ${{ !cancelled() }}
         run: .venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-tests.json
       - name: Show actual check outcomes

@@ -131,8 +131,9 @@ def main() -> int:
     args.report.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({k: report[k] for k in ("counts", "by_label", "pytest_exit_code", "regressions")}))
     if args.compare_baseline:
-        # This is a regression gate, never a claim that pytest passed.
-        return 1 if issues or exit_code not in {0, 1} else 0
+        # The original CLI failure is repaired: current acceptance requires a
+        # clean pytest result, even if a historical failure later reappears.
+        return 1 if issues or exit_code != 0 else 0
     return exit_code
 
 
