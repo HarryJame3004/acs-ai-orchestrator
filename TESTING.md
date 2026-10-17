@@ -13,11 +13,12 @@ bash scripts/cloud_setup.sh
 .venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json
 ```
 
-The last command currently exits 1: the existing CLI test executes an absolute
-interpreter path from the original workstation. The installed `acsai` script
-also targets nonexistent `acs_team.cli:app`; module execution uses `main`.
-These are different defects, both reserved for V2.3. Do not create a fake
-workstation or authenticated worker profile to make the tests pass.
+The continuation repaired both the CLI console target and the original test's
+workstation-specific interpreter in separate code and test commits. The command
+now exits 0: 47 passed, 4 explicit local-only skips. All original CLI assertions
+remain intact; subprocesses use temp runtime paths and the active interpreter.
+Do not create a fake workstation or authenticated worker profile to make the
+local-only tests pass. Historical baseline details below remain unchanged.
 
 The initial unchanged 42-test suite produced 37 passed / 5 failed / 0 skipped
 in 5.22 seconds of pytest execution (5.386 seconds including the wrapper), on
@@ -42,13 +43,15 @@ For an incremental CI regression check:
 .venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-tests.json
 ```
 
-This may exit zero while pytest exits 1. JSON always preserves
+The original Stage 0 comparator allowed a known failure. After repairing it,
+the continuation tightened the gate: it now requires pytest exit 0 as well as
+no regression. JSON always preserves
 `pytest_exit_code`, each outcome, label and regressions. Missing baseline tests,
 new failures, changed exception types, unexpected skips, collection failures and
-empty runs fail the comparison. A known failing assertion can still conceal
-another bug in the same test; the comparison is not full acceptance. Repairing
-the CLI test and removing that allowance belongs to V2.3 in a separate commit.
-Never advertise a green comparison as a fully passing test suite.
+empty runs fail the comparison. The original baseline remains immutable as
+historical evidence, but its prior failures cannot excuse a current failing
+pytest run. Local-only skips remain pending local verification, so cloud passing
+results still do not establish full operational acceptance.
 
 The runner redirects tilde expansion before application imports to a disposable
 directory; it leaves HOME unchanged. It uses a disposable current directory,

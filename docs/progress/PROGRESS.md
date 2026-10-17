@@ -1,5 +1,51 @@
 # Upgrade progress
 
+## Latest continuation checkpoint
+
+The user requested cross-stage autonomous continuation on dependent branches,
+then asked for a full prerequisite review before starting the unattended run.
+That authorization supersedes the older merge-wait instructions below. No
+Stage 0 work was repeated. The original master specification is now preserved
+verbatim at `docs/upgrade/MASTER_SPEC.md`.
+
+- Git ref discovery confirms PR #1 points to the previously published Stage 0
+  head, while main remains the initial release. API review/CI/merge metadata
+  remains unavailable because the HTTPS proxy tunnel to api.github.com is
+  blocked (403); Git read and stage-branch push work.
+- `1cb2ad7`: added ACS_HOME/XDG runtime selection, an explicit credentials-file
+  override for isolated operation, and repaired the console-script main target.
+- `fd23285`: fixed the original CLI test in a separate test-only commit. All
+  assertions remain intact; it now uses sys.executable, temp state/backup paths,
+  a nonexistent fixture credentials file and port 0 instead of a workstation.
+- The static regression comparator now ignores line movement while preserving
+  diagnostic multiplicity and secret fingerprints; three new tests cover it.
+  This does not suppress new diagnostics or rewrite the original baselines.
+  The CI comparison now also requires pytest exit 0; historical failure
+  allowances cannot mask a recurrence of the repaired CLI failure.
+  Commits: `c11d1d3` (static comparison), `c0395d1` (zero-failure gate).
+- Latest suite: CLOUD_REAL **43 passed**, CLOUD_SIMULATED **4 passed**,
+  LOCAL_VERIFICATION_REQUIRED **4 skipped with explicit reasons**. Total
+  **47 passed, 4 skipped, 0 failed**, pytest exit 0. Isolated installed acsai
+  --help also passes. Static gate has zero new findings; legacy debt remains
+  99 Ruff, 13 mypy errors and 15 disclosed metadata/test candidates.
+  Machine-readable results: `reports/continuation_tests.json` and
+  `reports/continuation_static.json`. The 47/4 result repeated successfully;
+  the final run took 7.01 seconds and the strict comparison exited 0.
+- Saved a cloud environment draft adding only api.github.com, refreshed setup
+  and startup instructions, and three nonsecret runtime path variables. This is
+  a saved draft only, not an applied runtime policy or published snapshot. The
+  user must review/save settings and publish before API access can be retested.
+  No credentials were requested or printed.
+
+Read `OVERNIGHT_PREFLIGHT.md` for the exact user actions and stage-by-stage
+cloud/local dependency matrix. The latest user message requests that preparation
+assessment before they signal readiness; preserve this checkpoint and resume
+STAGE-1 after that signal without waiting for a Stage 0 merge. Stage 1 and
+V2.3–V2.6/STAGE-7 remain **NOT_TESTED / not implemented**, apart from the small
+portable config/entry-point prerequisite above. Do not label them complete.
+
+The earlier Stage 0 report below is historical and its counts remain unchanged.
+
 Current stage: **STAGE-0 — PARTIAL**. STAGE-1 and V2.3–V2.6/STAGE-7 are NOT_TESTED
 and have not started. Work is limited to audit, baseline, agent guidance and
 cloud/CI scaffolding. No runtime feature, schema or existing test was changed.

@@ -6,7 +6,7 @@
 
 **ACS AI** is an experimental, local-first Python coding orchestrator with planner, worker adapters, git worktrees, SQLite persistence and a **Guardian** evidence gate. Coordinated multi-agent execution and security guarantees remain under audit.
 
-The unchanged orchestrator baseline is **37 passed / 5 failed**, with cloud and simulated results distinguished in [the audit](reports/PHASE_0_BASELINE_AUDIT.md). CI compares against disclosed existing failures; a green regression check does not mean all tests pass. Real worker authentication, MCP connectivity and the user's local deployment remain unverified. See [TESTING.md](TESTING.md) and [stage progress](docs/progress/PROGRESS.md) before development.
+The original audit baseline was **37 passed / 5 failed**, with cloud and simulated results distinguished in [the audit](reports/PHASE_0_BASELINE_AUDIT.md). The continuation fixed the portable CLI test and entry point; current results are **47 passed / 4 local-only skipped**. Real worker authentication, MCP connectivity and the user's local deployment remain unverified. See [TESTING.md](TESTING.md) and [stage progress](docs/progress/PROGRESS.md) before development.
 
 ---
 
@@ -150,7 +150,7 @@ For complete systemd daemon service installation, see [INSTALL.md](INSTALL.md).
 bash scripts/cloud_setup.sh
 .venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json
 ```
-The runner isolates runtime paths and explicitly lists local-only checks. One existing CLI test still fails because it hardcodes the original workstation's interpreter path. Use `python -m acs_team.cli` for the CLI: the installed `acsai` entry point also needs a separate packaging fix. See [TESTING.md](TESTING.md) for exact counts, labels and the incremental CI comparison command.
+The runner isolates runtime paths and explicitly lists local-only checks. The CLI test uses the active interpreter and temporary state; both `acsai` and `python -m acs_team.cli` now use the correct main function. See [TESTING.md](TESTING.md) for labels and the incremental CI comparison command, and [stage progress](docs/progress/PROGRESS.md) for current results.
 
 ---
 
