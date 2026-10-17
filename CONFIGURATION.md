@@ -40,3 +40,9 @@ and ACS_ENABLE_SUPERVISION=1. An ACTIVE durable dispatch is not auto-stolen afte
 restart. ACS_ENABLE_NOTIFICATIONS=1 allows desktop event-only attempts; HTTPS
 provider attempts also require ACS_NOTIFY_NETWORK=1 and an explicitly approved
 credential-free ACS_NOTIFY_NTFY_URL. None are enabled automatically.
+
+Security follow-up: worker dispatch has no unsupervised fallback. With supervision
+off, real execution is denied. Production verification also always requires bwrap,
+independent of rollout flags. The cloud/fake-reference harness injects a trusted
+fixture executor explicitly; it is not a runtime configuration escape. All real
+provider activation, profile/toolchain and role checks remain blocked.

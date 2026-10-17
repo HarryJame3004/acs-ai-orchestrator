@@ -1,5 +1,51 @@
 # Upgrade progress
 
+## Current checkpoint — integrated candidate PARTIAL
+
+The overnight directive explicitly authorizes dependent stages without waiting
+for merges. Historical stage notes below are retained; their earlier waiting/API
+blocks and old counts are superseded by this checkpoint. No stage is a full
+release PASS. No main push, merge, tag, live deployment, credential operation or
+ACS Core access occurred.
+
+Saved production milestones: Stage 0 8906cd1 (PR #1), Stage 1 071cc2a (#2),
+V2.3 cebfd08 (#3), V2.4 e960726 (#4), V2.5 e933d72 (#5), V2.6 21831cd (#6),
+Stage 7 490fbb0/e69f67e/54e598e/8595f48 plus final fixes/evidence (#7, draft).
+All are dependent branches targeting main; none merged by this task. Continue
+upgrade/stage-7-verification-release and fast-forward upgrade/overnight-integration.
+
+Root final: 149 passed, 5 explicit local skips (124 CLOUD_REAL, 25
+CLOUD_SIMULATED, 5 LOCAL_VERIFICATION_REQUIRED). Scoped Ruff/mypy now 0/0;
+15 known secret candidates, zero new; original baselines unchanged. Companion
+138 passed/25 suites, compile/build passed, npm audit zero after exact esbuild
+0.28.2. Golden fake full 12/12 passed. Bridge final counts and hosted status are
+in reports/bridge_tests.json and reports/CI_STATUS.json. Earlier 846-pass run
+missed a fast-terminal policy overwrite; a deterministic regression now covers it.
+
+Production advances include consistent backup/migration/staging, pre-merge
+Guardian/evidence/approvals, mandatory isolated verification, owned subreaping,
+fenced claims/ownership/contracts/independent test/review API, lessons/context/
+metrics, no-write dry-run and review workflow, daemon lock/queue, MCP audit/stdio
+and native file guards, local verification/import, safe committed-source ZIP and
+buildable companion sources restored from pinned upstream. Incomplete reviews
+and unverified providers fail closed. Companion build no longer deploys into IDE.
+
+Remaining HIGH source work: legitimate provider activation/auth/toolchain
+bindings, independent actual role adapters, natural-language/daemon TeamRunner
+integration, full Git/SQLite restart reconciliation, aggregate limits and
+review-driven execution. Additional schema/metrics/template/MCP details and full
+20-step demonstration remain partial. Laptop-only checks require local evidence;
+installing a CLI cannot fix missing integration source.
+
+Read reports/FINAL_ACCEPTANCE_REPORT.md and reports/REQUIREMENTS.json for coverage,
+reports/NEXT_SESSION_HANDOFF.md for exact source priorities/resume instruction,
+and LOCAL_DEPLOYMENT_GUIDE.md for isolated evaluation and approval-gated rollout.
+GitHub API/existing auth work; separate Actions log host can return proxy 403.
+No token or restart is required for the working API. Do not imply background
+execution after this task ends.
+
+## Historical checkpoints (superseded where noted above)
+
 ## Current checkpoint — Stage 7 in progress
 
 Root 145 passed / 5 local-only skips; bridge 846 passed with fake providers.

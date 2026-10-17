@@ -1,201 +1,42 @@
-# ACS AI V2.2 — Autonomous Multi-Agent Coding & Guardian Platform
+# ACS AI upgrade candidate
 
-[![Platform](https://img.shields.io/badge/Platform-Arch%20Linux%20%7C%20Linux-blue)](https://archlinux.org/)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://python.org/)
-[![Cloud baseline regression](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml)
+[![Cloud regression](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/HarryJame3004/acs-ai-orchestrator/actions/workflows/ci.yml)
 
-**ACS AI** is an experimental, local-first Python coding orchestrator with planner, worker adapters, git worktrees, SQLite persistence and a **Guardian** evidence gate. Coordinated multi-agent execution and security guarantees remain under audit.
+ACS AI is an experimental local-first coding orchestrator. This dependent upgrade
+implements parts of V2.3–V2.6; the package version remains 2.2.0 until acceptance.
+It is **PARTIAL, not a production release**. Real Codex/AGY authentication,
+independent provider roles, sandbox operation and laptop deployment are unverified.
+Real adapters fail closed instead of treating an installed binary as readiness.
 
-The original audit baseline was **37 passed / 5 failed**, with cloud and simulated results distinguished in [the audit](reports/PHASE_0_BASELINE_AUDIT.md). The continuation fixed the portable CLI test and entry point; current results are **47 passed / 4 local-only skipped**. Real worker authentication, MCP connectivity and the user's local deployment remain unverified. See [TESTING.md](TESTING.md) and [stage progress](docs/progress/PROGRESS.md) before development.
+Current evidence and exact gaps are in [progress](docs/progress/PROGRESS.md),
+[requirements](reports/REQUIREMENTS.json) and [acceptance](reports/FINAL_ACCEPTANCE_REPORT.md).
+Original baseline: 37 passed / 5 failed. Original baselines remain unchanged.
 
----
+Implemented cloud-tested paths include consistent SQLite backups and staged
+migrations, canonical protected paths, commit-bound approval/evidence, non-vacuous
+verification, supervised process cleanup, emergency stop, fenced task claims,
+independent fixture tests/review, sequential mission integration, advisory lessons,
+bounded context, measured scheduling, a 12-case fake-worker benchmark harness,
+no-write dry-run, review/escalation artifacts, strict review import, MCP definition
+auditing and local verification tooling. See each stage report for limits.
 
-## 🌟 Key Capabilities
+The existing `acsai -m` path remains single-task. Coordinated `TeamRunner` is an
+opt-in host API and is not yet connected to that path. Do not enable new runtime
+flags merely because cloud tests pass.
 
-1. **Natural-Language Mission Control (`acsai -m`)**
-   - Direct command-line missions without authoring JSON files:
-     ```bash
-     acsai -m "Create a Python calculator and test it"
-     ```
-   - Targeted workspace execution:
-     ```bash
-     acsai -m "Fix all failing tests" --repo ~/Projects/my-app
-     ```
-   - Dynamic worker routing:
-     ```bash
-     acsai -m "Refactor parser" --worker agy-google-b
-     ```
-   - Detached background execution:
-     ```bash
-     acsai -m "Build REST API" --bg
-     ```
-   - Multiline prompt and standard input piping:
-     ```bash
-     cat prompt.txt | acsai -m -
-     ```
-
-2. **Interactive Textual Dashboard (`acsai ui`)**
-   - Live telemetry status cards (Daemon, SSD circuit breaker, CoreLock status, MCP count, Repositories).
-   - In-terminal Mission Composer with multiline prompt editor, repository dropdown, and worker selector.
-   - Real-time progress tracker and streaming live log modal (`Ctrl+L`).
-   - Fullscreen mission modal (`Ctrl+N`).
-
-3. **Multi-Agent Worker Pool**
-   - **`codex-primary`**: Adapter for non-interactive OpenAI Codex CLI; actual sandbox boundaries require local verification.
-   - **`agy-google-a`**: Adapter for the primary Google Antigravity CLI profile; authentication is unverified.
-   - **`agy-google-b`**: Adapter with a dedicated home/XDG configuration; authentication and isolation require local verification.
-
-4. **Autonomous Mission Planner & Verification Engine**
-   - Automated git worktree isolation under `~/.local/share/acs-orchestrator/worktrees/`.
-   - In-worktree automated pytest verification.
-   - Bounded self-correction loop (up to 3 retries) with provider failover.
-   - Cryptographic HMAC-SHA256 evidence package generation binding test results to commit SHAs.
-
-5. **Fail-Closed Guardian & CoreLock Security**
-   - Protected path immutability: Rejects any attempt to write or merge to protected core repositories (CoreLock).
-   - Gatekeeper evaluation checks tests, quality and HMAC evidence; integration ordering and complete path/scope enforcement need the hardening described in the audit.
-   - Human approval requirement for remote branch publishing.
-
-6. **MCP Inventory & Governance**
-   - Inventories native tool definitions, Antigravity configs and Codex plugins; configured entries are not proof of connectivity.
-   - Auth display masking exists, but comprehensive credential redaction is pending security hardening.
-
-7. **SQLite WAL Persistence & Crash Recovery**
-   - Full state persistence across systemd daemon restarts.
-   - Startup reconciliation marks interrupted missions recovering or blocked using checkpoints; automatic worker resumption is not established.
-
----
-
-## 📋 System Architecture Overview
-
-```
-                                  +-----------------------------+
-                                  |   User Prompt / CLI / TUI   |
-                                  |   (acsai -m / acsai ui)     |
-                                  +--------------+--------------+
-                                                 |
-                                                 v
-                                  +-----------------------------+
-                                  |    ACS AI Daemon Server     |
-                                  |     (127.0.0.1:20129)       |
-                                  +--------------+--------------+
-                                                 |
-                     +---------------------------+---------------------------+
-                     |                           |                           |
-                     v                           v                           v
-        +-------------------------+ +-------------------------+ +-------------------------+
-        |   Autonomous Planner    | |     Repo Manager        | |       MCP Manager       |
-        | (Decompose, Worktrees)  | | (Telemetry, CoreLock)   | | (51 Servers, Masking)   |
-        +------------+------------+ +-------------------------+ +-------------------------+
-                     |
-                     v
-+-----------------------------------------------------------------------------------------+
-|                                Multi-Agent Worker Pool                                  |
-|                                                                                         |
-|   +-----------------------+     +-----------------------+     +-----------------------+ |
-|   |     codex-primary     |     |     agy-google-a      |     |     agy-google-b      | |
-|   |  (Bubblewrap Sandbox) |     |   (Google Account A)  |     |   (Google Account B)  | |
-|   +-----------------------+     +-----------------------+     +-----------------------+ |
-+--------------------------------------------+--------------------------------------------+
-                                             |
-                                             v
-                              +-----------------------------+
-                              |   Pytest Verification       |
-                              |   (In-Worktree Sandbox)     |
-                              +--------------+--------------+
-                                             |
-                                             v
-                              +-----------------------------+
-                              |    Cryptographic Evidence   |
-                              |      (HMAC-SHA256)          |
-                              +--------------+--------------+
-                                             |
-                                             v
-                              +-----------------------------+
-                              |    Guardian Gatekeeper      |
-                              |  (Fail-Closed Verification) |
-                              +--------------+--------------+
-                                             |
-                                             v
-                              +-----------------------------+
-                              | Clean Integration & Commit  |
-                              +-----------------------------+
-```
-
-For comprehensive architectural specifications, see [ARCHITECTURE.md](ARCHITECTURE.md).
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Linux OS (Arch Linux, EndeavourOS, Debian/Ubuntu, Fedora)
-- Python 3.12+ for the shared orchestrator and agpair installation
-- Git 2.30+
-
-### Installation
-```bash
-git clone https://github.com/HarryJame3004/acs-ai-orchestrator.git
-cd acs-ai-orchestrator
-python3 -m venv venv
-source venv/bin/activate
-pip install -e .
-pip install -e ./agpair
-```
-
-For complete systemd daemon service installation, see [INSTALL.md](INSTALL.md).
-
-### Cloud Development and Tests
 ```bash
 bash scripts/cloud_setup.sh
-.venv/bin/python scripts/cloud_test.py --report /tmp/acs-tests.json
+.venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-tests.json
+.venv/bin/python scripts/cloud_static.py --report /tmp/acs-static.json
+.venv/bin/acsai -m "Fix calculator" --repo /path/to/reviewed/repo --dry-run
+.venv/bin/acsai bench run --suite smoke --workers fake --report /tmp/new-smoke.json
 ```
-The runner isolates runtime paths and explicitly lists local-only checks. The CLI test uses the active interpreter and temporary state; both `acsai` and `python -m acs_team.cli` now use the correct main function. See [TESTING.md](TESTING.md) for labels and the incremental CI comparison command, and [stage progress](docs/progress/PROGRESS.md) for current results.
 
----
+Dry-run performs no target writes/provider calls. Fake benchmarks validate the
+harness; they do not score real providers. Existing `ui`, `status`, `daemon`,
+`worker`, `memory`, `approval`, `plan`, `run`, `missions`, `mission`, `mcp`, `repo`
+commands and flags remain. New commands are described by `acsai --help`.
 
-## 💻 CLI Command Reference
-
-| Command | Description |
-|---------|-------------|
-| `acsai status` | Displays live multi-agent daemon, worker, and MCP status |
-| `acsai -m "<prompt>"` | Executes natural-language coding mission |
-| `acsai -m "<prompt>" --repo <path>` | Targets mission to specific Git repository |
-| `acsai -m "<prompt>" --worker <w>` | Explicitly assigns worker (`auto`, `codex`, `agy-google-a`, `agy-google-b`) |
-| `acsai -m "<prompt>" --bg` | Detaches mission to run in background |
-| `acsai ui` | Launches interactive Textual Dashboard |
-| `acsai missions` | Lists all historical and active missions |
-| `acsai mission status <id>` | Shows detailed breakdown, plan, and checkpoints of a mission |
-| `acsai mission logs <id>` | Views real-time persisted stage logs |
-| `acsai mission cancel <id>` | Gracefully cancels an active mission |
-| `acsai mission resume <id>` | Resumes an interrupted mission from its last checkpoint |
-| `acsai mcp list` | Audits configured and usable MCP servers |
-| `acsai mcp status` | Shows connected count and security masking state |
-| `acsai mcp tools` | Discovers and enumerates all available MCP tools |
-| `acsai repo list` | Lists registered repositories and branches |
-| `acsai repo add <path>` | Registers a repository for orchestration |
-
----
-
-## 🔒 Security & Verification
-
-ACS AI includes these security mechanisms, with coverage gaps documented in the audit:
-- **CoreLock Protected Paths**: Canonical repository-path checks; configuration consistency and complete escape coverage remain pending.
-- **HMAC Evidence Verification**: Diffs and test runs are bound to commit SHAs using HMAC signatures.
-- **Credential Masking**: Partial masking exists; complete log/UI redaction is not verified.
-
-For details on security design and threat models, see [SECURITY.md](SECURITY.md).
-
----
-
-## ⚠️ Current Limitations
-
-1. **Non-Interactive Execution**: Workers execute in non-interactive batch modes. Interactive prompts (e.g. `read -p`) will timeout.
-2. **Remote Publishing**: Approval records exist for sensitive operations; complete binding and enforcement need security hardening. Never publish autonomously without the user's authorization.
-
----
-
-## 📄 License & Contributing
-
-Contributions are welcome! Please review [CONTRIBUTING.md](CONTRIBUTING.md) before opening pull requests.
-Licensed under the Apache License 2.0.
+Use [LOCAL_DEPLOYMENT_GUIDE.md](LOCAL_DEPLOYMENT_GUIDE.md) for isolated evaluation,
+backup and rollout gates. Live activation remains blocked on documented source
+and local verification gaps. No cloud task deploys, merges main or rotates credentials.

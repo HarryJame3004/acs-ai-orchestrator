@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "pytest_exit_code": 0,
-  "duration_s": 38.446,
+  "duration_s": 44.395,
   "counts": {
     "skipped": 5,
-    "passed": 145
+    "passed": 149
   },
   "by_label": {
     "CLOUD_REAL": {
-      "passed": 122
+      "passed": 124
     },
     "CLOUD_SIMULATED": {
-      "passed": 23
+      "passed": 25
     },
     "LOCAL_VERIFICATION_REQUIRED": {
       "skipped": 5
@@ -771,6 +771,26 @@
     {
       "nodeid": "tests/test_runtime_security.py::test_database_new_files_private_and_readonly_missing_is_nonmutating",
       "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_runtime_security.py::test_production_verification_requests_private_sandbox_without_runtime_escape",
+      "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_runtime_security.py::test_redaction_covers_basic_cli_arguments_and_openai_style_keys",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_runtime_security.py::test_unverified_foreground_preflight_avoids_model_and_repository_writes",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_runtime_security.py::test_legacy_review_requires_real_tests_and_valid_independent_verdict",
+      "label": "CLOUD_SIMULATED",
       "outcome": "passed"
     }
   ],

@@ -1,0 +1,16 @@
+{
+  "label": "CLOUD_SIMULATED",
+  "node": "24.19.0",
+  "npm": "11.9.0",
+  "counts": {
+    "tests": 138,
+    "suites": 25,
+    "pass": 138,
+    "fail": 0,
+    "skipped": 0
+  },
+  "typescript_compile": "PASS",
+  "production_bundle": "PASS",
+  "ide_installation": "NOT_TESTED",
+  "note": "Fake SDK/transports and disposable HTTP; no real IDE/provider activity or deployment. npm build is now build-only; esbuild pinned 0.28.2."
+}

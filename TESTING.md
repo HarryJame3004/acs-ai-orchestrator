@@ -1,3 +1,53 @@
+# Current verification profiles
+
+Use reports/stage_7_tests.json and reports/bridge_tests.json for the latest
+measured outcomes. The original baseline below is historical and unchanged.
+
+- CLOUD_REAL: actual Python, temp Git/SQLite/HTTP/process/filesystem checks.
+- CLOUD_SIMULATED: fake providers, model/service/notifier transports and bridge
+  scenarios, even when the controller uses real Git/SQLite/subprocesses.
+- LOCAL_VERIFICATION_REQUIRED: real providers, bwrap on the laptop, systemd,
+  actual MCP auth/worker visibility and live deployment. Skips are not passes.
+
+```bash
+.venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-final-tests.json
+.venv/bin/python scripts/cloud_static.py --report /tmp/acs-final-static.json
+.venv/bin/python scripts/security_scan.py --history --report /tmp/acs-history.json
+# Bridge suite expects its own project directory:
+(cd agpair && ../.venv/bin/python -m pytest tests -q -p no:cacheprovider)
+```
+
+Production verification always requests bwrap; missing namespaces fail closed.
+The cloud harness injects a real pytest executor only for fixed trusted temp
+fixtures, and fake benchmarks explicitly use the same fixture executor. This
+checks orchestration/counting, never proves runtime isolation and has no runtime
+environment switch. Real model/provider output uses the sandboxed default.
+
+The cloud runner allows only loopback servers bound by the disposable test process
+(and the historical 20135 fixture), plus disposable Unix sockets. Operational
+services/gateway remain blocked. New local-only cases need explicit capability
+reasons; the comparator never permits relabeling an original cloud test as local
+to hide a skip. All legacy assertions remain; incorrect fixtures were corrected
+in separate justified commits, never through baseline rewrites.
+
+Local inspection: `acsai verify-local --report NEW_FILE` is read-only except the
+requested report. `--execute-probes` runs scratch DB/control/HMAC/sandbox checks;
+`--run-local-tests` explicitly executes the local-only profile in disposable ACS
+state. The old availability assertions are not proof of authenticated provider
+execution. Real provider task/role activation remains incomplete.
+
+Golden harness: `acsai bench run --suite smoke|full --workers fake`. Full has 12
+fixtures; real mode honestly returns BLOCKED pending provider role verification.
+No uncontrolled provider calls are needed for cloud tests. CI uses pinned actions,
+read-only permissions, no persisted checkout credentials and no supplied secrets.
+
+Scoped static debt is now resolved: 0 Ruff findings and 0 mypy
+errors at the Stage 7 checkpoint; no new finding is allowed. Thirty-four pinned
+dependencies had no published advisory in PyPI version metadata; this is not a
+complete vulnerability audit or a build-backend hash lock.
+
+# Historical baseline (preserved context)
+
 # Cloud baseline and verification
 
 STAGE-0 records the existing implementation; it does not repair runtime features.

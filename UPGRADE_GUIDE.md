@@ -1,6 +1,8 @@
 # Safe staged upgrade
 
-No cloud command deploys to a laptop. Keep the operational install, state and
+Candidate PARTIAL; live activation is BLOCKED on the HIGH source gaps in
+reports/FINAL_ACCEPTANCE_REPORT.md. Use LOCAL_DEPLOYMENT_GUIDE.md for isolated
+evaluation first. No cloud command deploys to a laptop. Keep the operational install, state and
 credentials intact. PRs are dependent while PR #1 is open; review stage commits
 in order. `upgrade/overnight-integration` contains the tested cumulative work.
 

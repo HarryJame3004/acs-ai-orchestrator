@@ -29,8 +29,10 @@ copy. Applying a migration requires BOTH `--apply --confirm-target RESOLVED_PATH
 and `--backup-target NEW_DIRECTORY`. Quiesce local writers and authorize the
 operation yourself. The runner checks ordered migration history, runs SQLite
 DDL in a transaction, rolls back failure and preserves existing mission tables.
-It never resets a schema or deletes mission history. The initial migration adds
-only upgrade metadata; future migrations are explicit versioned statements.
+It never resets a schema or deletes mission history. The registry now contains
+five additive versions: upgrade metadata, emergency controls, fenced team tables,
+worker metrics, and review/daemon dispatch. Constructors share these definitions;
+perform the staged migration/backup procedure before enabling the associated flags.
 
 Restore never overwrites a live install or existing directory. Verify first,
 restore to scratch, inspect history and run the candidate's tests. Switch the
