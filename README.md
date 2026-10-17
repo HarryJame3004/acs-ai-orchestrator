@@ -41,9 +41,9 @@ The unchanged orchestrator baseline is **37 passed / 5 failed**, with cloud and 
    - Fullscreen mission modal (`Ctrl+N`).
 
 3. **Multi-Agent Worker Pool**
-   - **`codex-primary`**: OpenAI Codex CLI executed inside non-interactive bubblewrap sandboxes.
-   - **`agy-google-a`**: Google Antigravity CLI authenticated with Google Account A.
-   - **`agy-google-b`**: Google Antigravity CLI authenticated with Google Account B running in a dedicated isolated home directory.
+   - **`codex-primary`**: Adapter for non-interactive OpenAI Codex CLI; actual sandbox boundaries require local verification.
+   - **`agy-google-a`**: Adapter for the primary Google Antigravity CLI profile; authentication is unverified.
+   - **`agy-google-b`**: Adapter with a dedicated home/XDG configuration; authentication and isolation require local verification.
 
 4. **Autonomous Mission Planner & Verification Engine**
    - Automated git worktree isolation under `~/.local/share/acs-orchestrator/worktrees/`.
@@ -53,7 +53,7 @@ The unchanged orchestrator baseline is **37 passed / 5 failed**, with cloud and 
 
 5. **Fail-Closed Guardian & CoreLock Security**
    - Protected path immutability: Rejects any attempt to write or merge to protected core repositories (CoreLock).
-   - Strict gatekeeper evaluation: Code is rejected if tests fail, diffs violate scope, or HMAC signatures do not verify.
+   - Gatekeeper evaluation checks tests, quality and HMAC evidence; integration ordering and complete path/scope enforcement need the hardening described in the audit.
    - Human approval requirement for remote branch publishing.
 
 6. **MCP Inventory & Governance**
@@ -62,7 +62,7 @@ The unchanged orchestrator baseline is **37 passed / 5 failed**, with cloud and 
 
 7. **SQLite WAL Persistence & Crash Recovery**
    - Full state persistence across systemd daemon restarts.
-   - Automatic reconciliation of interrupted missions with safe checkpoint resumption.
+   - Startup reconciliation marks interrupted missions recovering or blocked using checkpoints; automatic worker resumption is not established.
 
 ---
 
@@ -179,10 +179,10 @@ The runner isolates runtime paths and explicitly lists local-only checks. One ex
 
 ## 🔒 Security & Verification
 
-ACS AI enforces **strict fail-closed security**:
-- **CoreLock Protected Paths**: Read-only protection prevents accidental modification of critical repositories.
+ACS AI includes these security mechanisms, with coverage gaps documented in the audit:
+- **CoreLock Protected Paths**: Canonical repository-path checks; configuration consistency and complete escape coverage remain pending.
 - **HMAC Evidence Verification**: Diffs and test runs are bound to commit SHAs using HMAC signatures.
-- **Credential Masking**: Sensitive tokens are never printed in logs or UI.
+- **Credential Masking**: Partial masking exists; complete log/UI redaction is not verified.
 
 For details on security design and threat models, see [SECURITY.md](SECURITY.md).
 
@@ -191,7 +191,7 @@ For details on security design and threat models, see [SECURITY.md](SECURITY.md)
 ## ⚠️ Current Limitations
 
 1. **Non-Interactive Execution**: Workers execute in non-interactive batch modes. Interactive prompts (e.g. `read -p`) will timeout.
-2. **Remote Push Isolation**: Remote pushing to GitHub branches requires explicit human confirmation via `acsai approval approve <id>`.
+2. **Remote Publishing**: Approval records exist for sensitive operations; complete binding and enforcement need security hardening. Never publish autonomously without the user's authorization.
 
 ---
 

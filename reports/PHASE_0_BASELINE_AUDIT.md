@@ -8,8 +8,10 @@ file or AGENTS.md existed. The feature branch is `upgrade/stage-0-audit`.
 
 No live user system was inspected or modified. Earlier onboarding started a
 daemon in this cloud container only; that is not evidence about the user's
-service. This audit uses disposable runtime paths and does not contact that
-cloud daemon either. ACS Core remains untouched and unavailable.
+service. The current cloud profile uses disposable runtime paths and blocks
+that cloud daemon too. The original legacy baseline retained its existing
+loopback health probe, which could observe a cloud-only instance; no user
+service was reachable or verified. ACS Core remains untouched and unavailable.
 
 ## Implementation matrix
 
@@ -109,7 +111,7 @@ review; history rewriting is not performed by this task.
 Priority findings: HIGH—Guardian after merge, unbound approval call site,
 overbroad inherited environment, inaccurate worker/MCP readiness, partial
 redaction, insufficient deletion containment. MEDIUM—nonportable config/CLI/test
-paths, cancellation and queue gaps, unbounded logs/retries without classification,
+paths, cancellation and queue gaps, unbounded logs and unclassified retries,
 missing backup runner and import side effects. LOW—existing unused-import/style
 debt. These are static findings needing focused regression tests, not claims of
 an exploited vulnerability. Security and coordinated-runtime implementation is

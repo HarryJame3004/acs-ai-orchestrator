@@ -25,6 +25,8 @@ Exact current test outcomes are in `stage_0_tests.json`; the original baseline
 and dependency versions are in `baseline_tests.json`. CLOUD_REAL confirms the
 actual check ran here, not the user's deployment. Test fixtures that manually
 write worker changes or fake providers retain CLOUD_SIMULATED labels.
+The final profile was repeated with identical outcomes (43 passed / 1 failed /
+4 skipped), with no regression; existing failures were not retried into passes.
 
 The remaining CLOUD_REAL failure is the unmodified CLI subprocess test's
 workstation-specific interpreter. Separately, the console-script target is
