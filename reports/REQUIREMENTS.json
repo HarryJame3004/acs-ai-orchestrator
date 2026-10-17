@@ -82,7 +82,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },
@@ -101,7 +103,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },
@@ -120,7 +124,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },
@@ -139,7 +145,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },
@@ -158,7 +166,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },
@@ -177,7 +187,9 @@
       "evidence": [
         "reports/baseline_tests.json",
         "reports/stage_0_tests.json",
-        "reports/GITHUB_API_DIAGNOSTIC.md"
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
       ],
       "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
     },

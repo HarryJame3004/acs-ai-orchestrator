@@ -41,15 +41,17 @@ REQUIREMENTS.json. Section status never implies all its individual bullets passe
 
 ## C. Test results
 
+Intermediate failures and their corrections are preserved in
+VERIFICATION_FAILURE_HISTORY.md. At production checkpoint 46ff7ad, all three hosted CI jobs succeeded.
 Final machine-readable results are authoritative; check the final committed
 reports if a subsequent verification changes these checkpoint numbers.
 
 | Profile | Label | Actual result |
 |---|---|---|
-| Root policy, SQLite, Git, filesystem and process tests | CLOUD_REAL | 124 passed |
+| Root policy, SQLite, Git, filesystem and process tests | CLOUD_REAL | 125 passed |
 | Root fake providers/model/transports, fixture pipeline and review | CLOUD_SIMULATED | 25 passed |
 | Root laptop-only assertions | LOCAL_VERIFICATION_REQUIRED | 5 explicit cloud skips; no local pass |
-| Full agpair bridge | CLOUD_SIMULATED | 846 passed, 0 failures in recorded full container run; hosted profile follow-up recorded in CI_STATUS.json |
+| Full agpair bridge | CLOUD_SIMULATED | 847 passed, 0 failures in recorded full container run; hosted profile follow-up recorded in CI_STATUS.json |
 | Companion TypeScript/fake SDK/transports | CLOUD_SIMULATED | 138 passed, 25 suites, 0 failures/skips; compilation and production build passed |
 | Full golden harness | CLOUD_SIMULATED | 12/12 passed, no missing/pass-rate regressions versus stored fake baseline |
 | Scoped Ruff / mypy | CLOUD_REAL | 0 diagnostics / 0 errors, without changing the original debt baseline |
@@ -91,8 +93,9 @@ Fresh worker environments and mandatory bwrap verification exclude controller
 keys/state. Native MCP file operations use Linux dirfd/O_NOFOLLOW anchoring,
 regular-file/link/size checks, bounded arguments and secret-path denial. Owned
 process helpers use birth identity/pidfd where available, act as child subreapers,
-and reap escaped orphans without killing unrelated processes. Core file limits
-are disabled for these helpers. Auth/DB creation is private; malformed existing
+and reap escaped orphans without killing unrelated processes. Cleanup uses owned thread/child links where supported, with a birth-checked
+/proc fallback for kernels omitting children files. Probe/supervisor grace periods
+allow the reaper to finish instead of prematurely killing it on busy hosts. Core dumps are disabled for these helpers. Auth/DB creation is private; malformed existing
 auth is never silently regenerated. Redaction covers Basic/Bearer, common key
 assignments, credential URLs and CLI token arguments.
 
@@ -144,7 +147,7 @@ the cumulative candidate. Refresh PR/check metadata before reviewing or merging.
 | [#4](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/4) | upgrade/v2.4-coordination | e960726 |
 | [#5](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/5) | upgrade/v2.5-intelligence | e933d72 |
 | [#6](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/6) | upgrade/v2.6-review-workflow | 21831cd |
-| [#7](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7) | upgrade/stage-7-verification-release | 490fbb0, e69f67e, 54e598e plus final evidence commits |
+| [#7](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7) | upgrade/stage-7-verification-release | 490fbb0, e69f67e, 54e598e, 8595f48, 2892d6c, 46ff7ad plus final evidence commits |
 
 Cumulative branch: upgrade/overnight-integration. Main was eecbce4 at task start;
 final remote comparison is recorded with the CI checkpoint. No push to main.

@@ -13,12 +13,12 @@ upgrade/stage-7-verification-release (PR #7, draft) and keep the fast-forward
 upgrade/overnight-integration branch current. Stage PRs #1–#6 remain open and
 unmerged. Main must remain eecbce4 unless the user independently changes it.
 Inspect git log/status/remote heads before editing; final documentation commits
-follow source checkpoints 490fbb0, e69f67e, 54e598e and 8595f48. Use git log for
+follow source checkpoints 490fbb0, e69f67e, 54e598e, 8595f48, 2892d6c and 46ff7ad. Use git log for
 exact latest evidence commit rather than treating this document's own hash as fixed.
 
 ## Saved evidence
 
-- reports/stage_7_tests.json: 149 pass / 5 explicit local skips; CLOUD_REAL 124,
+- reports/stage_7_tests.json: 150 pass / 5 explicit local skips; CLOUD_REAL 125,
   CLOUD_SIMULATED 25. No baseline regressions.
 - reports/bridge_tests.json: latest full measured bridge result; fake providers.
   Earlier 846-pass run did not reveal a fast-terminal timing race; the expanded

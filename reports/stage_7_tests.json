@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "pytest_exit_code": 0,
-  "duration_s": 44.395,
+  "duration_s": 58.987,
   "counts": {
     "skipped": 5,
-    "passed": 149
+    "passed": 150
   },
   "by_label": {
     "CLOUD_REAL": {
-      "passed": 124
+      "passed": 125
     },
     "CLOUD_SIMULATED": {
       "passed": 25
@@ -791,6 +791,11 @@
     {
       "nodeid": "tests/test_runtime_security.py::test_legacy_review_requires_real_tests_and_valid_independent_verdict",
       "label": "CLOUD_SIMULATED",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_runtime_security.py::test_guard_discovers_owned_child_when_kernel_omits_children_files",
+      "label": "CLOUD_REAL",
       "outcome": "passed"
     }
   ],

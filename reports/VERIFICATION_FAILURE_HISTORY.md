@@ -1,0 +1,25 @@
+# Verification failures and corrections
+
+These are actual observed failures, not waived or rewritten baseline entries.
+Final reports/CI_STATUS.json and suite reports identify the last verified code.
+All cloud provider/SDK/protocol fixtures remain CLOUD_SIMULATED; local checks are
+LOCAL_VERIFICATION_REQUIRED. Static/process/SQLite checks are CLOUD_REAL.
+
+| Observation | Diagnosis and correction | Evidence/gate |
+|---|---|---|
+| Original root 37 passed / 5 failed | Four actual local prerequisites, one workstation-specific CLI interpreter; entry point also broken. Separate source/test portability commits, original baseline unchanged. | 1cb2ad7, fd23285; PR #1 hosted pass |
+| V2.3 hosted periodic backup failure | Fresh VM uptime below one-hour interval incorrectly delayed first backup. Initial backup immediately due, uptime=10 regression retained. | cebfd08; PR #3 hosted pass |
+| Stage 7 first hosted lint failure | New test used semicolon-separated statements. Formatting corrected without exclusions. | e69f67e; root/static hosted pass |
+| Companion compile failed: three state modules missing | Root state/ ignore hid TypeScript source; reviewed exact pinned upstream blobs restored and ignore narrowed. Build's hidden IDE deployment removed. | COMPANION_STATE_RESTORATION.md; 138 tests/build pass |
+| Companion low dependency advisory | esbuild 0.27.4 development-server advisory; exact 0.28.2 update, locked installation and fresh audit/build/tests. | COMPANION_DEPENDENCY_AUDIT.json: zero |
+| Expanded bridge hosted profile initially failed nine cases | Fake Codex preflight needed its explicit harmless executable, alias precedence needed isolation, terminal assertions needed stable dimensions; a real fast-terminal race replaced stored controller with generic. | Separate fixtures, preserved assertions; 8595f48 policy fix plus deterministic regression; hosted bridge pass at 2892d6c |
+| Bridge failing-task fixture refused dispatch | Fixture exited nonzero even for --help; distinguish successful launch probe from intended task failure. | 422d0c3; task failure assertions unchanged |
+| Bridge auth cleanup strict PID check intermittently failed under load | Reaper was killed too soon; full host scans added cost. Signal owned helper, allow bounded reaping, avoid redundant unowned descendant signaling. | Existing strict process tests retained; 2892d6c and subsequent kernel fallback |
+| New cloud guard run: 147 pass / 2 fail / 5 local skips | This kernel omits /proc/.../children. Added birth-checked /proc fallback and explicit regression. A fake oversized-response test's 200ms interpreter-start budget expired before protocol rejection under concurrent load. Protocol-error modes now get 2s; the explicit timeout mode retains 200ms and exact error/cleanup assertions. | Final stage_7_tests.json; no expected exception weakened |
+| Artificial missing-primary-binary profile: 844 pass / 3 fail | Two alias fixtures inherited an overriding primary environment variable; the third assertion's visible phrase wrapped in rich output. Clear the primary only in alias tests, stabilize terminal dimensions and strip invisible ANSI for visible-text comparisons. | 7f0bc44 and follow-up; no runtime availability fabricated |
+| Offline candidate gate flagged archive checksum | It was the public ZIP SHA256 digest, not a credential. Full checksum moved to private artifact sidecar; repository metadata references that file. No scanner exclusion/baseline expansion. | local_bundle.json, final static gate |
+
+Actions log downloads remained separately proxy-blocked; sanitized check
+annotations exposed actionable failures. GitHub API and existing authentication
+continued working. No token request, TLS bypass, repeated blind retry, baseline
+reset, skip relabeling or assertion weakening was used to obtain final results.

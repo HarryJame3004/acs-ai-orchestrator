@@ -1,12 +1,13 @@
 {
   "label": "CLOUD_SIMULATED",
-  "note": "Bridge tests use fake providers with real controller/Git/SQLite/process checks; no authenticated provider proof",
+  "note": "Fake providers; actual controller/Git/SQLite/process logic. Forced CI terminal rendering and absent ambient primary Codex binary; no authenticated provider proof.",
   "counts": {
-    "passed": 846,
+    "passed": 847,
     "failed": 0,
-    "errors": 0
+    "errors": 0,
+    "skipped": 0
   },
-  "duration_s": 114.97,
+  "duration_s": 179.214,
   "working_directory": "agpair",
   "tests": [
     {
@@ -1515,6 +1516,10 @@
     },
     {
       "nodeid": "tests.integration.test_task_start_and_status::test_task_retry_preserves_isolated_worktree_metadata_for_local_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_terminal_receipt_preserves_host_controller_against_worker_policy",
       "outcome": "passed"
     },
     {
