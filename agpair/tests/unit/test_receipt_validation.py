@@ -1,0 +1,406 @@
+import json
+from pathlib import Path
+
+from agpair.terminal_receipts import (
+    blocked_failure_context_from_receipt,
+    normalize_terminal_receipt,
+    parse_structured_terminal_receipt,
+    validate_terminal_receipt_payload,
+)
+
+
+def test_ready_for_review_requires_machine_checkable_evidence() -> None:
+    payload = {
+        "changed_files": ["agpair/cli/task.py"],
+        "validation": [{"command": "pytest tests/unit -q", "exit_code": 0, "log_path": "/tmp/pytest.log"}],
+        "scope_violations": [],
+        "raw_log_path": "/tmp/stdout.log",
+        "receipt_path": ".agpair/tasks/TASK-123/attempt-1/receipt.json",
+        "claimed_state": "ready_for_review",
+    }
+
+    assert validate_terminal_receipt_payload("COMMITTED", payload).ok
+
+
+def test_commit_ref_is_optional_for_ready_for_review() -> None:
+    payload = {
+        "changed_files": ["agpair/cli/task.py"],
+        "validation": [{"command": "pytest tests/unit -q", "exit_code": 0, "log_path": "/tmp/pytest.log"}],
+        "scope_violations": [],
+        "raw_log_path": "/tmp/stdout.log",
+        "receipt_path": ".agpair/tasks/TASK-123/attempt-1/receipt.json",
+        "claimed_state": "ready_for_review",
+    }
+
+    result = validate_terminal_receipt_payload("COMMITTED", payload)
+
+    assert result.ok
+    assert "commit_ref" not in result.required_missing
+
+
+def test_malformed_success_receipt_is_rejected() -> None:
+    payload = {
+        "summary": "Done",
+        "confidence": "high",
+        "claimed_state": "ready_for_review",
+    }
+
+    result = validate_terminal_receipt_payload("COMMITTED", payload)
+
+    assert not result.ok
+    assert "changed_files" in result.required_missing
+    assert "raw_log_path" in result.required_missing
+
+
+def test_report_only_evidence_pack_accepts_artifacts_without_implementation_fields() -> None:
+    payload = {
+        "raw_log_path": "/tmp/stdout.log",
+        "receipt_path": ".agpair/tasks/TASK-REPORT/attempt-1/receipt.json",
+    }
+
+    result = validate_terminal_receipt_payload("EVIDENCE_PACK", payload, report_only=True)
+
+    assert result.ok
+    assert result.required_missing == ()
+
+
+def test_report_payload_without_declared_changes_is_report_only_evidence() -> None:
+    payload = {
+        "report": "Useful review notes, no implementation changes claimed.",
+        "raw_log_path": "/tmp/stdout.log",
+        "receipt_path": ".agpair/tasks/TASK-REPORT/attempt-1/receipt.json",
+    }
+
+    result = validate_terminal_receipt_payload("EVIDENCE_PACK", payload)
+
+    assert result.ok
+    assert result.required_missing == ()
+
+
+def test_report_payload_with_declared_changes_still_requires_validation() -> None:
+    payload = {
+        "report": "Implemented the requested edit.",
+        "changed_files": ["agpair/example.py"],
+        "scope_violations": [],
+        "raw_log_path": "/tmp/stdout.log",
+        "receipt_path": ".agpair/tasks/TASK-REPORT/attempt-1/receipt.json",
+    }
+
+    result = validate_terminal_receipt_payload("EVIDENCE_PACK", payload)
+
+    assert not result.ok
+    assert result.required_missing == ("validation",)
+
+
+def test_approval_required_requires_authorization_delta() -> None:
+    payload = {
+        "blocker_type": "approval_required",
+        "recoverable": True,
+        "suggested_action": "retry_with_expanded_authorization",
+        "authorization_profile": "local_readonly",
+        "requested_authorization_profile": "local_mutating",
+        "requested_actions": ["edit files"],
+        "authorization_delta": {"allow_file_edits": True},
+        "request_reason": "Readonly profile cannot edit files.",
+        "risk_assessment": "Repo-local edits only.",
+        "safe_to_retry": True,
+        "raw_log_path": "/tmp/stderr.log",
+    }
+
+    assert validate_terminal_receipt_payload("BLOCKED", payload).ok
+
+
+def test_parse_receipt_from_wrapped_result_text() -> None:
+    receipt = {
+        "schema_version": "1",
+        "task_id": "TASK-WRAPPED",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "EVIDENCE_PACK",
+        "summary": "Smoke complete",
+        "payload": {
+            "claimed_state": "ready_for_review",
+            "changed_files": ["tests/fixtures/external_executor_smoke/grok-cli.txt"],
+            "validation_not_run": "smoke",
+            "scope_violations": [],
+            "raw_log_path": "stdout.log",
+            "receipt_path": "receipt.json",
+        },
+    }
+    wrapper = {
+        "type": "result",
+        "status": "success",
+        "result": "human summary\n" + json.dumps(receipt, sort_keys=True),
+    }
+
+    parsed = parse_structured_terminal_receipt(json.dumps(wrapper), expected_task_id="TASK-WRAPPED")
+
+    assert parsed is not None
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["changed_files"] == ["tests/fixtures/external_executor_smoke/grok-cli.txt"]
+
+
+def test_parse_receipt_from_nested_content_text() -> None:
+    receipt = {
+        "schema_version": "1",
+        "task_id": "TASK-CONTENT",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "COMMITTED",
+        "summary": "Committed",
+        "payload": {
+            "claimed_state": "ready_for_review",
+            "changed_files": ["tests/fixtures/external_executor_smoke/claude-code.txt"],
+            "validation": "git status --short",
+            "scope_violations": [],
+            "raw_log_path": "stdout.log",
+            "receipt_path": "receipt.json",
+        },
+    }
+    wrapper = {
+        "type": "message",
+        "message": {
+            "content": [
+                {"type": "text", "text": "done\n" + json.dumps(receipt, sort_keys=True)}
+            ]
+        },
+    }
+
+    parsed = parse_structured_terminal_receipt(json.dumps(wrapper), expected_task_id="TASK-CONTENT")
+
+    assert parsed is not None
+    assert parsed.status == "COMMITTED"
+    assert parsed.payload["validation"] == "git status --short"
+
+
+def test_parse_receipt_from_codex_jsonl_item_text() -> None:
+    receipt = {
+        "schema_version": "1",
+        "task_id": "TASK-CODEX-JSONL",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "EVIDENCE_PACK",
+        "summary": "Codex worker complete",
+        "payload": {
+            "claimed_state": "ready_for_review",
+            "changed_files": ["tests/fixtures/external_executor_smoke/codex.txt"],
+            "validation_not_run": "smoke",
+            "scope_violations": [],
+            "raw_log_path": "stdout.log",
+            "receipt_path": "receipt.json",
+        },
+    }
+    wrapper = {
+        "type": "item.completed",
+        "item": {
+            "id": "item_2",
+            "type": "agent_message",
+            "text": json.dumps(receipt, sort_keys=True),
+        },
+    }
+
+    parsed = parse_structured_terminal_receipt(json.dumps(wrapper), expected_task_id="TASK-CODEX-JSONL")
+
+    assert parsed is not None
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["changed_files"] == ["tests/fixtures/external_executor_smoke/codex.txt"]
+
+
+def test_parse_claude_code_success_result_as_native_report_envelope() -> None:
+    wrapper = {
+        "type": "result",
+        "subtype": "success",
+        "is_error": False,
+        "result": "结论：Claude Code worker 可用。\n\n- 能启动\n- 能返回中文报告",
+    }
+
+    protocol = normalize_terminal_receipt(json.dumps(wrapper), expected_task_id="TASK-CLAUDE-RESULT")
+    parsed = protocol.receipt
+
+    assert parsed is not None
+    assert parsed.task_id == "TASK-CLAUDE-RESULT"
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["report"].startswith("结论：Claude Code worker 可用")
+    assert parsed.payload["changed_files"] == []
+    assert parsed.payload["validation_not_run"] == "executor returned native success envelope"
+    assert "native_success_envelope" in protocol.warnings
+
+
+def test_native_success_envelope_requires_task_context() -> None:
+    wrapper = {
+        "type": "result",
+        "subtype": "success",
+        "is_error": False,
+        "result": "结论：这只是一个普通 JSON 输出。",
+    }
+
+    parsed = parse_structured_terminal_receipt(json.dumps(wrapper))
+
+    assert parsed is None
+
+
+def test_parse_receipt_extracts_mixed_text_then_multiline_json() -> None:
+    raw = """
+I inspected the repository and found no issues.
+
+Final receipt:
+{
+  "schema_version": "1",
+  "task_id": "TASK-AGY-MIXED",
+  "attempt_no": 1,
+  "review_round": 0,
+  "status": "ready_for_review",
+  "summary": "Review complete",
+  "payload": {
+    "changed_files": [],
+    "validation_not_run": "read-only review",
+    "scope_violations": [],
+    "raw_log_path": "stdout.log",
+    "receipt_path": "receipt.json",
+    "report": "No issues found"
+  }
+}
+"""
+
+    parsed = parse_structured_terminal_receipt(raw, expected_task_id="TASK-AGY-MIXED")
+
+    assert parsed is not None
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["report"] == "No issues found"
+
+
+def test_parse_realistic_wrapped_implementation_fixture() -> None:
+    raw = (
+        Path("tests/fixtures/executor_outputs/implementation_wrapped_json_ready.txt")
+        .read_text(encoding="utf-8")
+    )
+
+    protocol = normalize_terminal_receipt(raw, expected_task_id="TASK-WRAPPED")
+
+    assert protocol.receipt is not None
+    assert protocol.receipt.status == "EVIDENCE_PACK"
+    assert protocol.receipt.payload["changed_files"] == ["agpair/example.py"]
+    assert "schema_version_alias" in protocol.warnings
+
+
+def test_parse_receipt_normalizes_ready_for_review_status_alias() -> None:
+    receipt = {
+        "schema_version": "1",
+        "task_id": "TASK-REPORT-ALIAS",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "ready_for_review",
+        "summary": "Report complete",
+        "payload": {
+            "report": "Read-only review completed.",
+            "changed_files": [],
+            "validation_not_run": "report-only task",
+            "scope_violations": [],
+            "raw_log_path": None,
+            "receipt_path": None,
+        },
+    }
+
+    parsed = parse_structured_terminal_receipt(
+        json.dumps(receipt),
+        expected_status="ready_for_review",
+        expected_task_id="TASK-REPORT-ALIAS",
+    )
+
+    assert parsed is not None
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["report"] == "Read-only review completed."
+
+
+def test_parse_receipt_normalizes_blocked_and_committed_status_aliases() -> None:
+    blocked = {
+        "schema_version": "1",
+        "task_id": "TASK-BLOCKED-ALIAS",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "blocked",
+        "summary": "Need auth",
+        "payload": {"blocker_type": "auth", "recoverable": False},
+    }
+    committed = {
+        "schema_version": "1",
+        "task_id": "TASK-COMMITTED-ALIAS",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "committed",
+        "summary": "Committed",
+        "payload": {
+            "changed_files": ["README.md"],
+            "validation_not_run": "not needed",
+            "scope_violations": [],
+            "raw_log_path": "stdout.log",
+            "receipt_path": "receipt.json",
+        },
+    }
+
+    parsed_blocked = parse_structured_terminal_receipt(json.dumps(blocked), expected_status="blocked")
+    parsed_committed = parse_structured_terminal_receipt(json.dumps(committed), expected_status="committed")
+
+    assert parsed_blocked is not None
+    assert parsed_blocked.status == "BLOCKED"
+    assert parsed_committed is not None
+    assert parsed_committed.status == "COMMITTED"
+
+
+def test_parse_real_antigravity_schema_1_0_0_mixed_fixture() -> None:
+    raw = Path(
+        "tests/fixtures/terminal_receipts/antigravity_ready_for_review_1_0_0_mixed.txt"
+    ).read_text(encoding="utf-8")
+
+    protocol = normalize_terminal_receipt(raw, expected_task_id="TASK-AGY-REAL")
+    parsed = protocol.receipt
+
+    assert parsed is not None
+    assert parsed.schema_version == "1"
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["report"] == "中文报告"
+    assert "schema_version_alias" in protocol.warnings
+    assert "status_alias" in protocol.warnings
+    assert "mixed_text_json" in protocol.warnings
+    assert "artifact_path_missing" in protocol.warnings
+
+
+def test_parse_real_antigravity_nested_schema_1_0_0_fixture() -> None:
+    raw = Path(
+        "tests/fixtures/terminal_receipts/antigravity_report_with_nested_receipt.json"
+    ).read_text(encoding="utf-8")
+
+    protocol = normalize_terminal_receipt(raw, expected_task_id="TASK-WRAPPED-REAL")
+    parsed = protocol.receipt
+
+    assert parsed is not None
+    assert parsed.schema_version == "1"
+    assert parsed.status == "EVIDENCE_PACK"
+    assert parsed.payload["report"] == "usable"
+    assert "schema_version_alias" in protocol.warnings
+    assert "status_alias" in protocol.warnings
+    assert "wrapped_text_json" in protocol.warnings
+
+
+def test_blocked_failure_context_prefers_recommended_next_action() -> None:
+    receipt = {
+        "schema_version": "1",
+        "task_id": "TASK-BLOCKED-ACTION",
+        "attempt_no": 1,
+        "review_round": 0,
+        "status": "BLOCKED",
+        "summary": "quota exhausted",
+        "payload": {
+            "blocker_type": "executor_quota_exhausted",
+            "recoverable": True,
+            "recommended_next_action": "wait_or_switch_executor",
+            "message": "usage limit",
+        },
+    }
+
+    parsed = parse_structured_terminal_receipt(json.dumps(receipt), expected_task_id="TASK-BLOCKED-ACTION")
+
+    assert parsed is not None
+    context = blocked_failure_context_from_receipt(parsed)
+    assert context is not None
+    assert context["recommended_next_action"] == "wait_or_switch_executor"

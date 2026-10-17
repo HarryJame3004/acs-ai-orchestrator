@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+.supervisor/
+.agpair/
+tests/fixtures/external_executor_smoke/*.txt
+.omc/
+.venv/
+
+# Companion extension build artifacts
+companion-extension/node_modules/
+companion-extension/dist/
+companion-extension/*.vsix
+
+.omx/
+.firecrawl/
+docs/goals/**/.goalbuddy-board/
+docs/goals/**/state.yaml
+docs/goals/agpair-executor-reliability-v2-1/

@@ -1,0 +1,761 @@
+from __future__ import annotations
+
+import json
+import subprocess
+from pathlib import Path
+
+from typer.testing import CliRunner
+
+from agpair.cli.app import app
+from agpair.config import AppPaths
+from agpair.storage.db import ensure_database
+from agpair.storage.journal import JournalRepository
+from agpair.storage.tasks import TaskRepository
+
+NOOP_HOOK_OUTPUT = {"continue": True, "suppressOutput": True}
+
+
+def make_paths(tmp_path: Path) -> AppPaths:
+    return AppPaths.from_root(tmp_path / ".agpair")
+
+
+def init_git_repo(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "init", "-q"], cwd=path, check=True)
+
+
+def hook_input(cwd: Path, *, event: str = "Stop") -> str:
+    return json.dumps({"cwd": str(cwd), "hook_event_name": event})
+
+
+def test_codex_config_emits_prompt_and_subagent_hooks_by_default() -> None:
+    result = CliRunner().invoke(app, ["codex", "config"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] == "agpair codex hook user-prompt-submit"
+    assert "Stop" not in payload["hooks"]
+    assert payload["hooks"]["SubagentStart"][0]["hooks"][0]["command"] == "agpair codex hook subagent-start"
+
+
+def test_codex_config_can_emit_optional_stop_hook() -> None:
+    result = CliRunner().invoke(app, ["codex", "config", "--include-stop-hook"])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["hooks"]["Stop"][0]["hooks"][0]["command"] == "agpair codex hook stop"
+    assert payload["hooks"]["Stop"][0]["hooks"][0]["timeout"] == 30
+
+
+def test_codex_config_install_preserves_foreign_hooks(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [{"hooks": [{"type": "command", "command": "/tmp/foreign-stop.sh"}]}]
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(app, ["codex", "config", "--install", "--repo-path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    updated = json.loads(settings_path.read_text())
+    stop_commands = [
+        hook["command"]
+        for entry in updated["hooks"]["Stop"]
+        for hook in entry["hooks"]
+    ]
+    assert "/tmp/foreign-stop.sh" in stop_commands
+    assert "agpair codex hook stop" not in stop_commands
+
+
+def test_codex_config_install_can_include_optional_stop_hook(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [{"hooks": [{"type": "command", "command": "/tmp/foreign-stop.sh"}]}]
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(
+        app,
+        ["codex", "config", "--install", "--include-stop-hook", "--repo-path", str(tmp_path)],
+    )
+
+    assert result.exit_code == 0
+    updated = json.loads(settings_path.read_text())
+    stop_commands = [
+        hook["command"]
+        for entry in updated["hooks"]["Stop"]
+        for hook in entry["hooks"]
+    ]
+    assert "/tmp/foreign-stop.sh" in stop_commands
+    assert "agpair codex hook stop" in stop_commands
+
+
+def test_codex_config_reinstall_without_stop_downgrades_optional_stop_hook(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    init_git_repo(tmp_path)
+
+    first = CliRunner().invoke(
+        app,
+        ["codex", "config", "--install", "--include-stop-hook", "--repo-path", str(tmp_path)],
+    )
+    second = CliRunner().invoke(app, ["codex", "config", "--install", "--repo-path", str(tmp_path)])
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    updated = json.loads((tmp_path / ".codex" / "hooks.json").read_text())
+    assert "Stop" not in updated["hooks"]
+    assert "UserPromptSubmit" in updated["hooks"]
+
+
+def test_codex_config_install_migrates_legacy_managed_stop_hook(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "agpair codex hook user-prompt-submit"}]}],
+                    "Stop": [{"hooks": [{"type": "command", "command": "agpair codex hook stop", "timeout": 30}]}],
+                    "SubagentStart": [{"hooks": [{"type": "command", "command": "agpair codex hook subagent-start"}]}],
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(app, ["codex", "config", "--install", "--repo-path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    updated = json.loads(settings_path.read_text())
+    assert "Stop" not in updated["hooks"]
+    assert updated["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] == "agpair codex hook user-prompt-submit"
+    assert updated["hooks"]["SubagentStart"][0]["hooks"][0]["command"] == "agpair codex hook subagent-start"
+
+
+def test_codex_config_install_migrates_absolute_path_managed_stop_hook(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    absolute_agpair = tmp_path / "bin" / "agpair"
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [{"hooks": [{"type": "command", "command": f"{absolute_agpair} codex hook stop"}]}]
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(app, ["codex", "config", "--install", "--repo-path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    updated = json.loads(settings_path.read_text())
+    assert "Stop" not in updated["hooks"]
+    assert "UserPromptSubmit" in updated["hooks"]
+
+
+def test_codex_config_uninstall_removes_empty_managed_hook_file(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "agpair codex hook user-prompt-submit"}]}],
+                    "Stop": [{"hooks": [{"type": "command", "command": "agpair codex hook stop"}]}],
+                    "SubagentStart": [{"hooks": [{"type": "command", "command": "agpair codex hook subagent-start"}]}],
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(app, ["codex", "config", "--uninstall", "--repo-path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert not settings_path.exists()
+
+
+def test_codex_config_uninstall_preserves_foreign_hooks(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    settings_path = tmp_path / ".codex" / "hooks.json"
+    settings_path.parent.mkdir()
+    settings_path.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "Stop": [
+                        {"hooks": [{"type": "command", "command": "/tmp/foreign-stop.sh"}]},
+                        {"hooks": [{"type": "command", "command": "agpair codex hook stop"}]},
+                    ]
+                }
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(app, ["codex", "config", "--uninstall", "--repo-path", str(tmp_path)])
+
+    assert result.exit_code == 0
+    updated = json.loads(settings_path.read_text())
+    stop_commands = [
+        hook["command"]
+        for entry in updated["hooks"]["Stop"]
+        for hook in entry["hooks"]
+    ]
+    assert stop_commands == ["/tmp/foreign-stop.sh"]
+
+
+def test_codex_config_install_dry_run_prints_diff_without_writing(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+
+    result = CliRunner().invoke(
+        app,
+        ["codex", "config", "--install", "--scope", "project", "--repo-path", str(repo_path), "--dry-run"],
+    )
+
+    assert result.exit_code == 0
+    assert "---" in result.stdout
+    assert "+++" in result.stdout
+    assert "agpair codex hook user-prompt-submit" in result.stdout
+    assert not (repo_path / ".codex" / "hooks.json").exists()
+
+
+def test_codex_config_sync_skill_dry_run_and_install(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+
+    dry_run = CliRunner().invoke(
+        app,
+        [
+            "codex",
+            "config",
+            "--install",
+            "--scope",
+            "project",
+            "--repo-path",
+            str(repo_path),
+            "--sync-skill",
+            "--dry-run",
+        ],
+    )
+
+    skill_path = repo_path / ".codex" / "skills" / "agpair-codex" / "SKILL.md"
+    assert dry_run.exit_code == 0
+    assert str(skill_path) in dry_run.stdout
+    assert "agpair-codex" in dry_run.stdout
+    assert not skill_path.exists()
+
+    installed = CliRunner().invoke(
+        app,
+        [
+            "codex",
+            "config",
+            "--install",
+            "--scope",
+            "project",
+            "--repo-path",
+            str(repo_path),
+            "--sync-skill",
+        ],
+    )
+
+    assert installed.exit_code == 0
+    assert skill_path.exists()
+    assert "agpair-codex" in skill_path.read_text(encoding="utf-8")
+
+
+def test_codex_config_sync_skill_refuses_non_agpair_skill(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    skill_path = repo_path / ".codex" / "skills" / "agpair-codex" / "SKILL.md"
+    skill_path.parent.mkdir(parents=True)
+    skill_path.write_text("---\nname: custom\n---\n# Custom\n", encoding="utf-8")
+
+    result = CliRunner().invoke(
+        app,
+        [
+            "codex",
+            "config",
+            "--install",
+            "--scope",
+            "project",
+            "--repo-path",
+            str(repo_path),
+            "--sync-skill",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Refusing to manage non-AGPair skill" in result.stderr
+    assert "name: custom" in skill_path.read_text(encoding="utf-8")
+
+
+def test_codex_hooks_fail_open_when_state_is_unreadable(monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", "/path/that/does/not/exist")
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input="{}")
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_user_prompt_submit_emits_external_first_context(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+
+    result = CliRunner().invoke(
+        app,
+        ["codex", "hook", "user-prompt-submit"],
+        input=hook_input(repo_path, event="UserPromptSubmit"),
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    context = payload["hookSpecificOutput"]["additionalContext"]
+    assert "prefer dispatching through AGPair external CLI executors" in context
+    assert "Codex native subagents" in context
+
+
+def test_codex_hooks_noop_inside_agpair_internal_probe(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    monkeypatch.setenv("AGPAIR_INTERNAL_ROLE", "probe")
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+
+    for command, event_name in (
+        ("user-prompt-submit", "UserPromptSubmit"),
+        ("stop", "Stop"),
+        ("subagent-start", "SubagentStart"),
+    ):
+        result = CliRunner().invoke(
+            app,
+            ["codex", "hook", command],
+            input=hook_input(repo_path, event=event_name),
+        )
+
+        assert result.exit_code == 0
+        assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_advisory_hooks_noop_without_repo_payload(monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", "/path/that/does/not/exist")
+
+    for command in ("user-prompt-submit", "subagent-start"):
+        result = CliRunner().invoke(
+            app,
+            ["codex", "hook", command],
+            input="{}",
+        )
+
+        assert result.exit_code == 0
+        assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_stop_does_not_block_for_plain_acked_state(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    tasks.create_task(task_id="TASK-CODEX-ACKED", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_acked(task_id="TASK-CODEX-ACKED", session_id="session-123")
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_stop_blocks_for_ready_for_review_receipt(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    tasks.create_task(task_id="TASK-CODEX-RFR", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_acked(task_id="TASK-CODEX-RFR", session_id="session-123")
+    receipt_body = json.dumps(
+        {
+            "schema_version": "1",
+            "task_id": "TASK-CODEX-RFR",
+            "attempt_no": 1,
+            "review_round": 0,
+            "status": "COMMITTED",
+            "summary": "Ready for review",
+            "payload": {
+                "claimed_state": "ready_for_review",
+                "changed_files": ["src/app.py"],
+                "scope_violations": [],
+                "raw_log_path": "/tmp/stdout.log",
+                "receipt_path": "/tmp/receipt.json",
+                "validation": ["pytest"],
+            },
+        }
+    )
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-RFR",
+        terminal_source="daemon",
+        terminal_receipt_json=receipt_body,
+    )
+    journal.append(
+        "TASK-CODEX-RFR",
+        "daemon",
+        "ready_for_review",
+        receipt_body,
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["decision"] == "block"
+    assert "ready_for_review" in payload["reason"]
+
+
+def test_codex_stop_does_not_block_approved_ready_for_review(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    tasks.create_task(task_id="TASK-CODEX-APPROVED", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_acked(task_id="TASK-CODEX-APPROVED", session_id="session-123")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-APPROVED",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-APPROVED",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "COMMITTED",
+                "summary": "Ready for review",
+                "payload": {
+                    "claimed_state": "ready_for_review",
+                    "changed_files": [],
+                    "scope_violations": [],
+                    "raw_log_path": "/tmp/stdout.log",
+                    "receipt_path": "/tmp/receipt.json",
+                    "validation_not_run": "read-only task",
+                },
+            }
+        ),
+    )
+    tasks.mark_approved(task_id="TASK-CODEX-APPROVED")
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_stop_allows_readonly_report_only_without_effective_changes(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    tasks.create_task(
+        task_id="TASK-CODEX-REPORT",
+        repo_path=str(repo_path),
+        executor_backend="grok-cli",
+        authorization_profile="local_readonly",
+        completion_policy="report",
+    )
+    tasks.mark_acked(task_id="TASK-CODEX-REPORT", session_id="session-report")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-REPORT",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-REPORT",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "EVIDENCE_PACK",
+                "summary": "Read-only report ready",
+                "payload": {
+                    "raw_log_path": "/tmp/stdout-report.log",
+                    "receipt_path": "/tmp/receipt-report.json",
+                    "report_path": "/tmp/report.md",
+                    "scope_validation": {
+                        "effective_changed_files": [],
+                        "scope_violations": [],
+                    },
+                },
+            }
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_stop_allows_auto_readonly_effective_report_without_effective_changes(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    tasks.create_task(
+        task_id="TASK-CODEX-AUTO-REPORT",
+        repo_path=str(repo_path),
+        executor_backend="grok-cli",
+        authorization_profile="local_readonly",
+        completion_policy="auto",
+    )
+    tasks.mark_acked(task_id="TASK-CODEX-AUTO-REPORT", session_id="session-auto-report")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-AUTO-REPORT",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-AUTO-REPORT",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "EVIDENCE_PACK",
+                "summary": "Read-only report ready",
+                "payload": {
+                    "raw_log_path": "/tmp/stdout-auto-report.log",
+                    "receipt_path": "/tmp/receipt-auto-report.json",
+                    "report_path": "/tmp/report.md",
+                    "effective_task_policy": {
+                        "authorization_profile": "local_readonly",
+                        "effective_completion_policy": "report",
+                        "report_only": True,
+                    },
+                    "scope_validation": {
+                        "effective_changed_files": [],
+                        "ok": True,
+                    },
+                },
+            }
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout) == NOOP_HOOK_OUTPUT
+
+
+def test_codex_stop_blocks_readonly_report_only_with_effective_changes(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    tasks.create_task(
+        task_id="TASK-CODEX-REPORT-CHANGED",
+        repo_path=str(repo_path),
+        executor_backend="grok-cli",
+        authorization_profile="local_readonly",
+        completion_policy="report",
+    )
+    tasks.mark_acked(task_id="TASK-CODEX-REPORT-CHANGED", session_id="session-report-changed")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-REPORT-CHANGED",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-REPORT-CHANGED",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "EVIDENCE_PACK",
+                "summary": "Read-only report changed files",
+                "payload": {
+                    "raw_log_path": "/tmp/stdout-report-changed.log",
+                    "receipt_path": "/tmp/receipt-report-changed.json",
+                    "report_path": "/tmp/report.md",
+                    "scope_validation": {
+                        "effective_changed_files": ["agpair/cli/codex.py"],
+                        "ok": True,
+                    },
+                },
+            }
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["decision"] == "block"
+    assert "TASK-CODEX-REPORT-CHANGED" in payload["reason"]
+
+
+def test_codex_stop_reports_unapproved_task_after_approved_task(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+
+    tasks.create_task(task_id="TASK-CODEX-APPROVED", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_acked(task_id="TASK-CODEX-APPROVED", session_id="session-approved")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-APPROVED",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-APPROVED",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "EVIDENCE_PACK",
+                "summary": "Ready for review",
+                "payload": {
+                    "changed_files": [],
+                    "scope_violations": [],
+                    "raw_log_path": "/tmp/stdout-approved.log",
+                    "receipt_path": "/tmp/receipt-approved.json",
+                    "validation_not_run": "read-only task",
+                },
+            }
+        ),
+    )
+    tasks.mark_approved(task_id="TASK-CODEX-APPROVED")
+
+    tasks.create_task(task_id="TASK-CODEX-OPEN", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_acked(task_id="TASK-CODEX-OPEN", session_id="session-open")
+    tasks.mark_ready_for_review(
+        task_id="TASK-CODEX-OPEN",
+        terminal_source="daemon",
+        terminal_receipt_json=json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-OPEN",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "EVIDENCE_PACK",
+                "summary": "Ready for review",
+                "payload": {
+                    "changed_files": [],
+                    "scope_violations": [],
+                    "raw_log_path": "/tmp/stdout-open.log",
+                    "receipt_path": "/tmp/receipt-open.json",
+                    "validation_not_run": "read-only task",
+                },
+            }
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["decision"] == "block"
+    assert "TASK-CODEX-OPEN" in payload["reason"]
+    assert "TASK-CODEX-APPROVED" not in payload["reason"]
+
+
+def test_codex_stop_blocks_for_approval_required(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    tasks.create_task(task_id="TASK-CODEX-BLOCK", repo_path=str(repo_path), executor_backend="antigravity-cli")
+    tasks.mark_blocked(task_id="TASK-CODEX-BLOCK", reason="Need expanded authorization")
+    journal.append(
+        "TASK-CODEX-BLOCK",
+        "daemon",
+        "blocked",
+        json.dumps(
+            {
+                "schema_version": "1",
+                "task_id": "TASK-CODEX-BLOCK",
+                "attempt_no": 1,
+                "review_round": 0,
+                "status": "BLOCKED",
+                "summary": "Need expanded authorization",
+                "payload": {
+                    "blocker_type": "approval_required",
+                    "recoverable": True,
+                    "effective_task_policy": {
+                        "authorization_profile": "local_readonly",
+                        "effective_completion_policy": "report",
+                        "report_only": True,
+                    },
+                    "scope_validation": {
+                        "effective_changed_files": [],
+                        "ok": True,
+                    },
+                },
+            }
+        ),
+    )
+
+    result = CliRunner().invoke(app, ["codex", "hook", "stop"], input=hook_input(repo_path))
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["decision"] == "block"
+    assert "approval_required" in payload["reason"]
+
+
+def test_codex_subagent_start_is_advisory(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
+    repo_path = tmp_path / "repo"
+    init_git_repo(repo_path)
+
+    result = CliRunner().invoke(
+        app,
+        ["codex", "hook", "subagent-start"],
+        input=hook_input(repo_path, event="SubagentStart"),
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert "additionalContext" in payload["hookSpecificOutput"]
+    assert "fallback scope" in payload["hookSpecificOutput"]["additionalContext"]

@@ -1,0 +1,305 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from pathlib import Path
+import json
+
+from agpair.config import AppPaths
+from agpair.storage.db import ensure_database
+from agpair.storage.journal import JournalRepository
+from agpair.storage.tasks import TaskRepository
+
+
+class FakePullBus:
+    def __init__(self, receipts: list[dict]) -> None:
+        self._receipts = receipts
+        self.sent_messages: list[tuple[str, tuple, dict]] = []
+        self.settled_claims: list[tuple[str, list[str]]] = []
+
+    def pull_receipts(self, *, task_id: str | None = None, limit: int = 20) -> list[dict]:
+        return list(self._receipts)
+
+    def reserve_receipts(self, *, task_id: str | None = None, limit: int = 20, lease_ms: int = 30000) -> list[dict]:
+        return [{**receipt, "claim_id": f"clm-{idx}"} for idx, receipt in enumerate(self._receipts, start=1)]
+
+    def settle_claims(self, *, reader: str, claims: list[str]) -> int:
+        self.settled_claims.append((reader, list(claims)))
+        return len(claims)
+
+    def send_task(self, *args, **kwargs):
+        self.sent_messages.append(("send_task", args, kwargs))
+
+
+def make_paths(tmp_path: Path) -> AppPaths:
+    return AppPaths.from_root(tmp_path / ".agpair")
+
+
+def seed_task(tmp_path: Path, task_id: str = "TASK-1", completion_policy: str = "auto") -> AppPaths:
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    TaskRepository(paths.db_path).create_task(
+        task_id=task_id, 
+        repo_path=str(tmp_path / "repo"),
+        completion_policy=completion_policy,
+    )
+    return paths
+
+
+def test_finalize_report_policy_blocks_summary_only_receipt_without_report(tmp_path: Path) -> None:
+    from agpair.task_terminal import finalize_executor_receipt
+    from agpair.transport import messages
+
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    repo = TaskRepository(paths.db_path)
+    repo.create_task(
+        task_id="TASK-REPORT-FINALIZE",
+        repo_path=str(tmp_path / "repo"),
+        authorization_profile="local_readonly",
+        completion_policy="report",
+    )
+    task = repo.get_task("TASK-REPORT-FINALIZE")
+    assert task is not None
+
+    decision = finalize_executor_receipt(
+        state_root=paths.root,
+        tasks=repo,
+        journal=JournalRepository(paths.db_path),
+        task=task,
+        raw_receipt={
+            "schema_version": "1",
+            "task_id": "TASK-REPORT-FINALIZE",
+            "attempt_no": 1,
+            "review_round": 0,
+            "status": messages.EVIDENCE_PACK,
+            "summary": "Only a status summary, not a report.",
+            "payload": {
+                "changed_files": [],
+                "scope_violations": [],
+                "validation_not_run": "test receipt",
+                "exit_code": 0,
+            },
+        },
+        source="test",
+        message_id="msg-report-finalize",
+    )
+
+    assert decision.ok is False
+    assert decision.blocker_type == "report_output_missing"
+    task_after = repo.get_task("TASK-REPORT-FINALIZE")
+    assert task_after is not None
+    assert task_after.phase == "blocked"
+    receipt = json.loads(task_after.terminal_receipt_json or "{}")
+    assert receipt["payload"]["blocker_type"] == "report_output_missing"
+    assert "commit" not in receipt["summary"].lower()
+
+
+def test_finalize_report_policy_accepts_report_only_receipt_without_implementation_fields(tmp_path: Path) -> None:
+    from agpair.task_terminal import finalize_executor_receipt
+    from agpair.transport import messages
+
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    repo = TaskRepository(paths.db_path)
+    repo.create_task(
+        task_id="TASK-REPORT-ONLY-SUCCESS",
+        repo_path=str(tmp_path / "repo"),
+        authorization_profile="local_readonly",
+        completion_policy="report",
+    )
+    repo.mark_acked(task_id="TASK-REPORT-ONLY-SUCCESS", session_id="session-report-only-success")
+    task = repo.get_task("TASK-REPORT-ONLY-SUCCESS")
+    assert task is not None
+
+    decision = finalize_executor_receipt(
+        state_root=paths.root,
+        tasks=repo,
+        journal=JournalRepository(paths.db_path),
+        task=task,
+        raw_receipt={
+            "schema_version": "1",
+            "task_id": "TASK-REPORT-ONLY-SUCCESS",
+            "attempt_no": 1,
+            "review_round": 0,
+            "status": messages.EVIDENCE_PACK,
+            "summary": "Report complete.",
+            "payload": {
+                "report": "我已成功读取 README.md。",
+                "exit_code": 0,
+            },
+        },
+        source="test",
+        message_id="msg-report-only-success",
+    )
+
+    assert decision.ok is True
+    task_after = repo.get_task("TASK-REPORT-ONLY-SUCCESS")
+    assert task_after is not None
+    assert task_after.phase == "ready_for_review"
+    receipt = json.loads(task_after.terminal_receipt_json or "{}")
+    assert receipt["payload"]["report"] == "我已成功读取 README.md。"
+    assert "required_missing" not in receipt["payload"]
+
+
+def test_finalize_executor_receipt_preserves_vendor_and_debug_artifacts(tmp_path: Path) -> None:
+    from agpair.task_terminal import finalize_executor_receipt
+    from agpair.transport import messages
+
+    paths = make_paths(tmp_path)
+    ensure_database(paths.db_path)
+    repo = TaskRepository(paths.db_path)
+    repo.create_task(
+        task_id="TASK-EXTRA-ARTIFACTS",
+        repo_path=str(tmp_path / "repo"),
+        authorization_profile="local_readonly",
+        completion_policy="report",
+    )
+    repo.mark_acked(task_id="TASK-EXTRA-ARTIFACTS", session_id="session-extra-artifacts")
+    task = repo.get_task("TASK-EXTRA-ARTIFACTS")
+    assert task is not None
+
+    temp_dir = tmp_path / "executor-temp"
+    temp_dir.mkdir()
+    stdout = temp_dir / "stdout.log"
+    stderr = temp_dir / "stderr.log"
+    vendor_log = temp_dir / "antigravity-cli.log"
+    debug_log = temp_dir / "claude-code-debug.log"
+    stdout.write_text("report stdout\n", encoding="utf-8")
+    stderr.write_text("", encoding="utf-8")
+    vendor_log.write_text("vendor evidence\n", encoding="utf-8")
+    debug_log.write_text("debug evidence\n", encoding="utf-8")
+
+    decision = finalize_executor_receipt(
+        state_root=paths.root,
+        tasks=repo,
+        journal=JournalRepository(paths.db_path),
+        task=task,
+        raw_receipt={
+            "schema_version": "1",
+            "task_id": "TASK-EXTRA-ARTIFACTS",
+            "attempt_no": 1,
+            "review_round": 0,
+            "status": messages.EVIDENCE_PACK,
+            "summary": "Report complete.",
+            "payload": {
+                "report": "外部执行器报告已完成。",
+                "raw_log_path": str(stdout),
+                "stderr_log_path": str(stderr),
+                "vendor_log_path": str(vendor_log),
+                "debug_log_path": str(debug_log),
+                "exit_code": 0,
+            },
+        },
+        source="test",
+        message_id="msg-extra-artifacts",
+    )
+
+    assert decision.ok is True
+    task_after = repo.get_task("TASK-EXTRA-ARTIFACTS")
+    assert task_after is not None
+    receipt = json.loads(task_after.terminal_receipt_json or "{}")
+    assert Path(receipt["payload"]["vendor_log_path"]).read_text(encoding="utf-8") == "vendor evidence\n"
+    assert Path(receipt["payload"]["debug_log_path"]).read_text(encoding="utf-8") == "debug evidence\n"
+
+    artifacts = {artifact.artifact_type: artifact for artifact in repo.list_artifacts(task_id="TASK-EXTRA-ARTIFACTS")}
+    assert artifacts["vendor_log"].path == receipt["payload"]["vendor_log_path"]
+    assert artifacts["debug_log"].path == receipt["payload"]["debug_log_path"]
+
+
+def test_direct_commit_policy_rejects_evidence_pack(tmp_path: Path) -> None:
+    from agpair.daemon.loop import run_once
+
+    paths = seed_task(tmp_path, completion_policy="direct_commit")
+    repo = TaskRepository(paths.db_path)
+    repo.mark_acked(task_id="TASK-1", session_id="session-123")
+    
+    bus = FakePullBus(
+        [
+            {
+                "id": 1,
+                "task_id": "TASK-1",
+                "status": "EVIDENCE_PACK",
+                "body": "{}",
+            }
+        ]
+    )
+
+    run_once(paths, now=datetime(2026, 3, 21, 12, 0, tzinfo=UTC), bus=bus)
+
+    task = repo.get_task("TASK-1")
+    assert task is not None
+    assert task.phase == "blocked"
+    assert task.completion_policy == "commit"
+    receipt = json.loads(task.terminal_receipt_json or "{}")
+    assert receipt["status"] == "BLOCKED"
+    assert receipt["payload"]["blocker_type"] == "validation_failure"
+    assert receipt["payload"]["claimed_status"] == "EVIDENCE_PACK"
+    
+    rows = JournalRepository(paths.db_path).tail("TASK-1", limit=1)
+    assert rows[0].event == "blocked"
+    row_receipt = json.loads(rows[0].body)
+    assert row_receipt["payload"]["blocker_type"] == "validation_failure"
+
+
+def test_repo_evidence_fallback_direct_commit_evidence_ready(tmp_path: Path, monkeypatch) -> None:
+    from agpair.daemon.loop import auto_close_evidence_ready_tasks
+
+    paths = seed_task(tmp_path)
+    repo = TaskRepository(paths.db_path)
+    repo.mark_acked(task_id="TASK-1", session_id="session-123")
+    repo.mark_evidence_ready(task_id="TASK-1", last_receipt_id="1")
+    
+    import agpair.daemon.loop
+    monkeypatch.setattr(agpair.daemon.loop, "detect_committed_task_in_repo", lambda repo_path, task_id, **kw: "abcdef123456")
+    
+    closed_count = auto_close_evidence_ready_tasks(paths)
+    assert closed_count == 1
+    
+    task = repo.get_task("TASK-1")
+    assert task.phase == "ready_for_review"
+    assert task.terminal_source == "repo_evidence"
+
+
+def test_repo_evidence_fallback_direct_commit_acked(tmp_path: Path, monkeypatch) -> None:
+    from agpair.daemon.loop import auto_close_evidence_ready_tasks
+
+    paths = seed_task(tmp_path)
+    repo = TaskRepository(paths.db_path)
+    repo.mark_acked(task_id="TASK-1", session_id="session-123")
+    
+    import agpair.daemon.loop
+    monkeypatch.setattr(agpair.daemon.loop, "detect_committed_task_in_repo", lambda repo_path, task_id, **kw: "abcdef123456")
+    
+    closed_count = auto_close_evidence_ready_tasks(paths)
+    assert closed_count == 1
+    
+    task = repo.get_task("TASK-1")
+    assert task.phase == "ready_for_review"
+    assert task.terminal_source == "repo_evidence"
+
+
+def test_detect_committed_task_in_repo_false_positive(tmp_path: Path, monkeypatch) -> None:
+    from agpair.daemon.loop import detect_committed_task_in_repo
+    import subprocess
+    from unittest.mock import MagicMock
+
+    # Setup a mock subprocess result where task_id is just a substring of another task id
+    # Searching for TASK-1, but the commit only mentions TASK-100
+    mock_result = MagicMock()
+    mock_result.returncode = 0
+    mock_result.stdout = "abcdef123456\x00implemented TASK-100 feature\n"
+    
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: mock_result)
+    
+    # It should not match TASK-1 because of word boundaries
+    sha = detect_committed_task_in_repo(str(tmp_path), "TASK-1")
+    assert sha is None
+    
+    # But it should match TASK-100
+    sha_100 = detect_committed_task_in_repo(str(tmp_path), "TASK-100")
+    assert sha_100 == "abcdef123456"
+
+    # Also test valid match for TASK-1 with word boundary
+    mock_result.stdout = "fedcba654321\x00implemented (TASK-1) feature\n"
+    sha_exact = detect_committed_task_in_repo(str(tmp_path), "TASK-1")
+    assert sha_exact == "fedcba654321"

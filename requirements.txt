@@ -1,0 +1,12 @@
+# Core runtime dependencies
+textual>=8.0.0
+typer>=0.16.0
+rich>=13.0.0
+platformdirs>=4.0.0
+annotated-doc>=0.0.5
+linkify-it-py>=2.0.0
+markdown-it-py>=3.0.0
+mdit-py-plugins>=0.4.0
+
+# Testing dependencies
+pytest>=8.0.0

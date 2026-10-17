@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acs-ai-orchestrator"
+version = "2.2.0"
+description = "ACS AI V2.2 — Autonomous Multi-Agent Coding & Guardian Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "HarryJame3004" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "textual>=8.0.0",
+    "typer>=0.16.0",
+    "rich>=13.0.0",
+    "platformdirs>=4.0.0",
+    "annotated-doc>=0.0.5",
+    "linkify-it-py>=2.0.0",
+    "markdown-it-py>=3.0.0",
+    "mdit-py-plugins>=0.4.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+acsai = "acs_team.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["acs_team*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,3604 @@
+from __future__ import annotations
+
+from pathlib import Path
+from uuid import uuid4
+import json
+import os
+import sqlite3
+import subprocess
+from urllib import error, request
+
+import typer
+from agpair.transport.bus import AgentBusClient, BusSendError
+
+import dataclasses
+
+from agpair.delegation_guard import nested_delegation_authorized, nested_delegation_blocked
+from agpair.cli.wait import (
+    DEFAULT_INTERVAL_SECONDS,
+    DEFAULT_TIMEOUT_SECONDS,
+    DISPATCH_SUCCESS_PHASES,
+    TERMINAL_PHASES,
+    WaitResult,
+    exit_code_for_dispatch,
+    is_watchdog_triggered,
+    maybe_auto_wait,
+    refresh_terminal_local_cli_task,
+    wait_for_terminal_phase,
+)
+from agpair.artifacts import copy_artifact, ensure_attempt_dir, live_artifact_metadata, read_excerpt
+from agpair.adoption import ControllerRework, derive_adoption_decision
+from agpair.completion import derive_effective_task_safety, resolve_effective_task_policy
+from agpair.config import AppPaths
+from agpair.executors.policy import next_eligible_executor, resolve_controller_policy, resolve_environment_metadata
+from agpair.executors.routing import (
+    is_legacy_executor,
+    is_supported_executor,
+    supported_executor_ids,
+    validate_supported_executor,
+)
+from agpair.models import (
+    a2a_state_hint_from_phase,
+    authorization_profile_summary,
+    validate_authorization_profile,
+)
+from agpair.executor_errors import is_bootstrap_noise
+from agpair.runtime_liveness import (
+    build_signal_summary,
+    classify_liveness,
+    effective_no_progress_seconds,
+    is_task_live,
+    recommend_controller_action,
+)
+from agpair.recovery import RecoveryInput, choose_recovery_decision
+from agpair.roles import normalize_coordination_role
+from agpair.task_brief import TaskBriefError, normalize_task_brief
+from agpair.terminal_receipts import (
+    blocked_failure_context_from_receipt,
+    committed_result_from_receipt,
+    parse_structured_terminal_receipt,
+    structured_receipt_to_dict,
+    validate_structured_receipt_dict,
+)
+from agpair.storage.db import ensure_database
+from agpair.storage.journal import JournalRepository
+from agpair.storage.tasks import TaskNotFoundError, TaskRepository
+from agpair.storage.waiters import WaiterRepository
+from agpair.targets import TargetManager
+from agpair.wait_policy import WaitBudget, resolve_wait_budget
+from agpair.worktree_adoption import (
+    WorktreeAdoptionError,
+    apply_to_controller_repo,
+    build_worktree_diff,
+    check_apply_to_controller_repo,
+)
+
+app = typer.Typer(no_args_is_help=True)
+
+_BRIDGE_PORT_MARKER = "bridge_port"
+_BRIDGE_AUTH_TOKEN_MARKER = "bridge_auth_token"
+_TASK_LIST_REFRESH_CANDIDATE_FLOOR = 100
+_ADOPTABLE_RESULTS = {"yes", "partial", "no", "unknown"}
+_CONTROLLER_REWORK = {"none", "minor", "major", "redone", "unknown"}
+
+
+def _broad_repo_path_reason(repo_path: str) -> str | None:
+    resolved = Path(repo_path).expanduser().resolve(strict=False)
+    home = Path.home().resolve(strict=False)
+    if resolved.parent == resolved:
+        return "repo path is a filesystem root; external executors need a focused project directory"
+    if resolved == home:
+        return "repo path is the user home directory; external executors can scan private logs, caches, and unrelated projects"
+    if resolved in home.parents:
+        return "repo path is above the user home directory; external executors need a focused project directory"
+    return None
+
+
+def _paths() -> AppPaths:
+    paths = AppPaths.default()
+    ensure_database(paths.db_path)
+    return paths
+
+
+def _emit_json(payload: dict) -> None:
+    typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def _no_available_executor_message(policy_decision) -> str:
+    reason = (
+        f"no available executor for controller {policy_decision.controller}; "
+        "run `agpair doctor --fresh` to inspect binary, launch, auth, and lifecycle blockers"
+    )
+    if policy_decision.reasons:
+        reason += f"; policy notes: {'; '.join(policy_decision.reasons)}"
+    return reason
+
+
+def _configured_default_executor(*, target: str | None, paths: AppPaths) -> str | None:
+    if target:
+        try:
+            mgr = TargetManager(paths.targets_path)
+            target_payload = mgr.get(target)
+            target_executor = target_payload.get("default_executor")
+            if target_executor:
+                return target_executor
+        except Exception:
+            pass
+
+    env_executor = os.environ.get("AGPAIR_DEFAULT_EXECUTOR", "").strip().lower()
+    if env_executor:
+        try:
+            return validate_supported_executor(env_executor)
+        except ValueError as exc:
+            raise typer.BadParameter(
+                f"AGPAIR_DEFAULT_EXECUTOR {exc}"
+            ) from exc
+    return None
+
+
+def _not_found_payload(task_id: str) -> dict:
+    return {
+        "ok": False,
+        "error": "task_not_found",
+        "task_id": task_id,
+    }
+
+
+def _resolve_requested_repo_context(
+    paths: AppPaths,
+    repo_path: str | None,
+    target: str | None,
+) -> str | None:
+    if repo_path is None and target is None:
+        return None
+    from agpair.targets import resolve_repo_path
+
+    resolved = resolve_repo_path(repo_path, target, paths)
+    if resolved is None:
+        return None
+    return str(Path(resolved).expanduser().resolve(strict=False))
+
+
+def _repo_mismatch_payload(task, requested_repo_path: str) -> dict:
+    return {
+        "ok": False,
+        "error": "task_repo_mismatch",
+        "task_id": task.task_id,
+        "repo_path": str(Path(task.repo_path).expanduser().resolve(strict=False)),
+        "requested_repo_path": requested_repo_path,
+    }
+
+
+def _ensure_task_repo_context(
+    paths: AppPaths,
+    task,
+    *,
+    repo_path: str | None,
+    target: str | None,
+    json_output: bool,
+) -> None:
+    requested_repo_path = _resolve_requested_repo_context(paths, repo_path, target)
+    if requested_repo_path is None:
+        return
+    stored_repo_path = str(Path(task.repo_path).expanduser().resolve(strict=False))
+    if stored_repo_path == requested_repo_path:
+        return
+    payload = _repo_mismatch_payload(task, requested_repo_path)
+    if json_output:
+        _emit_json(payload)
+    else:
+        typer.echo(
+            "task repo mismatch: "
+            f"{task.task_id} belongs to {payload['repo_path']}, "
+            f"not {payload['requested_repo_path']}",
+            err=True,
+        )
+    raise typer.Exit(code=1)
+
+
+def _waiter_payload(waiter) -> dict | None:
+    if waiter is None:
+        return None
+    return {
+        "state": waiter.state,
+        "command": waiter.command,
+        "started_at": waiter.started_at,
+        "last_poll_at": waiter.last_poll_at,
+    }
+
+
+def _structured_receipt_payload(body: str) -> dict | None:
+    receipt = parse_structured_terminal_receipt(body)
+    if receipt is None:
+        return None
+    return structured_receipt_to_dict(receipt)
+
+
+def _parsed_structured_receipt(receipt_payload: dict | None):
+    if receipt_payload is None:
+        return None
+    return validate_structured_receipt_dict(receipt_payload)
+
+
+def _committed_result_payload(receipt_payload: dict | None) -> dict | None:
+    receipt = _parsed_structured_receipt(receipt_payload)
+    if receipt is None:
+        return None
+    return committed_result_from_receipt(receipt)
+
+
+def _failure_context_payload(task, terminal_receipt: dict | None) -> dict | None:
+    receipt = _parsed_structured_receipt(terminal_receipt)
+    if receipt is not None:
+        failure_context = blocked_failure_context_from_receipt(receipt)
+        if failure_context is not None:
+            return failure_context
+    if task.phase not in {"blocked", "stuck"}:
+        return None
+    reason = (task.stuck_reason or "").strip()
+    if not reason:
+        return None
+    normalized = reason.lower()
+    blocker_type = "unknown"
+    recoverable = True
+    recommended_next_action = "inspect_logs"
+    if task.phase == "stuck" or "timeout" in normalized or "no progress" in normalized:
+        blocker_type = "executor_runtime_failure"
+        recommended_next_action = "retry"
+    elif "dispatch failed" in normalized or "failed to start" in normalized or "failed to send" in normalized:
+        blocker_type = "session_transport_failure"
+        recommended_next_action = "retry"
+    elif "bridge" in normalized:
+        blocker_type = "bridge_unavailable"
+        recommended_next_action = "fix_environment_then_retry"
+    elif "workspace" in normalized or "open the target repo" in normalized:
+        blocker_type = "workspace_conflict"
+        recommended_next_action = "fix_environment_then_retry"
+    elif "validation" in normalized or "lint" in normalized or "typecheck" in normalized or "test" in normalized:
+        blocker_type = "validation_failure"
+        recoverable = False
+        recommended_next_action = "continue"
+    elif "executor" in normalized or "session" in normalized:
+        blocker_type = "executor_runtime_failure"
+        recommended_next_action = "retry"
+    return {
+        "summary": reason,
+        "blocker_type": blocker_type,
+        "recoverable": recoverable,
+        "recommended_next_action": recommended_next_action,
+        "last_error_excerpt": reason,
+        "details": {
+            "phase": task.phase,
+            "reason": reason,
+        },
+    }
+
+
+def _latest_terminal_receipt(paths: AppPaths, task_id: str, terminal_receipt_json: str | None = None) -> dict | None:
+    if terminal_receipt_json:
+        parsed = _structured_receipt_payload(terminal_receipt_json)
+        if parsed is not None:
+            return parsed
+        try:
+            payload = json.loads(terminal_receipt_json)
+        except json.JSONDecodeError:
+            payload = None
+        if isinstance(payload, dict):
+            return payload
+    journal = JournalRepository(paths.db_path)
+    for row in journal.tail(task_id, limit=50):
+        if row.event not in {"ready_for_review", "evidence_ready", "blocked", "committed"}:
+            continue
+        parsed = _structured_receipt_payload(row.body)
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def _original_body_for_task(paths: AppPaths, task_id: str) -> str | None:
+    journal = JournalRepository(paths.db_path)
+    for row in journal.tail(task_id, limit=200):
+        if row.source == "cli" and row.event == "created" and row.body.strip():
+            return row.body
+    return None
+
+
+def _artifact_payload(paths: AppPaths, task) -> tuple[dict[str, str], dict[str, object | None]]:
+    tasks = TaskRepository(paths.db_path)
+    artifacts = tasks.list_artifacts(task_id=task.task_id, attempt_no=task.attempt_no)
+    paths_by_type = {artifact.artifact_type: artifact.path for artifact in artifacts}
+
+    active_metadata: dict[str, dict] = {}
+    active_paths: dict[str, str] = {}
+    session_id = task.executor_session_id or task.antigravity_session_id
+    if session_id:
+        attempt_dir = Path(session_id)
+        if attempt_dir.exists():
+            for artifact_type, filename in (
+                ("stdout", "stdout.log"),
+                ("stderr", "stderr.log"),
+                ("receipt", "receipt.json"),
+                ("report", "report.md"),
+            ):
+                metadata = live_artifact_metadata(attempt_dir / filename, artifact_type=artifact_type)
+                if metadata is not None:
+                    active_metadata[artifact_type] = metadata
+                    active_paths[artifact_type] = metadata["path"]
+
+    def path_for(kind: str) -> str | None:
+        return paths_by_type.get(kind) or active_paths.get(kind)
+
+    stdout_path = path_for("stdout")
+    stderr_path = path_for("stderr")
+    report_path = path_for("report")
+    receipt_path = path_for("receipt")
+    evidence_path = paths_by_type.get("evidence")
+    excerpt = read_excerpt(stdout_path, max_chars=2000) or read_excerpt(stderr_path, max_chars=2000)
+    last_output_at = None
+    output_mtimes = [
+        item.get("modified_at")
+        for key, item in active_metadata.items()
+        if key in {"stdout", "stderr"} and item.get("modified_at")
+    ]
+    if output_mtimes:
+        last_output_at = max(str(item) for item in output_mtimes)
+
+    return paths_by_type, {
+        "stdout_path": stdout_path,
+        "stderr_path": stderr_path,
+        "receipt_path": receipt_path,
+        "report_path": report_path,
+        "evidence_path": evidence_path,
+        "executor_output_excerpt": excerpt,
+        "active_attempt_artifact_paths": active_paths or None,
+        "active_attempt_artifacts": active_metadata or None,
+        "last_executor_output_at": last_output_at,
+    }
+
+
+def _archive_active_attempt_artifacts(paths: AppPaths, tasks: TaskRepository, task) -> dict[str, str]:
+    session_id = task.executor_session_id or task.antigravity_session_id
+    if not session_id:
+        return {}
+    session_dir = Path(session_id)
+    attempt_dir = ensure_attempt_dir(paths.root, task.task_id, task.attempt_no)
+    archived: dict[str, str] = {}
+    for artifact_type, filename in (
+        ("stdout", "stdout.log"),
+        ("stderr", "stderr.log"),
+        ("receipt", "receipt.json"),
+        ("report", "report.md"),
+    ):
+        copied = copy_artifact(session_dir / filename, attempt_dir / filename)
+        if copied is None:
+            continue
+        tasks.record_artifact(
+            task_id=task.task_id,
+            attempt_no=task.attempt_no,
+            artifact_type=artifact_type,
+            path=copied,
+        )
+        archived[artifact_type] = copied
+    return archived
+
+
+def _str_or_none(value: object | None) -> str | None:
+    return value if isinstance(value, str) and value else None
+
+
+def _append_unique_strings(existing: object, additions: list[str]) -> list[str]:
+    values = existing if isinstance(existing, list) else []
+    return list(dict.fromkeys([*(str(item) for item in values if item), *additions]))
+
+
+def _merge_adoption_signal_diagnostics(
+    adoption: dict,
+    *,
+    hard_blockers: list[str],
+    soft_warnings: list[str],
+) -> dict:
+    payload = dict(adoption)
+    payload["blockers"] = _append_unique_strings(payload.get("blockers"), hard_blockers)
+    payload["warnings"] = _append_unique_strings(payload.get("warnings"), soft_warnings)
+    agent_result = payload.get("agent_result")
+    if isinstance(agent_result, dict):
+        agent_payload = dict(agent_result)
+        agent_payload["hard_blockers"] = _append_unique_strings(agent_payload.get("hard_blockers"), hard_blockers)
+        agent_payload["soft_warnings"] = _append_unique_strings(agent_payload.get("soft_warnings"), soft_warnings)
+        payload["agent_result"] = agent_payload
+    return payload
+
+
+def _adoption_result_for_signal(
+    *,
+    effective_policy,
+    task,
+    signal_summary,
+    artifact_top_level: dict[str, object | None],
+    protocol_warnings: tuple[str, ...],
+    protocol_errors: tuple[str, ...],
+) -> dict | None:
+    if task.phase != "acked":
+        return None
+    receipt_path = _str_or_none(artifact_top_level.get("receipt_path"))
+    report_path = _str_or_none(artifact_top_level.get("report_path"))
+    stdout_path = _str_or_none(artifact_top_level.get("stdout_path"))
+    budget_exhausted = (
+        signal_summary.execution_budget_remaining_seconds is not None
+        and signal_summary.execution_budget_remaining_seconds <= 0
+    )
+    has_terminal_artifact = bool(receipt_path or report_path)
+    if not has_terminal_artifact and not budget_exhausted and (
+        not signal_summary.bootstrap_noise_only or signal_summary.stdout_bytes > 0
+    ):
+        return None
+    decision = derive_adoption_decision(
+        effective_policy=effective_policy,
+        receipt=None,
+        report_path=report_path,
+        stdout_path=stdout_path,
+        receipt_path=receipt_path,
+        protocol_warnings=protocol_warnings,
+        protocol_errors=protocol_errors,
+    )
+    adoption = decision.to_dict()
+    if adoption.get("adoptable_result") != "no":
+        return adoption
+
+    hard_blockers = ["terminal_receipt_missing", "report_missing"]
+    soft_warnings: list[str] = []
+    if signal_summary.bootstrap_noise_only:
+        soft_warnings.append("bootstrap_noise_only")
+    if signal_summary.stdout_bytes == 0:
+        hard_blockers.insert(0, "no_useful_executor_signal")
+    else:
+        soft_warnings.append("stdout_available_without_receipt")
+    if budget_exhausted:
+        hard_blockers.insert(0, "execution_budget_exhausted")
+    if signal_summary.process_alive is True:
+        soft_warnings.append("process_still_alive")
+    adoption["controller_rework"] = "redone"
+    return _merge_adoption_signal_diagnostics(
+        adoption,
+        hard_blockers=hard_blockers,
+        soft_warnings=soft_warnings,
+    )
+
+
+def _iso_is_newer(candidate: str | None, baseline: str | None) -> bool:
+    from datetime import UTC, datetime
+
+    if not candidate:
+        return False
+    try:
+        candidate_dt = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if baseline is None:
+        return True
+    try:
+        baseline_dt = datetime.fromisoformat(baseline.replace("Z", "+00:00"))
+    except ValueError:
+        baseline_dt = datetime.min.replace(tzinfo=UTC)
+    return candidate_dt > baseline_dt
+
+
+def _derive_antigravity_bridge_state(paths: AppPaths, task) -> dict:
+    if task.phase != "new" or task.executor_backend not in {None, "antigravity", "antigravity-cli"}:
+        return {}
+
+    from agpair.cli.doctor import build_doctor_report
+    from agpair.runtime_liveness import detect_workspace_activity
+
+    report = build_doctor_report(paths, repo_path=task.repo_path, fresh=False)
+    pending_count = report.get("repo_bridge_pending_task_count")
+    pending_ids = report.get("repo_bridge_pending_task_ids")
+    if not isinstance(pending_ids, list):
+        pending_ids = None
+    pending_tasks = report.get("repo_bridge_pending_tasks")
+    if not isinstance(pending_tasks, list):
+        pending_tasks = None
+
+    matching_pending_task = None
+    if pending_tasks is not None:
+        matching_pending_task = next(
+            (
+                entry
+                for entry in pending_tasks
+                if isinstance(entry, dict) and entry.get("task_id") == task.task_id
+            ),
+            None,
+        )
+
+    bridge_state = None
+    status_sync = None
+    provider_session_id = None
+    detected_activity = detect_workspace_activity(task.execution_repo_path or task.repo_path)
+    if matching_pending_task is not None:
+        bridge_state = "provider_consumed_no_ack"
+        provider_session_id = matching_pending_task.get("provider_session_id")
+        status_sync = {
+            "state": bridge_state,
+            "source": "bridge_tracker",
+            "bridge_pending_on_provider": True,
+            "provider_status": matching_pending_task.get("provider_status"),
+            "provider_session_id": provider_session_id,
+            "provider_acked_at": matching_pending_task.get("provider_acked_at"),
+            "provider_last_activity_at": matching_pending_task.get("provider_last_activity_at"),
+            "provider_last_heartbeat_at": matching_pending_task.get("provider_last_heartbeat_at"),
+        }
+    elif task.last_heartbeat_at:
+        bridge_state = "provider_consumed_no_ack"
+        status_sync = {
+            "state": bridge_state,
+            "source": "daemon_heartbeat",
+            "bridge_pending_on_provider": None,
+            "provider_status": "RUNNING",
+            "provider_session_id": None,
+            "provider_acked_at": None,
+            "provider_last_activity_at": None,
+            "provider_last_heartbeat_at": task.last_heartbeat_at,
+        }
+    elif pending_ids is not None and task.task_id in pending_ids:
+        bridge_state = "queued_unclaimed"
+        status_sync = {
+            "state": bridge_state,
+            "source": "bridge_tracker",
+            "bridge_pending_on_provider": True,
+            "provider_status": None,
+            "provider_session_id": None,
+            "provider_acked_at": None,
+            "provider_last_activity_at": None,
+            "provider_last_heartbeat_at": None,
+        }
+    elif pending_ids is not None and _iso_is_newer(detected_activity, task.last_activity_at):
+        bridge_state = "running_without_receipt"
+        status_sync = {
+            "state": bridge_state,
+            "source": "workspace_activity",
+            "bridge_pending_on_provider": False,
+            "provider_status": None,
+            "provider_session_id": None,
+            "provider_acked_at": None,
+            "provider_last_activity_at": detected_activity,
+            "provider_last_heartbeat_at": None,
+        }
+    elif pending_ids is not None:
+        bridge_state = "queued_unclaimed"
+        status_sync = {
+            "state": bridge_state,
+            "source": "bridge_tracker",
+            "bridge_pending_on_provider": False,
+            "provider_status": None,
+            "provider_session_id": None,
+            "provider_acked_at": None,
+            "provider_last_activity_at": None,
+            "provider_last_heartbeat_at": None,
+        }
+
+    last_workspace_activity = task.last_workspace_activity_at
+    if bridge_state == "running_without_receipt" and detected_activity is not None:
+        last_workspace_activity = detected_activity
+    if bridge_state == "provider_consumed_no_ack":
+        if _iso_is_newer(detected_activity, task.last_activity_at):
+            bridge_state = "running_without_receipt"
+            last_workspace_activity = detected_activity
+            if status_sync is not None:
+                status_sync = {
+                    **status_sync,
+                    "state": bridge_state,
+                    "provider_last_activity_at": detected_activity,
+                }
+
+    return {
+        "phase_detail": bridge_state,
+        "bridge_state": bridge_state,
+        "bridge_pending_task_count": pending_count if isinstance(pending_count, int) else None,
+        "bridge_pending_task_ids": pending_ids,
+        "bridge_pending_tasks": pending_tasks,
+        "provider_session_id": provider_session_id,
+        "status_sync": status_sync,
+        "last_workspace_activity_at": last_workspace_activity,
+    }
+
+
+def _current_attempt_policy_payload(paths: AppPaths, task_id: str) -> dict:
+    attempt = TaskRepository(paths.db_path).current_attempt(task_id)
+    if attempt is None or not attempt.effective_policy_json:
+        return {}
+    try:
+        payload = json.loads(attempt.effective_policy_json)
+    except (TypeError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _controller_from_current_attempt(paths: AppPaths, task_id: str) -> str | None:
+    payload = _current_attempt_policy_payload(paths, task_id)
+    controller = payload.get("controller")
+    return controller if isinstance(controller, str) and controller.strip() else None
+
+
+def _requested_executor_from_current_attempt(paths: AppPaths, task_id: str) -> str | None:
+    payload = _current_attempt_policy_payload(paths, task_id)
+    requested_executor = payload.get("requested_executor")
+    return requested_executor if isinstance(requested_executor, str) and requested_executor.strip() else None
+
+
+def _effective_policy_json(effective_policy, *, requested_executor: str | None) -> str:
+    payload = effective_policy.to_dict()
+    if requested_executor:
+        payload["requested_executor"] = requested_executor
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def _execution_budget_exhausted(signal_summary) -> bool:
+    return (
+        signal_summary.execution_budget_remaining_seconds is not None
+        and signal_summary.execution_budget_remaining_seconds <= 0
+    )
+
+
+def _recovery_decision_for_task(
+    paths: AppPaths,
+    task,
+    *,
+    agent_result: dict | None,
+    signal_summary,
+    artifact_result: dict | None = None,
+    wait_outcome: str | None = None,
+    requested_executor: str | None = None,
+) -> dict[str, str | None]:
+    controller = _controller_from_current_attempt(paths, task.task_id)
+    current_executor = task.executor_backend
+    next_executor = next_eligible_executor(
+        controller=controller,
+        current_executor=current_executor,
+        requested_executor=requested_executor,
+    )
+    return choose_recovery_decision(
+        RecoveryInput(
+            task_id=task.task_id,
+            controller=controller,
+            current_executor=current_executor,
+            requested_executor=requested_executor,
+            agent_result=agent_result,
+            artifact_result=artifact_result,
+            liveness_state=signal_summary.state,
+            wait_outcome=wait_outcome,
+            execution_budget_exhausted=_execution_budget_exhausted(signal_summary),
+            next_eligible_executor=next_executor,
+        )
+    ).to_dict()
+
+
+def _environment_payload_from_current_attempt(paths: AppPaths, task_id: str, executor_backend: str | None) -> dict:
+    attempt = TaskRepository(paths.db_path).current_attempt(task_id)
+    if attempt is not None:
+        return {
+            "environment_mode": attempt.environment_mode,
+            "environment_mode_source": attempt.environment_mode_source,
+            "skill_policy": attempt.skill_policy,
+            "mcp_policy": attempt.mcp_policy,
+        }
+    environment = resolve_environment_metadata(executor_backend)
+    return {
+        "environment_mode": environment.environment_mode,
+        "environment_mode_source": environment.environment_mode_source,
+        "skill_policy": environment.skill_policy,
+        "mcp_policy": environment.mcp_policy,
+    }
+
+
+def _attempt_protocol_adoption_payload(paths: AppPaths, task_id: str) -> dict:
+    tasks = TaskRepository(paths.db_path)
+    attempt = tasks.current_attempt(task_id)
+    if attempt is None:
+        return {
+            "protocol_result": None,
+            "adoption_result": None,
+            "agent_result": None,
+            "artifact_result": None,
+        }
+    warnings = _json_value(attempt.protocol_warnings_json, [])
+    errors = _json_value(attempt.protocol_errors_json, [])
+    adoption = _json_value(attempt.adoption_evidence_json, {})
+    if isinstance(adoption, dict):
+        adoption.setdefault("adoptable_result", attempt.adoptable_result)
+    else:
+        adoption = {
+            "adoptable_result": attempt.adoptable_result,
+            "blockers": [],
+            "warnings": [],
+            "evidence": {},
+        }
+    agent_result = adoption.get("agent_result")
+    artifact_result = adoption.get("artifact_result")
+    if not isinstance(artifact_result, dict):
+        artifact_result = None
+    if not isinstance(agent_result, dict):
+        task = tasks.get_task(task_id)
+        adoptable_result = str(adoption.get("adoptable_result") or attempt.adoptable_result or "unknown")
+        raw_blockers = adoption.get("blockers")
+        blockers = [str(item) for item in raw_blockers] if isinstance(raw_blockers, list) else []
+        raw_warnings = adoption.get("warnings")
+        soft_warnings = [str(item) for item in raw_warnings] if isinstance(raw_warnings, list) else []
+        if task is not None and task.phase in {"blocked", "stuck", "abandoned"} and adoptable_result == "unknown":
+            adoptable_result = "no"
+            blockers = [*blockers, f"task_phase_{task.phase}"]
+            adoption["adoptable_result"] = adoptable_result
+            adoption["blockers"] = blockers
+        state = "blocked" if adoptable_result == "no" else "usable" if adoptable_result == "yes" else "needs_review"
+        agent_result = {
+            "state": state,
+            "controller_action": "retry_or_switch_executor" if state == "blocked" else "inspect_evidence",
+            "summary": "Compatibility fallback derived from adoption_result.",
+            "hard_blockers": blockers,
+            "soft_warnings": soft_warnings,
+        }
+        adoption["agent_result"] = agent_result
+    return {
+        "protocol_result": {
+            "ok": not bool(errors),
+            "warnings": warnings if isinstance(warnings, list) else [],
+            "errors": errors if isinstance(errors, list) else [],
+        },
+        "adoption_result": adoption,
+        "agent_result": agent_result,
+        "artifact_result": artifact_result,
+    }
+
+
+def _validate_choice(value: str | None, allowed: set[str], field: str) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if normalized not in allowed:
+        raise typer.BadParameter(f"{field} must be one of: {', '.join(sorted(allowed))}")
+    return normalized
+
+
+def _resolve_dirty_snapshot_mode(
+    *,
+    requested: str | None,
+    isolated_worktree: bool,
+    authorization_profile: str,
+    effective_completion_policy: str,
+) -> str:
+    if requested is not None:
+        normalized = _validate_choice(requested, {"off", "tracked"}, "dirty snapshot")
+        assert normalized is not None
+        if normalized == "tracked" and not isolated_worktree:
+            raise typer.BadParameter("--dirty-snapshot tracked requires --isolated-worktree")
+        return normalized
+    if (
+        isolated_worktree
+        and authorization_profile != "local_readonly"
+        and effective_completion_policy in {"evidence", "commit"}
+    ):
+        return "tracked"
+    return "off"
+
+
+def _resolve_cli_wait_budget(
+    *,
+    task_kind: str | None,
+    wait_policy: str | None,
+    controller_wait_seconds: float | None,
+    execution_budget_seconds: float | None,
+    background_ok: bool | None,
+    authorization_profile: str,
+    completion_policy: str,
+) -> tuple[WaitBudget, str]:
+    try:
+        budget = resolve_wait_budget(
+            task_kind=task_kind,
+            wait_policy=wait_policy,
+            controller_wait_seconds=controller_wait_seconds,
+            execution_budget_seconds=execution_budget_seconds,
+            background_ok=background_ok,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    resolved_completion_policy = completion_policy
+    if budget.task_kind in {"implementation", "test_fix"}:
+        if authorization_profile == "local_readonly":
+            raise typer.BadParameter(
+                f"--task-kind {budget.task_kind} requires a mutating authorization profile; "
+                "use local_mutating or choose a review/report task kind"
+            )
+        if completion_policy == "auto":
+            resolved_completion_policy = "evidence"
+    return budget, resolved_completion_policy
+
+
+def _dirty_snapshot_from_attempt(attempt) -> dict:
+    snapshot = _json_value(getattr(attempt, "dirty_snapshot_json", "{}"), {})
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    return {
+        "mode": getattr(attempt, "dirty_snapshot_mode", "off"),
+        "applied": bool(getattr(attempt, "dirty_snapshot_applied", False)),
+        "snapshot": snapshot,
+    }
+
+
+def _persist_attempt_dirty_snapshot_from_state(
+    *,
+    tasks: TaskRepository,
+    task_id: str,
+    session_id: str | None,
+) -> None:
+    if not session_id:
+        return
+    attempt = tasks.current_attempt(task_id)
+    if attempt is None:
+        return
+    state_path = Path(str(session_id)) / "state.json"
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(state, dict):
+        return
+    snapshot = state.get("dirty_snapshot_json")
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    tasks.update_attempt_dirty_snapshot(
+        task_id=task_id,
+        attempt_no=attempt.attempt_no,
+        dirty_snapshot_mode=str(state.get("dirty_snapshot_mode") or "off"),
+        dirty_snapshot_json=json.dumps(snapshot, ensure_ascii=False, sort_keys=True),
+        dirty_snapshot_applied=bool(state.get("dirty_snapshot_applied")),
+    )
+
+
+def _update_controller_adoption(
+    *,
+    paths: AppPaths,
+    tasks: TaskRepository,
+    task_id: str,
+    adoptable_result: str | None,
+    controller_rework: str | None,
+    note: str | None,
+    adoption_payload: dict | None = None,
+) -> dict:
+    attempt = tasks.current_attempt(task_id)
+    if attempt is None:
+        return {}
+    adoption = dict(adoption_payload) if isinstance(adoption_payload, dict) else _json_value(attempt.adoption_evidence_json, {})
+    if not isinstance(adoption, dict):
+        adoption = {}
+    if adoptable_result is not None:
+        adoption["adoptable_result"] = adoptable_result
+    else:
+        adoption.setdefault("adoptable_result", attempt.adoptable_result)
+    if note:
+        adoption["controller_note"] = note
+    rework_payload = _json_value(attempt.controller_rework_json, {})
+    if not isinstance(rework_payload, dict):
+        rework_payload = {}
+    if controller_rework is not None:
+        rework_payload["controller_rework"] = controller_rework
+        adoption["controller_rework"] = controller_rework
+    if note:
+        rework_payload["note"] = note
+    tasks.update_attempt_adoption(
+        task_id=task_id,
+        attempt_no=attempt.attempt_no,
+        protocol_warnings_json=attempt.protocol_warnings_json,
+        protocol_errors_json=attempt.protocol_errors_json,
+        adoptable_result=str(adoption.get("adoptable_result") or attempt.adoptable_result),
+        adoption_evidence_json=json.dumps(adoption, ensure_ascii=False, sort_keys=True),
+        controller_rework_json=json.dumps(rework_payload, ensure_ascii=False, sort_keys=True),
+    )
+    return adoption
+
+
+def _executor_state_payload(task, attempt=None) -> dict:
+    base_dirty_snapshot = _dirty_snapshot_from_attempt(attempt) if attempt is not None else None
+    session_id = task.executor_session_id or task.antigravity_session_id
+    if not session_id:
+        return {
+            "dirty_snapshot": base_dirty_snapshot,
+        }
+    state_path = Path(str(session_id)) / "state.json"
+    try:
+        raw = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {
+            "dirty_snapshot": base_dirty_snapshot,
+        }
+    if not isinstance(raw, dict):
+        return {
+            "dirty_snapshot": base_dirty_snapshot,
+        }
+    start_dirty = raw.get("start_dirty_files")
+    snapshot = raw.get("dirty_snapshot_json") if isinstance(raw.get("dirty_snapshot_json"), dict) else {}
+    return {
+        "dirty_snapshot": {
+            "mode": raw.get("dirty_snapshot_mode") or (base_dirty_snapshot or {}).get("mode", "off"),
+            "applied": bool(raw.get("dirty_snapshot_applied")),
+            "snapshot": snapshot or (base_dirty_snapshot or {}).get("snapshot", {}),
+            "start_head": raw.get("start_head"),
+            "original_start_head": raw.get("original_start_head"),
+            "worker_base_head": raw.get("worker_base_head"),
+            "worker_base_created": bool(raw.get("worker_base_created")),
+            "worker_diff_base_reason": raw.get("worker_diff_base_reason"),
+            "current_head": raw.get("current_head"),
+            "start_dirty_files": start_dirty if isinstance(start_dirty, list) else [],
+            "is_worktree_dirty": bool(raw.get("is_worktree_dirty")),
+            "repo_path": raw.get("repo_path"),
+        },
+    }
+
+
+def _session_state_for_task(task) -> dict:
+    def fallback_from_execution_repo() -> dict | None:
+        if not task.execution_repo_path:
+            return None
+        try:
+            base_head = subprocess.check_output(
+                ["git", "-C", task.execution_repo_path, "rev-parse", "HEAD"],
+                text=True,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+        except subprocess.SubprocessError:
+            base_head = ""
+        return {
+            "repo_path": task.execution_repo_path,
+            "worker_base_head": base_head,
+            "worker_diff_base_reason": "execution_repo_head_fallback",
+        }
+
+    session_id = task.executor_session_id or task.antigravity_session_id
+    if not session_id:
+        fallback = fallback_from_execution_repo()
+        if fallback is not None:
+            return fallback
+        raise WorktreeAdoptionError("session_missing", "Task has no executor session.")
+    state_path = Path(str(session_id)) / "state.json"
+    try:
+        raw = json.loads(state_path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        fallback = fallback_from_execution_repo()
+        if fallback is not None:
+            return fallback
+        raise WorktreeAdoptionError("session_state_missing", f"Executor session state is missing: {state_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise WorktreeAdoptionError("session_state_invalid", f"Executor session state is invalid: {state_path}") from exc
+    if not isinstance(raw, dict):
+        raise WorktreeAdoptionError("session_state_invalid", f"Executor session state is invalid: {state_path}")
+    return raw
+
+
+def _watch_progress_payload(payload: dict) -> dict:
+    active = payload.get("active_attempt_artifacts") if isinstance(payload.get("active_attempt_artifacts"), dict) else {}
+    stdout_meta = active.get("stdout") if isinstance(active, dict) else None
+    stderr_meta = active.get("stderr") if isinstance(active, dict) else None
+    stdout_size = int(stdout_meta.get("size_bytes") or 0) if isinstance(stdout_meta, dict) else 0
+    stderr_size = int(stderr_meta.get("size_bytes") or 0) if isinstance(stderr_meta, dict) else 0
+    stdout_excerpt = str(stdout_meta.get("excerpt") or "") if isinstance(stdout_meta, dict) else ""
+    stderr_excerpt = str(stderr_meta.get("excerpt") or "") if isinstance(stderr_meta, dict) else ""
+    last_excerpt = stdout_excerpt or stderr_excerpt or str(payload.get("executor_output_excerpt") or "")
+    useful_progress = bool(
+        payload.get("report_path")
+        or payload.get("receipt_path")
+        or payload.get("evidence_path")
+        or (stdout_size > 0 and not is_bootstrap_noise(stdout_excerpt))
+        or (
+            stderr_size > 0
+            and stderr_excerpt.strip()
+            and not is_bootstrap_noise(stderr_excerpt)
+        )
+        or payload.get("liveness_state") in {"active_via_workspace", "active_via_both"}
+    )
+    return {
+        "stdout_size": stdout_size,
+        "stderr_size": stderr_size,
+        "useful_progress": useful_progress,
+        "last_output_excerpt": last_excerpt[-500:] if last_excerpt else None,
+    }
+
+
+def _json_value(raw: str | None, default):
+    if not raw:
+        return default
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return default
+
+
+def build_task_payload(paths: AppPaths, task) -> dict:
+    derived_bridge_state = _derive_antigravity_bridge_state(paths, task)
+    phase_detail = derived_bridge_state.get("phase_detail")
+    phase_source = "derived" if phase_detail else "stored"
+    last_workspace_activity_at = (
+        derived_bridge_state.get("last_workspace_activity_at") or task.last_workspace_activity_at
+    )
+    execution_repo_path = task.execution_repo_path or task.repo_path
+    isolation_satisfied = (
+        not task.isolated_worktree
+        or (
+            task.execution_repo_path is not None
+            and Path(task.execution_repo_path).resolve() != Path(task.repo_path).resolve()
+        )
+    )
+
+    no_progress_threshold_seconds = effective_no_progress_seconds(task)
+    liveness = (
+        classify_liveness(task, freshness_seconds=no_progress_threshold_seconds)
+        if task.phase == "acked"
+        else None
+    )
+    signal_summary = build_signal_summary(
+        task,
+        freshness_seconds=no_progress_threshold_seconds,
+    )
+    controller_action = recommend_controller_action(task, signal_summary)
+    waiters = WaiterRepository(paths.db_path)
+    waiter = waiters.get_active_waiter(task.task_id)
+    terminal_receipt = _latest_terminal_receipt(paths, task.task_id, task.terminal_receipt_json) if task.phase in TERMINAL_PHASES else None
+    original_body = _original_body_for_task(paths, task.task_id)
+    effective_policy = resolve_effective_task_policy(
+        requested_completion_policy=task.completion_policy,
+        authorization_profile=task.authorization_profile,
+        body=original_body,
+        controller=_controller_from_current_attempt(paths, task.task_id),
+    )
+    effective_safety = derive_effective_task_safety(effective_policy)
+    artifact_paths, artifact_top_level = _artifact_payload(paths, task)
+    committed_result = _committed_result_payload(terminal_receipt)
+    failure_context = _failure_context_payload(task, terminal_receipt)
+    blocker_type = failure_context["blocker_type"] if failure_context else None
+    from agpair.executors import get_executor
+
+    active_backend_id = task.executor_backend or "antigravity"
+    active_exec = get_executor(active_backend_id, agent_bus_bin="")
+    supported_backends = {}
+    for supported_backend_id in supported_executor_ids():
+        supported_exec = get_executor(supported_backend_id, agent_bus_bin="")
+        if supported_exec is None:
+            continue
+        supported_backends[supported_backend_id] = {
+            "continuation_capability": supported_exec.continuation_capability.value,
+            "safety_metadata": dataclasses.asdict(supported_exec.safety_metadata),
+        }
+    if active_exec is None:
+        active_exec = get_executor("antigravity", agent_bus_bin="")
+    if active_exec is None:
+        raise RuntimeError("executor registry did not provide a fallback adapter")
+    environment_payload = _environment_payload_from_current_attempt(paths, task.task_id, active_backend_id)
+    current_attempt = TaskRepository(paths.db_path).current_attempt(task.task_id)
+    protocol_adoption_payload = _attempt_protocol_adoption_payload(paths, task.task_id)
+    executor_state_payload = _executor_state_payload(task, current_attempt)
+    protocol_result = protocol_adoption_payload.get("protocol_result")
+    protocol_warnings = ()
+    protocol_errors = ()
+    if isinstance(protocol_result, dict):
+        warnings = protocol_result.get("warnings")
+        errors = protocol_result.get("errors")
+        if isinstance(warnings, list):
+            protocol_warnings = tuple(str(item) for item in warnings if item)
+        if isinstance(errors, list):
+            protocol_errors = tuple(str(item) for item in errors if item)
+    stored_adoption_result = protocol_adoption_payload.get("adoption_result")
+    has_controller_adoption = (
+        bool(task.is_approved)
+        and isinstance(stored_adoption_result, dict)
+        and isinstance(stored_adoption_result.get("artifact_result"), dict)
+    )
+    signal_adoption_result = None
+    if not has_controller_adoption:
+        signal_adoption_result = _adoption_result_for_signal(
+            effective_policy=effective_policy,
+            task=task,
+            signal_summary=signal_summary,
+            artifact_top_level=artifact_top_level,
+            protocol_warnings=protocol_warnings,
+            protocol_errors=protocol_errors,
+        )
+    if signal_adoption_result is not None:
+        protocol_adoption_payload = dict(protocol_adoption_payload)
+        protocol_adoption_payload["adoption_result"] = signal_adoption_result
+        protocol_adoption_payload["agent_result"] = signal_adoption_result.get("agent_result")
+        protocol_adoption_payload["artifact_result"] = signal_adoption_result.get("artifact_result")
+        agent = signal_adoption_result.get("agent_result")
+        if isinstance(agent, dict) and isinstance(agent.get("controller_action"), str):
+            controller_action = agent["controller_action"]
+    agent_result_payload = protocol_adoption_payload.get("agent_result")
+    artifact_result_payload = protocol_adoption_payload.get("artifact_result")
+    if (
+        (task.phase in TERMINAL_PHASES or task.is_approved or signal_adoption_result is not None)
+        and isinstance(agent_result_payload, dict)
+        and isinstance(agent_result_payload.get("controller_action"), str)
+    ):
+        controller_action = agent_result_payload["controller_action"]
+    requested_executor = _requested_executor_from_current_attempt(paths, task.task_id)
+    recovery_decision = _recovery_decision_for_task(
+        paths,
+        task,
+        agent_result=agent_result_payload if isinstance(agent_result_payload, dict) else None,
+        signal_summary=signal_summary,
+        artifact_result=artifact_result_payload if isinstance(artifact_result_payload, dict) else None,
+        requested_executor=requested_executor,
+    )
+
+    return {
+        "task_id": task.task_id,
+        "active_executor_backend": active_backend_id,
+        "active_executor_continuation_capability": active_exec.continuation_capability.value,
+        "active_executor_safety_metadata": dataclasses.asdict(active_exec.safety_metadata),
+        "backend_safety_metadata": dataclasses.asdict(active_exec.safety_metadata),
+        "effective_task_policy": effective_policy.to_dict(),
+        "effective_task_safety": effective_safety.to_dict(),
+        **environment_payload,
+        **protocol_adoption_payload,
+        **executor_state_payload,
+        "artifact_paths": artifact_paths,
+        **artifact_top_level,
+        "supported_backends": supported_backends,
+        "phase": task.phase,
+        "stored_phase": task.phase,
+        "phase_detail": phase_detail,
+        "phase_source": phase_source,
+        "a2a_state_hint": a2a_state_hint_from_phase(phase_detail or task.phase, blocker_type=blocker_type),
+        "repo_path": task.repo_path,
+        "execution_repo_path": execution_repo_path,
+        "isolation_satisfied": isolation_satisfied,
+        "session_id": task.executor_session_id or task.antigravity_session_id,
+        "executor_session_id": task.executor_session_id or task.antigravity_session_id,
+        "legacy_executor": is_legacy_executor(active_backend_id) and not is_supported_executor(active_backend_id),
+        "retry_supported": is_supported_executor(active_backend_id),
+        "provider_session_id": derived_bridge_state.get("provider_session_id"),
+        "attempt_no": task.attempt_no,
+        "retry_count": task.retry_count,
+        "authorization_profile": task.authorization_profile,
+        "authorization_summary": task.authorization_summary,
+        "task_kind": task.task_kind,
+        "wait_policy": task.wait_policy,
+        "controller_wait_seconds": task.controller_wait_seconds,
+        "execution_budget_seconds": task.execution_budget_seconds,
+        "background_ok": task.background_ok,
+        "retry_recommended": task.retry_recommended,
+        "no_progress_threshold_seconds": no_progress_threshold_seconds,
+        "stuck_reason": task.stuck_reason,
+        "last_heartbeat_at": task.last_heartbeat_at,
+        "last_workspace_activity_at": last_workspace_activity_at,
+        "depends_on": json.loads(task.depends_on) if task.depends_on else None,
+        "isolated_worktree": task.isolated_worktree,
+        "setup_commands": json.loads(task.setup_commands) if task.setup_commands else None,
+        "teardown_commands": json.loads(task.teardown_commands) if task.teardown_commands else None,
+        "env_vars": json.loads(task.env_vars) if task.env_vars else None,
+        "worktree_boundary": task.worktree_boundary,
+        "bridge_state": derived_bridge_state.get("bridge_state"),
+        "bridge_pending_task_count": derived_bridge_state.get("bridge_pending_task_count"),
+        "bridge_pending_task_ids": derived_bridge_state.get("bridge_pending_task_ids"),
+        "bridge_pending_tasks": derived_bridge_state.get("bridge_pending_tasks"),
+        "status_sync": derived_bridge_state.get("status_sync"),
+        "spotlight_testing": task.spotlight_testing,
+        "broad_repo_path_override": task.broad_repo_path_override,
+        "repo_path_guardrail_reason": _broad_repo_path_reason(task.repo_path),
+        "completion_policy": task.completion_policy,
+        "coordination_role": task.coordination_role,
+        "effective_completion_policy": effective_policy.effective_completion_policy,
+        "terminal_source": task.terminal_source,
+        "is_approved": task.is_approved,
+        "liveness_state": liveness.value if liveness is not None else None,
+        "signal_state": signal_summary.to_dict(),
+        "controller_action": controller_action,
+        "recovery_decision": recovery_decision,
+        "waiter": _waiter_payload(waiter),
+        "terminal_receipt": terminal_receipt,
+        "committed_result": committed_result,
+        "failure_context": failure_context,
+        "workflow_id": task.workflow_id,
+        "workflow_node_id": task.workflow_node_id,
+        "parent_task_id": task.parent_task_id,
+        "child_role": task.child_role,
+    }
+
+
+_FALLBACK_RECOVERY_ACTIONS = frozenset({"retry_same_executor", "switch_executor", "native_fallback", "repair_executor"})
+
+
+def _dict_payload(value) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
+def _rate_payloads(payloads: list[dict], predicate) -> float:
+    if not payloads:
+        return 0.0
+    return round(sum(1 for payload in payloads if predicate(payload)) / len(payloads), 4)
+
+
+def _counts(values) -> dict[str, int]:
+    result: dict[str, int] = {}
+    for value in values:
+        if not isinstance(value, str) or not value:
+            continue
+        result[value] = result.get(value, 0) + 1
+    return result
+
+
+def _task_list_summary_metrics(task_payloads: list[dict]) -> dict:
+    def adoption_result(payload: dict) -> str | None:
+        adoption = _dict_payload(payload.get("adoption_result"))
+        value = adoption.get("adoptable_result")
+        return value if isinstance(value, str) else None
+
+    def agent_state(payload: dict) -> str | None:
+        agent = _dict_payload(payload.get("agent_result"))
+        value = agent.get("state")
+        return value if isinstance(value, str) else None
+
+    def artifact_state(payload: dict) -> str | None:
+        artifact = _dict_payload(payload.get("artifact_result"))
+        value = artifact.get("state")
+        return value if isinstance(value, str) else None
+
+    def recovery_action(payload: dict) -> str | None:
+        recovery = _dict_payload(payload.get("recovery_decision"))
+        value = recovery.get("action")
+        return value if isinstance(value, str) else None
+
+    return {
+        "task_count": len(task_payloads),
+        "completion_rate": _rate_payloads(
+            task_payloads,
+            lambda payload: payload.get("phase") in DISPATCH_SUCCESS_PHASES,
+        ),
+        "adoptable_result_rate": _rate_payloads(
+            task_payloads,
+            lambda payload: adoption_result(payload) in {"yes", "partial"},
+        ),
+        "artifact_result_rate": _rate_payloads(
+            task_payloads,
+            lambda payload: bool(_dict_payload(payload.get("artifact_result"))),
+        ),
+        "fallback_recommended_rate": _rate_payloads(
+            task_payloads,
+            lambda payload: recovery_action(payload) in _FALLBACK_RECOVERY_ACTIONS,
+        ),
+        "no_progress_rate": _rate_payloads(
+            task_payloads,
+            lambda payload: _dict_payload(payload.get("signal_state")).get("state") == "silent",
+        ),
+        "phase_counts": _counts(payload.get("phase") for payload in task_payloads),
+        "adoptable_result_counts": _counts(adoption_result(payload) for payload in task_payloads),
+        "agent_state_counts": _counts(agent_state(payload) for payload in task_payloads),
+        "artifact_state_counts": _counts(artifact_state(payload) for payload in task_payloads),
+        "recovery_action_counts": _counts(recovery_action(payload) for payload in task_payloads),
+    }
+
+
+def _task_status_summary_lines(payload: dict) -> list[str]:
+    adoption = _dict_payload(payload.get("adoption_result"))
+    agent = _dict_payload(payload.get("agent_result"))
+    artifact = _dict_payload(payload.get("artifact_result"))
+    recovery = _dict_payload(payload.get("recovery_decision"))
+    blockers = adoption.get("blockers")
+    warnings = adoption.get("warnings")
+    artifact_kind = artifact.get("primary_artifact") or "none"
+    artifact_state = artifact.get("state") or "unknown"
+    lines = [
+        f"task_id: {payload.get('task_id')}",
+        f"phase: {payload.get('phase')}",
+        f"executor: {payload.get('active_executor_backend')}",
+        f"adoptable_result: {adoption.get('adoptable_result', 'unknown')}",
+        f"agent_action: {agent.get('controller_action', payload.get('controller_action'))}",
+        f"artifact: {artifact_kind} {artifact_state}",
+        f"recovery_action: {recovery.get('action', 'none')}",
+        "blockers: " + (",".join(str(item) for item in blockers) if isinstance(blockers, list) and blockers else "none"),
+        "warnings: " + (",".join(str(item) for item in warnings) if isinstance(warnings, list) and warnings else "none"),
+    ]
+    report_path = payload.get("report_path")
+    if report_path:
+        lines.append(f"report_path: {report_path}")
+    return lines
+
+
+def _journal_row_payload(row) -> dict:
+    return {
+        "created_at": row.created_at,
+        "source": row.source,
+        "event": row.event,
+        "body": row.body,
+        "structured_receipt": _structured_receipt_payload(row.body),
+        "classification": row.classification,
+    }
+
+
+def _compact_log_value_for_human(value):
+    if isinstance(value, dict):
+        return {key: _compact_log_value_for_human(child) for key, child in value.items()}
+    if isinstance(value, list) and len(value) > 12:
+        omitted = len(value) - 10
+        return [
+            *(_compact_log_value_for_human(child) for child in value[:10]),
+            f"... {omitted} more item(s) omitted; use --json for full payload",
+        ]
+    if isinstance(value, list):
+        return [_compact_log_value_for_human(child) for child in value]
+    return value
+
+
+def _bridge_marker_candidates(
+    repo_path: str | None,
+    marker_name: str,
+    *,
+    global_root: Path | None,
+) -> list[Path]:
+    candidates: list[Path] = []
+    if repo_path:
+        repo = Path(repo_path).expanduser().resolve()
+        candidates.extend([
+            repo / ".agpair" / marker_name,
+        ])
+    if global_root is not None:
+        candidates.extend([
+            global_root / marker_name,
+        ])
+        default_root = (Path.home() / ".agpair").resolve()
+        if global_root.resolve() != default_root:
+            return candidates
+    home = Path.home()
+    candidates.extend([
+        home / ".agpair" / marker_name,
+    ])
+    return candidates
+
+
+def _read_bridge_marker(
+    repo_path: str | None,
+    marker_name: str,
+    *,
+    global_root: Path | None,
+) -> tuple[str | None, Path | None]:
+    for marker in _bridge_marker_candidates(repo_path, marker_name, global_root=global_root):
+        try:
+            raw = marker.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if raw:
+            return raw, marker
+    return None, None
+
+
+def _resolve_bridge_port(repo_path: str | None, *, global_root: Path | None) -> tuple[int | None, Path | None, str | None]:
+    raw, marker = _read_bridge_marker(repo_path, _BRIDGE_PORT_MARKER, global_root=global_root)
+    if raw is None:
+        return None, None, "bridge marker not found"
+    try:
+        return int(raw), marker, None
+    except ValueError:
+        return None, marker, f"invalid bridge marker value: {raw!r}"
+
+
+def _fetch_bridge_health(port: int) -> tuple[dict, str | None]:
+    url = f"http://127.0.0.1:{port}/health"
+    try:
+        with request.urlopen(url, timeout=1.5) as response:
+            raw = response.read().decode("utf-8")
+    except (OSError, error.URLError, TimeoutError) as exc:
+        return {}, f"bridge health probe failed: {exc}"
+    try:
+        payload = json.loads(raw or "{}")
+    except json.JSONDecodeError as exc:
+        return {}, f"bridge health returned invalid JSON: {exc}"
+    if not isinstance(payload, dict):
+        return {}, "bridge health returned non-object payload"
+    return payload, None
+
+
+def _cancel_bridge_task(*, task_id: str, attempt_no: int, repo_path: str | None, global_root: Path | None) -> tuple[bool, str]:
+    port, marker, port_error = _resolve_bridge_port(repo_path, global_root=global_root)
+    if port is None:
+        return False, port_error or "bridge marker not found"
+
+    auth_required = True
+    health_payload, health_error = _fetch_bridge_health(port)
+    if health_error is None:
+        raw = health_payload.get("bridge_mutating_auth_required")
+        if isinstance(raw, bool):
+            auth_required = raw
+
+    headers = {"Content-Type": "application/json"}
+    if auth_required:
+        auth_token, auth_marker = _read_bridge_marker(
+            repo_path,
+            _BRIDGE_AUTH_TOKEN_MARKER,
+            global_root=global_root,
+        )
+        if auth_token is None:
+            marker_path = auth_marker or marker
+            location = f" near {marker_path.parent}" if marker_path is not None else ""
+            return False, f"bridge auth token marker not found{location}"
+        headers["Authorization"] = f"Bearer {auth_token}"
+
+    payload = json.dumps({"task_id": task_id, "attempt_no": attempt_no}).encode("utf-8")
+    req = request.Request(
+        f"http://127.0.0.1:{port}/cancel_task",
+        data=payload,
+        headers=headers,
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=1.5) as response:
+            raw = response.read().decode("utf-8")
+    except error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        detail = body or exc.reason
+        return False, f"bridge cancel failed: HTTP {exc.code} {detail}"
+    except (OSError, error.URLError, TimeoutError) as exc:
+        return False, f"bridge cancel failed: {exc}"
+    try:
+        result = json.loads(raw or "{}")
+    except json.JSONDecodeError:
+        result = {}
+    if not isinstance(result, dict):
+        return False, "bridge cancel returned non-object payload"
+    if result.get("ok") is not True:
+        return False, f"bridge cancel returned ok=false: {result}"
+    return True, "bridge cancel acknowledged"
+
+
+# ---------------------------------------------------------------------------
+# Common option factories
+# ---------------------------------------------------------------------------
+
+_WAIT_OPTION = typer.Option(
+    True,
+    "--wait/--no-wait",
+    help="Wait for a terminal phase after dispatch (default: on). Tune with --interval-seconds and --timeout-seconds.",
+)
+_INTERVAL_OPTION = typer.Option(DEFAULT_INTERVAL_SECONDS, "--interval-seconds", help="Requested max seconds between status polls; waits poll faster during the initial completion window.")
+_TIMEOUT_OPTION = typer.Option(DEFAULT_TIMEOUT_SECONDS, "--timeout-seconds", help="Maximum seconds to wait before timing out.")
+_JSON_OPTION = typer.Option(False, "--json", help="Emit machine-readable JSON.")
+
+_MINIMUM_TASK_BODY_TEMPLATE = """Minimum task body template:
+
+Goal:
+Describe the concrete outcome.
+
+Scope:
+Name the files, directories, or evidence boundaries.
+
+Required changes:
+For report-only tasks, write: None. This is report-only. Do not edit files.
+
+Exit criteria:
+Describe the report, diff, tests, or receipt needed for controller verification.
+"""
+
+
+# ---------------------------------------------------------------------------
+# task start
+# ---------------------------------------------------------------------------
+
+def _normalize_task_body_for_cli(
+    *,
+    body: str,
+    authorization_profile: str,
+    completion_policy: str,
+) -> tuple[str, list[str]]:
+    try:
+        brief = normalize_task_brief(
+            body=body,
+            authorization_profile=authorization_profile,
+            completion_policy=completion_policy,
+        )
+    except TaskBriefError as exc:
+        typer.echo(f"Refused: {exc}\n\n{_MINIMUM_TASK_BODY_TEMPLATE}", err=True)
+        raise typer.Exit(code=1)
+    return brief.normalized_body, list(brief.warnings)
+
+
+def _task_start_json_payload(
+    paths: AppPaths,
+    task_id: str,
+    *,
+    wait: bool,
+    interval_seconds: float,
+    timeout_seconds: float,
+    waiter_command: str,
+    start_status: str,
+    auto_structured_sections: list[str],
+    selected_executor: str | None = None,
+) -> tuple[dict, int]:
+    tasks = TaskRepository(paths.db_path)
+    current_task = tasks.get_task(task_id)
+    if current_task is None:
+        payload = _not_found_payload(task_id)
+        payload["start_status"] = start_status
+        payload["exit_code"] = 1
+        return payload, 1
+
+    if not wait:
+        task_payload = build_task_payload(paths, current_task)
+        return (
+            {
+                "ok": True,
+                "task_id": task_id,
+                "phase": current_task.phase,
+                "outcome": "not_waited",
+                "wait_requested": False,
+                "start_status": start_status,
+                "selected_executor": selected_executor or current_task.executor_backend,
+                "auto_structured_sections": auto_structured_sections,
+                "status_command": f"agpair task status {task_id} --json",
+                "watch_command": f"agpair task watch {task_id} --json",
+                "wait_command": f"agpair task wait {task_id} --json",
+                "task": task_payload,
+                "exit_code": 0,
+            },
+            0,
+        )
+
+    if current_task.wait_policy == "background":
+        task_payload = build_task_payload(paths, current_task)
+        return (
+            {
+                "ok": True,
+                "task_id": task_id,
+                "phase": current_task.phase,
+                "outcome": "background_started",
+                "wait_requested": True,
+                "start_status": start_status,
+                "selected_executor": selected_executor or current_task.executor_backend,
+                "auto_structured_sections": auto_structured_sections,
+                "status_command": f"agpair task status {task_id} --json",
+                "watch_command": f"agpair task watch {task_id} --json",
+                "wait_command": f"agpair task wait {task_id} --json",
+                "task": task_payload,
+                "exit_code": 0,
+            },
+            0,
+        )
+
+    result = wait_for_terminal_phase(
+        paths.db_path,
+        task_id,
+        interval_seconds=interval_seconds,
+        timeout_seconds=timeout_seconds,
+        controller_wait_seconds=current_task.controller_wait_seconds,
+        background_ok=bool(current_task.background_ok),
+        strict_watchdog=current_task.wait_policy in {"terminal", "strict"},
+        terminal_phases=TERMINAL_PHASES,
+        waiter_command=waiter_command,
+    )
+    code = exit_code_for_dispatch(result)
+    current_task = tasks.get_task(task_id)
+    task_payload = build_task_payload(paths, current_task) if current_task is not None else None
+    failure_context = task_payload["failure_context"] if task_payload is not None else None
+    blocker_type = failure_context["blocker_type"] if failure_context else None
+    agent_result = task_payload.get("agent_result") if task_payload is not None else None
+    artifact_result = task_payload.get("artifact_result") if task_payload is not None else None
+    agent_action = (
+        agent_result.get("controller_action")
+        if result.phase in TERMINAL_PHASES
+        and isinstance(agent_result, dict)
+        and isinstance(agent_result.get("controller_action"), str)
+        else None
+    )
+    recommended_action = agent_action or result.recommended_action or (
+        task_payload.get("controller_action") if task_payload is not None else None
+    )
+    recovery_decision = None
+    if current_task is not None:
+        wait_signal_summary = build_signal_summary(
+            current_task,
+            freshness_seconds=effective_no_progress_seconds(current_task),
+        )
+        recovery_decision = _recovery_decision_for_task(
+            paths,
+            current_task,
+            agent_result=agent_result if isinstance(agent_result, dict) else None,
+            signal_summary=wait_signal_summary,
+            artifact_result=artifact_result if isinstance(artifact_result, dict) else None,
+            wait_outcome=result.outcome,
+            requested_executor=_requested_executor_from_current_attempt(paths, current_task.task_id),
+        )
+    return (
+        {
+            "ok": code == 0,
+            "task_id": task_id,
+            "phase": result.phase,
+            "a2a_state_hint": a2a_state_hint_from_phase(result.phase, blocker_type=blocker_type),
+            "timed_out": result.timed_out,
+            "watchdog_triggered": result.watchdog_triggered,
+            "outcome": result.outcome,
+            "controller_lease_expired": result.controller_lease_expired,
+            "wait_requested": True,
+            "start_status": start_status,
+            "selected_executor": selected_executor or (current_task.executor_backend if current_task is not None else None),
+            "auto_structured_sections": auto_structured_sections,
+            "agent_result": agent_result,
+            "artifact_result": artifact_result,
+            "recommended_action": recommended_action,
+            "recovery_decision": recovery_decision,
+            "status_command": f"agpair task status {task_id} --json",
+            "watch_command": f"agpair task watch {task_id} --json",
+            "wait_command": f"agpair task wait {task_id} --json",
+            "evidence_commands": [
+                f"agpair task logs {task_id} --include-executor-output",
+                f"agpair task diff {task_id}",
+                f"agpair task apply {task_id} --check",
+            ],
+            "background_ok": bool(current_task.background_ok) if current_task is not None else False,
+            "exit_code": code,
+            "task": task_payload,
+            "committed_result": task_payload["committed_result"] if task_payload is not None else None,
+            "failure_context": failure_context,
+        },
+        code,
+    )
+
+
+def _emit_task_start_json(
+    paths: AppPaths,
+    task_id: str,
+    *,
+    wait: bool,
+    interval_seconds: float,
+    timeout_seconds: float,
+    waiter_command: str,
+    start_status: str,
+    auto_structured_sections: list[str],
+    selected_executor: str | None = None,
+) -> None:
+    payload, code = _task_start_json_payload(
+        paths,
+        task_id,
+        wait=wait,
+        interval_seconds=interval_seconds,
+        timeout_seconds=timeout_seconds,
+        waiter_command=waiter_command,
+        start_status=start_status,
+        auto_structured_sections=auto_structured_sections,
+        selected_executor=selected_executor,
+    )
+    _emit_json(payload)
+    if code != 0:
+        raise typer.Exit(code=code)
+
+
+
+@app.command("start", help="Start a task. Wait controls: --wait/--no-wait, --interval-seconds, --timeout-seconds.")
+def start_task(
+    repo_path: str | None = typer.Option(None, "--repo-path", "--repo"),
+    target: str | None = typer.Option(None, "--target", help="Target alias (alternative to --repo-path)."),
+    body: str | None = typer.Option(None, "--body", "--prompt"),
+    body_file: Path | None = typer.Option(None, "--body-file", exists=True, readable=True, help="Read the task body from a Markdown/text file."),
+    task_id: str | None = typer.Option(None, "--task-id"),
+    idempotency_key: str | None = typer.Option(None, "--idempotency-key"),
+    executor: str | None = typer.Option(None, "--executor", help=f"Executor backend to run the task ({', '.join(supported_executor_ids())})."),
+    controller: str = typer.Option("generic", "--controller", help="Controller id for executor-suppression policy."),
+    completion_policy: str = typer.Option("auto", "--completion-policy", help="Completion policy: auto, evidence, report, or commit."),
+    task_kind: str | None = typer.Option(None, "--task-kind", help="Task kind: quick_review, deep_review, implementation, test_fix, research, smoke, or generic."),
+    coordination_role: str | None = typer.Option(None, "--coordination-role", help="Coordination role hint: thinker, worker, verifier, synthesizer, gate, or general."),
+    wait_policy: str | None = typer.Option(None, "--wait-policy", help="Wait policy: terminal, lease, background, or strict."),
+    controller_wait_seconds: float | None = typer.Option(
+        None,
+        "--controller-wait-seconds",
+        "--controller-wait-lease",
+        min=0,
+        help="Controller wait lease in seconds.",
+    ),
+    execution_budget_seconds: float | None = typer.Option(
+        None,
+        "--execution-budget-seconds",
+        "--execution-budget",
+        min=1,
+        help="Hard execution budget in seconds.",
+    ),
+    background_ok: bool | None = typer.Option(None, "--background-ok/--no-background-ok", help="Whether lease expiry may detach while the executor continues."),
+    allow_self_executor: bool = typer.Option(False, "--allow-self-executor", help="Permit controller to delegate to the same external CLI."),
+    authorization_profile: str = typer.Option("local_mutating", "--authorization-profile", help="Dispatch-time authorization profile."),
+    depends_on: str | None = typer.Option(None, "--depends-on", help="JSON array of task IDs this task depends on."),
+    isolated_worktree: bool = typer.Option(False, "--isolated-worktree", help="Whether the task requires a parallel-safe isolated worktree."),
+    dirty_snapshot: str | None = typer.Option(None, "--dirty-snapshot", help="Dirty worktree snapshot mode for isolated tasks: off or tracked."),
+    setup_commands: str | None = typer.Option(None, "--setup-commands", help="JSON array of setup commands to run before the task."),
+    teardown_commands: str | None = typer.Option(None, "--teardown-commands", help="JSON array of teardown commands to run after the task."),
+    env_vars: str | None = typer.Option(None, "--env-vars", help="JSON object of environment overrides (e.g. PORT) for this task's worktree."),
+    worktree_boundary: str | None = typer.Option(None, "--worktree-boundary", help="Declared worktree boundary path/label for this task."),
+    spotlight_testing: bool = typer.Option(False, "--spotlight-testing", help="Declare intent to prefer localized/spotlight tests over full-suite runs."),
+    allow_broad_repo_path: bool = typer.Option(False, "--allow-broad-repo-path", help="Explicitly allow a broad repo path such as $HOME for external executor dispatch."),
+    allow_nested_delegation: bool = typer.Option(False, "--allow-nested-delegation", help="Permit an AGPair-controlled executor to start another AGPair task."),
+    wait: bool = _WAIT_OPTION,
+    interval_seconds: float = _INTERVAL_OPTION,
+    timeout_seconds: float = _TIMEOUT_OPTION,
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Start a task. Wait controls: --wait/--no-wait, --interval-seconds, --timeout-seconds."""
+    from agpair.executors import get_executor, is_local_cli_backend
+    from agpair.executors.local_cli import WorktreeProvisionError, resolve_worktree_root
+    from agpair.targets import resolve_repo_path
+
+    if body_file is not None:
+        try:
+            body_from_file = body_file.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise typer.BadParameter(f"failed to read --body-file: {exc}") from exc
+        body = body_from_file if body is None else body
+    if body is None:
+        raise typer.BadParameter("Either --body or --body-file is required.")
+    if nested_delegation_blocked():
+        if not allow_nested_delegation:
+            raise typer.BadParameter(
+                "nested_delegation_blocked: external executors may not start nested AGPair tasks by default; "
+                "finish the current AGPair task directly with local commands and a report, or ask the controller "
+                "to start a separate lane. Pass --allow-nested-delegation only for an explicitly bounded "
+                "orchestration task"
+            )
+        if not nested_delegation_authorized():
+            raise typer.BadParameter(
+                "nested_delegation_not_authorized: --allow-nested-delegation cannot be self-authorized "
+                "from inside an AGPair executor; the controller must set AGPAIR_ALLOW_NESTED_DELEGATION=1"
+            )
+    try:
+        normalized_authorization_profile = validate_authorization_profile(authorization_profile)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    try:
+        normalized_coordination_role = normalize_coordination_role(coordination_role)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    wait_budget, resolved_completion_policy_request = _resolve_cli_wait_budget(
+        task_kind=task_kind,
+        wait_policy=wait_policy,
+        controller_wait_seconds=controller_wait_seconds,
+        execution_budget_seconds=execution_budget_seconds,
+        background_ok=background_ok,
+        authorization_profile=normalized_authorization_profile,
+        completion_policy=completion_policy,
+    )
+    body, auto_structured_missing_sections = _normalize_task_body_for_cli(
+        body=body,
+        authorization_profile=normalized_authorization_profile,
+        completion_policy=resolved_completion_policy_request,
+    )
+    normalized_authorization_summary = authorization_profile_summary(normalized_authorization_profile)
+    try:
+        effective_policy = resolve_effective_task_policy(
+            requested_completion_policy=resolved_completion_policy_request,
+            authorization_profile=normalized_authorization_profile,
+            body=body,
+            controller=controller,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    resolved_dirty_snapshot_mode = _resolve_dirty_snapshot_mode(
+        requested=dirty_snapshot,
+        isolated_worktree=isolated_worktree,
+        authorization_profile=normalized_authorization_profile,
+        effective_completion_policy=effective_policy.effective_completion_policy,
+    )
+
+    paths = _paths()
+    resolved_repo_path = resolve_repo_path(repo_path, target, paths)
+    if not resolved_repo_path:
+        raise typer.BadParameter("Either --repo-path, --target, or a current git repo must be provided.")
+
+    configured_executor = _configured_default_executor(target=target, paths=paths)
+    requested_executor = executor or configured_executor
+    try:
+        policy_decision = resolve_controller_policy(
+            controller=controller,
+            requested_executor=requested_executor,
+            allow_self_executor=allow_self_executor,
+            require_available=True,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if executor and policy_decision.rejected_executor:
+        reason = policy_decision.reasons[-1] if policy_decision.reasons else "requested executor is not eligible"
+        raise typer.BadParameter(reason)
+    if policy_decision.selected_executor is None:
+        raise typer.BadParameter(_no_available_executor_message(policy_decision))
+    selected_executor = policy_decision.selected_executor
+    try:
+        selected_executor = validate_supported_executor(selected_executor)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    try:
+        environment = resolve_environment_metadata(selected_executor)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    exec_instance = get_executor(selected_executor, agent_bus_bin=paths.agent_bus_bin)
+    if exec_instance is None:
+        raise typer.BadParameter(f"Executor {selected_executor!r} is not available in this build.")
+    backend_to_store = selected_executor
+    broad_repo_path_reason = _broad_repo_path_reason(resolved_repo_path)
+    if broad_repo_path_reason and not allow_broad_repo_path:
+        raise typer.BadParameter(
+            f"Refused broad --repo-path {resolved_repo_path!r}: {broad_repo_path_reason}. "
+            "Use a focused project directory or pass --allow-broad-repo-path when this is intentional."
+        )
+
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    final_task_id = task_id or f"TASK-{uuid4().hex[:12].upper()}"
+    resolved_worktree_boundary = worktree_boundary
+    if isolated_worktree and is_local_cli_backend(backend_to_store):
+        resolved_worktree_boundary = str(
+            resolve_worktree_root(resolved_repo_path, final_task_id, worktree_boundary)
+        )
+
+    if idempotency_key:
+        existing_task = tasks.get_task_by_idempotency_key(
+            repo_path=resolved_repo_path,
+            client_idempotency_key=idempotency_key,
+        )
+        if existing_task is not None:
+            if json_output:
+                _emit_task_start_json(
+                    paths,
+                    existing_task.task_id,
+                    wait=wait,
+                    interval_seconds=interval_seconds,
+                    timeout_seconds=timeout_seconds,
+                    waiter_command="task_start_auto_wait",
+                    start_status="idempotent_existing",
+                    auto_structured_sections=auto_structured_missing_sections,
+                )
+                return
+            typer.echo(existing_task.task_id)
+            maybe_auto_wait(
+                paths.db_path,
+                existing_task.task_id,
+                wait=wait,
+                success_phases=DISPATCH_SUCCESS_PHASES,
+                interval_seconds=interval_seconds,
+                timeout_seconds=timeout_seconds,
+                waiter_command="task_start_auto_wait",
+            )
+            return
+    # --- Validate depends_on BEFORE creating the task ---
+    parsed_dep_ids: list[str] = []
+    if depends_on:
+        try:
+            parsed_dep_ids = json.loads(depends_on)
+        except (json.JSONDecodeError, TypeError):
+            raise typer.BadParameter(f"--depends-on must be a valid JSON array, got: {depends_on!r}")
+        if not isinstance(parsed_dep_ids, list) or not all(isinstance(d, str) for d in parsed_dep_ids):
+            raise typer.BadParameter(f"--depends-on must be a JSON array of strings, got: {depends_on!r}")
+        if not parsed_dep_ids:
+            raise typer.BadParameter("--depends-on must not be an empty array; omit the flag if there are no dependencies")
+        missing = [d for d in parsed_dep_ids if tasks.get_task(d) is None]
+        if missing:
+            raise typer.BadParameter(f"--depends-on references nonexistent task(s): {missing}")
+
+    try:
+        tasks.create_task(
+            task_id=final_task_id,
+            repo_path=resolved_repo_path,
+            client_idempotency_key=idempotency_key,
+            executor_backend=backend_to_store,
+            depends_on=depends_on,
+            isolated_worktree=isolated_worktree,
+            setup_commands=setup_commands,
+            teardown_commands=teardown_commands,
+            env_vars=env_vars,
+            worktree_boundary=resolved_worktree_boundary,
+            spotlight_testing=spotlight_testing,
+            broad_repo_path_override=allow_broad_repo_path,
+            authorization_profile=normalized_authorization_profile,
+            authorization_summary=normalized_authorization_summary,
+            completion_policy=resolved_completion_policy_request,
+            task_kind=wait_budget.task_kind,
+            wait_policy=wait_budget.wait_policy,
+            controller_wait_seconds=wait_budget.controller_wait_seconds,
+            execution_budget_seconds=wait_budget.execution_budget_seconds,
+            background_ok=wait_budget.background_ok,
+            effective_policy_json=_effective_policy_json(
+                effective_policy,
+                requested_executor=requested_executor,
+            ),
+            environment_mode=environment.environment_mode,
+            environment_mode_source=environment.environment_mode_source,
+            skill_policy=environment.skill_policy,
+            mcp_policy=environment.mcp_policy,
+            dirty_snapshot_mode=resolved_dirty_snapshot_mode,
+            coordination_role=normalized_coordination_role,
+        )
+    except sqlite3.IntegrityError:
+        if not idempotency_key:
+            raise
+        existing_task = tasks.get_task_by_idempotency_key(
+            repo_path=resolved_repo_path,
+            client_idempotency_key=idempotency_key,
+        )
+        if existing_task is None:
+            raise
+        if json_output:
+            _emit_task_start_json(
+                paths,
+                existing_task.task_id,
+                wait=wait,
+                interval_seconds=interval_seconds,
+                timeout_seconds=timeout_seconds,
+                waiter_command="task_start_auto_wait",
+                start_status="idempotent_existing",
+                auto_structured_sections=auto_structured_missing_sections,
+            )
+            return
+        typer.echo(existing_task.task_id)
+        maybe_auto_wait(
+            paths.db_path,
+            existing_task.task_id,
+            wait=wait,
+            success_phases=DISPATCH_SUCCESS_PHASES,
+            interval_seconds=interval_seconds,
+            timeout_seconds=timeout_seconds,
+            waiter_command="task_start_auto_wait",
+        )
+        return
+    journal.append(final_task_id, "cli", "created", body)
+
+    # --- Deferred dispatch for unsatisfied depends_on ---
+    if parsed_dep_ids:
+        all_met = all(
+            (dep_task := tasks.get_task(d)) is not None and dep_task.phase in DISPATCH_SUCCESS_PHASES
+            for d in parsed_dep_ids
+        )
+        if not all_met:
+            journal.append(
+                final_task_id,
+                "cli",
+                "deferred",
+                f"dependencies not yet satisfied: {parsed_dep_ids}; daemon will auto-advance",
+            )
+            if json_output:
+                _emit_task_start_json(
+                    paths,
+                    final_task_id,
+                    wait=wait,
+                    interval_seconds=interval_seconds,
+                    timeout_seconds=timeout_seconds,
+                    waiter_command="task_start_auto_wait",
+                    start_status="deferred_dependencies",
+                    auto_structured_sections=auto_structured_missing_sections,
+                    selected_executor=selected_executor,
+                )
+                return
+            typer.echo(final_task_id)
+            maybe_auto_wait(
+                paths.db_path,
+                final_task_id,
+                wait=wait,
+                success_phases=DISPATCH_SUCCESS_PHASES,
+                interval_seconds=interval_seconds,
+                timeout_seconds=timeout_seconds,
+                waiter_command="task_start_auto_wait",
+            )
+            return
+
+    dispatch_kwargs = {
+        "task_id": final_task_id,
+        "body": body,
+        "repo_path": resolved_repo_path,
+        "isolated_worktree": isolated_worktree,
+        "worktree_boundary": resolved_worktree_boundary,
+        "authorization_profile": normalized_authorization_profile,
+        "authorization_summary": normalized_authorization_summary,
+        "environment_mode": environment.environment_mode,
+        "skill_policy": environment.skill_policy,
+        "mcp_policy": environment.mcp_policy,
+        "dirty_snapshot_mode": resolved_dirty_snapshot_mode,
+    }
+    if normalized_coordination_role is not None:
+        dispatch_kwargs["coordination_role"] = normalized_coordination_role
+    if is_local_cli_backend(selected_executor):
+        dispatch_kwargs["completion_policy"] = resolved_completion_policy_request
+    try:
+        dispatch_result = exec_instance.dispatch(**dispatch_kwargs)
+    except (subprocess.SubprocessError, FileNotFoundError, BusSendError, WorktreeProvisionError, ValueError) as exc:
+        reason = f"dispatch failed: {exc}"
+        journal.append(final_task_id, "cli", "dispatch_failed", reason)
+        tasks.mark_blocked(task_id=final_task_id, reason=reason)
+        typer.echo(reason, err=True)
+        raise typer.Exit(code=1)
+
+    if dispatch_result.execution_repo_path:
+        tasks.set_execution_repo_path(
+            task_id=final_task_id,
+            execution_repo_path=dispatch_result.execution_repo_path,
+        )
+
+    if dispatch_result.session_id:
+        _persist_attempt_dirty_snapshot_from_state(
+            tasks=tasks,
+            task_id=final_task_id,
+            session_id=dispatch_result.session_id,
+        )
+        tasks.mark_acked(task_id=final_task_id, session_id=dispatch_result.session_id)
+        journal.append(
+            final_task_id,
+            "cli",
+            "dispatched",
+            f"started {selected_executor} exec in {dispatch_result.session_id}",
+        )
+    elif dispatch_result.message_id:
+        journal.append(final_task_id, "cli", "dispatched", f"sent TASK to provider msg={dispatch_result.message_id}")
+    else:
+        journal.append(
+            final_task_id,
+            "cli",
+            "dispatched",
+            f"dispatched {selected_executor} task",
+        )
+
+    if json_output:
+        _emit_task_start_json(
+            paths,
+            final_task_id,
+            wait=wait,
+            interval_seconds=interval_seconds,
+            timeout_seconds=timeout_seconds,
+            waiter_command="task_start_auto_wait",
+            start_status="dispatched",
+            auto_structured_sections=auto_structured_missing_sections,
+            selected_executor=selected_executor,
+        )
+        return
+
+    typer.echo(final_task_id)
+
+    maybe_auto_wait(
+        paths.db_path,
+        final_task_id,
+        wait=wait,
+        success_phases=DISPATCH_SUCCESS_PHASES,
+        interval_seconds=interval_seconds,
+        timeout_seconds=timeout_seconds,
+        waiter_command="task_start_auto_wait",
+    )
+
+
+# ---------------------------------------------------------------------------
+# task status  (extended with waiter info)
+# ---------------------------------------------------------------------------
+
+
+@app.command("status")
+def task_status(
+    task_id: str,
+    repo_path: str | None = typer.Option(None, "--repo-path", "--repo", help="Optional repo context; must match the task's stored repo."),
+    target: str | None = typer.Option(None, "--target", help="Optional target context; must match the task's stored repo."),
+    summary: bool = typer.Option(False, "--summary", help="Print a compact decision summary."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        raise typer.Exit(code=1)
+    _ensure_task_repo_context(
+        paths,
+        task,
+        repo_path=repo_path,
+        target=target,
+        json_output=json_output,
+    )
+    journal = JournalRepository(paths.db_path)
+    task = refresh_terminal_local_cli_task(tasks, task, journal)
+    payload = build_task_payload(paths, task)
+    if json_output:
+        _emit_json({"ok": True, **payload})
+        return
+    if summary:
+        for line in _task_status_summary_lines(payload):
+            typer.echo(line)
+        return
+    typer.echo(f"task_id: {payload['task_id']}")
+    typer.echo(f"active_executor_backend: {payload['active_executor_backend']}")
+    typer.echo(f"active_executor_continuation_capability: {payload['active_executor_continuation_capability']}")
+    typer.echo(f"backend_safety_metadata: {json.dumps(payload['backend_safety_metadata'])}")
+    typer.echo(f"effective_task_policy: {json.dumps(payload['effective_task_policy'], ensure_ascii=False)}")
+    typer.echo(f"effective_task_safety: {json.dumps(payload['effective_task_safety'], ensure_ascii=False)}")
+    typer.echo(f"environment_mode: {payload['environment_mode']}")
+    typer.echo(f"environment_mode_source: {payload['environment_mode_source']}")
+    typer.echo(f"skill_policy: {payload['skill_policy']}")
+    typer.echo(f"mcp_policy: {payload['mcp_policy']}")
+    protocol_result = payload.get("protocol_result") or {}
+    adoption_result = payload.get("adoption_result") or {}
+    protocol_warnings = protocol_result.get("warnings") if isinstance(protocol_result, dict) else []
+    protocol_errors = protocol_result.get("errors") if isinstance(protocol_result, dict) else []
+    adoption_blockers = adoption_result.get("blockers") if isinstance(adoption_result, dict) else []
+    typer.echo(
+        "protocol_warnings: "
+        + (",".join(protocol_warnings) if isinstance(protocol_warnings, list) and protocol_warnings else "none")
+    )
+    typer.echo(
+        "protocol_errors: "
+        + (",".join(protocol_errors) if isinstance(protocol_errors, list) and protocol_errors else "none")
+    )
+    typer.echo(
+        "adoptable_result: "
+        + str(adoption_result.get("adoptable_result") if isinstance(adoption_result, dict) else "unknown")
+    )
+    typer.echo(
+        "adoption_blockers: "
+        + (",".join(adoption_blockers) if isinstance(adoption_blockers, list) and adoption_blockers else "none")
+    )
+    typer.echo(f"supported_backends: {json.dumps(payload['supported_backends'])}")
+    typer.echo(f"phase: {payload['phase']}")
+    typer.echo(f"phase_detail: {payload['phase_detail']}")
+    typer.echo(f"a2a_state_hint: {payload['a2a_state_hint']}")
+    typer.echo(f"repo_path: {payload['repo_path']}")
+    typer.echo(f"execution_repo_path: {payload['execution_repo_path']}")
+    typer.echo(f"isolation_satisfied: {payload['isolation_satisfied']}")
+    typer.echo(f"session_id: {payload['session_id']}")
+    typer.echo(f"provider_session_id: {payload['provider_session_id']}")
+    typer.echo(f"attempt_no: {payload['attempt_no']}")
+    typer.echo(f"retry_count: {payload['retry_count']}")
+    typer.echo(f"task_kind: {payload['task_kind']}")
+    typer.echo(f"wait_policy: {payload['wait_policy']}")
+    typer.echo(f"controller_wait_seconds: {payload['controller_wait_seconds']}")
+    typer.echo(f"execution_budget_seconds: {payload['execution_budget_seconds']}")
+    typer.echo(f"background_ok: {payload['background_ok']}")
+    typer.echo(f"retry_recommended: {payload['retry_recommended']}")
+    typer.echo(f"no_progress_threshold_seconds: {payload['no_progress_threshold_seconds']}")
+    typer.echo(f"stuck_reason: {payload['stuck_reason']}")
+    typer.echo(f"last_heartbeat_at: {payload['last_heartbeat_at']}")
+    typer.echo(f"last_workspace_activity_at: {payload['last_workspace_activity_at']}")
+    typer.echo(f"depends_on: {json.dumps(payload['depends_on'])}")
+    typer.echo(f"isolated_worktree: {payload['isolated_worktree']}")
+    typer.echo(f"dirty_snapshot: {json.dumps(payload.get('dirty_snapshot'), ensure_ascii=False)}")
+    typer.echo(f"setup_commands: {json.dumps(payload['setup_commands'])}")
+    typer.echo(f"teardown_commands: {json.dumps(payload['teardown_commands'])}")
+    typer.echo(f"env_vars: {json.dumps(payload['env_vars'])}")
+    typer.echo(f"worktree_boundary: {payload['worktree_boundary']}")
+    typer.echo(f"bridge_state: {payload['bridge_state']}")
+    typer.echo(f"bridge_pending_task_count: {payload['bridge_pending_task_count']}")
+    typer.echo(f"spotlight_testing: {payload['spotlight_testing']}")
+    typer.echo(f"broad_repo_path_override: {payload['broad_repo_path_override']}")
+    typer.echo(f"repo_path_guardrail_reason: {payload['repo_path_guardrail_reason']}")
+    typer.echo(f"completion_policy: {payload['completion_policy']}")
+    typer.echo(f"effective_completion_policy: {payload['effective_completion_policy']}")
+    typer.echo(f"stdout_path: {payload['stdout_path']}")
+    typer.echo(f"stderr_path: {payload['stderr_path']}")
+    typer.echo(f"receipt_path: {payload['receipt_path']}")
+    typer.echo(f"report_path: {payload['report_path']}")
+    typer.echo(f"last_executor_output_at: {payload['last_executor_output_at']}")
+    active_artifacts = payload.get("active_attempt_artifacts")
+    if active_artifacts:
+        concise_artifacts = {
+            key: {
+                "path": item.get("path"),
+                "size_bytes": item.get("size_bytes"),
+                "modified_at": item.get("modified_at"),
+            }
+            for key, item in active_artifacts.items()
+        }
+        typer.echo(
+            "active_attempt_artifacts: "
+            + json.dumps(concise_artifacts, ensure_ascii=False, sort_keys=True)
+        )
+    typer.echo(f"terminal_source: {payload['terminal_source']}")
+    typer.echo(f"is_approved: {payload['is_approved']}")
+    if payload["liveness_state"] is not None:
+        typer.echo(f"liveness_state: {payload['liveness_state']}")
+    human_signal_state = dict(payload["signal_state"])
+    human_signal_state.pop("last_safe_excerpt", None)
+    typer.echo(f"signal_state: {json.dumps(human_signal_state, ensure_ascii=False, sort_keys=True)}")
+    typer.echo(f"controller_action: {payload['controller_action']}")
+    recovery_decision = payload.get("recovery_decision")
+    if isinstance(recovery_decision, dict):
+        typer.echo(f"recovery_action: {recovery_decision.get('action')}")
+        if recovery_decision.get("next_executor"):
+            typer.echo(f"next_executor: {recovery_decision.get('next_executor')}")
+        if recovery_decision.get("command"):
+            typer.echo(f"retry_command: {recovery_decision.get('command')}")
+    terminal_receipt = payload["terminal_receipt"]
+    if terminal_receipt is not None:
+        typer.echo(f"terminal_receipt_schema_version: {terminal_receipt['schema_version']}")
+        typer.echo(f"terminal_receipt_status: {terminal_receipt['status']}")
+        typer.echo(f"terminal_receipt_summary: {terminal_receipt['summary']}")
+        typer.echo(
+            "terminal_receipt_payload: "
+            + json.dumps(terminal_receipt["payload"], ensure_ascii=False, sort_keys=True)
+        )
+    committed_result = payload["committed_result"]
+    if committed_result is not None:
+        typer.echo(
+            "committed_result: "
+            + json.dumps(committed_result, ensure_ascii=False, sort_keys=True)
+        )
+    failure_context = payload["failure_context"]
+    if failure_context is not None:
+        typer.echo(
+            "failure_context: "
+            + json.dumps(failure_context, ensure_ascii=False, sort_keys=True)
+        )
+    if payload["status_sync"] is not None:
+        typer.echo(
+            "status_sync: "
+            + json.dumps(payload["status_sync"], ensure_ascii=False, sort_keys=True)
+        )
+    waiter = payload["waiter"]
+    if waiter:
+        typer.echo(f"waiter_state: {waiter['state']}")
+        typer.echo(f"waiter_command: {waiter['command']}")
+        typer.echo(f"waiter_started_at: {waiter['started_at']}")
+        typer.echo(f"waiter_last_poll_at: {waiter['last_poll_at']}")
+    else:
+        typer.echo("waiter_state: none")
+
+
+@app.command("list")
+def task_list(
+    repo_path: str | None = typer.Option(None, "--repo-path", help="Only show tasks for this repository path."),
+    target: str | None = typer.Option(None, "--target", help="Target alias (alternative to --repo-path)."),
+    phase: str | None = typer.Option(None, "--phase", help="Only show tasks in this phase."),
+    limit: int = typer.Option(20, "--limit", min=1, help="Maximum number of tasks to print."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    from agpair.targets import resolve_repo_path
+
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    resolved_repo_path = resolve_repo_path(repo_path, target, paths) if (repo_path or target) else None
+    journal = JournalRepository(paths.db_path)
+    refresh_limit = max(limit, _TASK_LIST_REFRESH_CANDIDATE_FLOOR)
+    for task in tasks.list_tasks(phase="acked", repo_path=resolved_repo_path, limit=refresh_limit):
+        refresh_terminal_local_cli_task(tasks, task, journal)
+    rows = tasks.list_tasks(phase=phase, repo_path=resolved_repo_path, limit=limit)
+    if json_output:
+        task_payloads = [build_task_payload(paths, task) for task in rows]
+        _emit_json(
+            {
+                "ok": True,
+                "phase": phase,
+                "repo_path": resolved_repo_path,
+                "limit": limit,
+                "tasks": task_payloads,
+                "summary_metrics": _task_list_summary_metrics(task_payloads),
+            }
+        )
+        return
+    if not rows:
+        typer.echo("no tasks found")
+        return
+    for task in rows:
+        typer.echo(
+            f"{task.task_id} {task.phase} attempt={task.attempt_no} "
+            f"retry={task.retry_count} recommended={task.retry_recommended} repo={task.repo_path}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# task active-waits
+# ---------------------------------------------------------------------------
+
+
+@app.command("active-waits")
+def active_waits() -> None:
+    """List tasks that currently have an active blocking wait."""
+    paths = _paths()
+    waiters = WaiterRepository(paths.db_path)
+    active = waiters.list_active_waiters()
+    if not active:
+        typer.echo("no active waits")
+        return
+    for w in active:
+        typer.echo(
+            f"{w.task_id} waiter={w.waiter_id} command={w.command} "
+            f"started_at={w.started_at} last_poll_at={w.last_poll_at}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# task logs  (unchanged)
+# ---------------------------------------------------------------------------
+
+
+@app.command("logs")
+def task_logs(
+    task_id: str,
+    repo_path: str | None = typer.Option(None, "--repo-path", "--repo", help="Optional repo context; must match the task's stored repo."),
+    target: str | None = typer.Option(None, "--target", help="Optional target context; must match the task's stored repo."),
+    limit: int = typer.Option(20, "--limit"),
+    all_events: bool = typer.Option(False, "--all", help="Include transient operational noise."),
+    include_executor_output: bool = typer.Option(False, "--include-executor-output", help="Include safe excerpts from durable stdout/stderr artifacts."),
+    raw: str | None = typer.Option(None, "--raw", help="Print full durable executor log: stdout or stderr."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        raise typer.Exit(code=1)
+    _ensure_task_repo_context(
+        paths,
+        task,
+        repo_path=repo_path,
+        target=target,
+        json_output=json_output,
+    )
+    artifact_paths, artifact_top_level = _artifact_payload(paths, task)
+    if raw is not None:
+        raw_kind = raw.strip().lower()
+        if raw_kind not in {"stdout", "stderr"}:
+            raise typer.BadParameter("--raw must be stdout or stderr")
+        path = artifact_paths.get(raw_kind)
+        if not path:
+            typer.echo(f"durable {raw_kind} artifact not found for {task_id}", err=True)
+            raise typer.Exit(code=1)
+        try:
+            typer.echo(Path(path).read_text(encoding="utf-8", errors="replace"), nl=False)
+        except OSError as exc:
+            typer.echo(f"failed to read {raw_kind} artifact: {exc}", err=True)
+            raise typer.Exit(code=1)
+        return
+    rows = journal.tail(task_id, limit=limit, exclude_noise=not all_events)
+    if json_output:
+        payload = {
+            "ok": True,
+            "task_id": task_id,
+            "logs": [_journal_row_payload(row) for row in rows],
+            "artifact_paths": artifact_paths,
+            "active_attempt_artifact_paths": artifact_top_level.get("active_attempt_artifact_paths"),
+            "last_executor_output_at": artifact_top_level.get("last_executor_output_at"),
+        }
+        if include_executor_output:
+            payload["executor_output_excerpt"] = artifact_top_level.get("executor_output_excerpt")
+            payload["active_attempt_artifacts"] = artifact_top_level.get("active_attempt_artifacts")
+        _emit_json(payload)
+        return
+    for row in rows:
+        structured_receipt = _structured_receipt_payload(row.body)
+        if structured_receipt is None:
+            typer.echo(f"{row.created_at} [{row.source}] {row.event}: {row.body}")
+            continue
+        typer.echo(f"{row.created_at} [{row.source}] {row.event}: {structured_receipt['summary']}")
+        typer.echo(
+            "  payload: "
+            + json.dumps(
+                _compact_log_value_for_human(structured_receipt["payload"]),
+                ensure_ascii=False,
+                sort_keys=True,
+            )
+        )
+    if include_executor_output and artifact_top_level.get("executor_output_excerpt"):
+        typer.echo("executor_output_excerpt:")
+        typer.echo(str(artifact_top_level["executor_output_excerpt"]))
+
+
+@app.command("abandon")
+def abandon_task(
+    task_id: str,
+    reason: str = typer.Option("abandoned locally", "--reason"),
+    force: bool = typer.Option(False, "--force", help="Bypass liveness and waiter guards."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    from agpair.executors import get_executor, is_local_cli_backend
+
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    _guard_active_waiter(paths, task_id, force=force, command="abandon")
+    _guard_live_task(task, force=force, command="abandon")
+    bridge_cancel_attempted = False
+    session_id = task.executor_session_id or task.antigravity_session_id
+    local_cli_cleanup = None
+    if task.phase == "acked" and session_id:
+        exec_instance = get_executor(task.executor_backend)
+        if exec_instance and is_local_cli_backend(task.executor_backend):
+            exec_instance.cancel(task_id=task.task_id, session_id=session_id)
+            local_cli_cleanup = (exec_instance, session_id)
+            journal.append(task_id, "cli", "executor_cancelled", f"{task.executor_backend} cancelled locally")
+        else:
+            bridge_cancel_attempted = True
+            bridge_cancelled, bridge_message = _cancel_bridge_task(
+                task_id=task.task_id,
+                attempt_no=task.attempt_no,
+                repo_path=task.repo_path,
+                global_root=paths.root,
+            )
+            if not bridge_cancelled and "bridge marker not found" not in bridge_message and not force:
+                typer.echo(
+                    f"Refused: failed to release the Antigravity bridge task before abandon. "
+                    f"{bridge_message}. Pass --force to abandon locally anyway.",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+            event = "bridge_cancelled" if bridge_cancelled else "bridge_cancel_skipped"
+            journal.append(task_id, "cli", event, bridge_message)
+            if not bridge_cancelled and force:
+                typer.echo(
+                    f"warning: bridge task release failed; abandoning locally anyway ({bridge_message})",
+                    err=True,
+                )
+    _archive_active_attempt_artifacts(paths, tasks, task)
+    tasks.mark_abandoned(task_id=task_id, reason=reason)
+    if local_cli_cleanup is not None:
+        exec_instance, cleanup_session_id = local_cli_cleanup
+        try:
+            exec_instance.cleanup(cleanup_session_id)
+        except (OSError, RuntimeError, ValueError) as exc:
+            journal.append(task_id, "cli", "executor_cleanup_failed", str(exc), "warning")
+        else:
+            session_path = Path(cleanup_session_id)
+            if session_path.name.startswith("agpair_") and not session_path.exists():
+                tasks.clear_session_id(task_id=task_id)
+    journal.append(task_id, "cli", "abandoned", reason)
+    if not bridge_cancel_attempted and not is_local_cli_backend(task.executor_backend):
+        journal.append(task_id, "cli", "bridge_cancel_skipped", "task had no live bridge session to release")
+    updated = tasks.get_task(task_id)
+    if json_output and updated is not None:
+        payload = build_task_payload(paths, updated)
+        _emit_json(
+            {
+                "ok": True,
+                "task_id": task_id,
+                "phase": updated.phase,
+                "reason": reason,
+                "artifact_paths": payload["artifact_paths"],
+                "stdout_path": payload.get("stdout_path"),
+                "stderr_path": payload.get("stderr_path"),
+                "receipt_path": payload.get("receipt_path"),
+                "report_path": payload.get("report_path"),
+                "agent_result": payload.get("agent_result"),
+                "controller_action": payload.get("controller_action"),
+            }
+        )
+    else:
+        typer.echo(task_id)
+
+
+@app.command("accept")
+def accept_task(
+    task_id: str,
+    adoptable_result: str | None = typer.Option(None, "--adoptable-result", help="Controller adoption result: yes, partial, no, or unknown."),
+    controller_rework: str | None = typer.Option(None, "--controller-rework", help="Controller rework required: none, minor, major, redone, or unknown."),
+    note: str | None = typer.Option(None, "--note", help="Controller note recorded with adoption metadata."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Mark a reviewed terminal evidence pack as accepted by the controller.
+
+    This is controller-side acceptance after inspecting receipts, diffs, logs,
+    and required evidence. It is not runtime authorization for an executor.
+    """
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    normalized_adoptable = _validate_choice(adoptable_result, _ADOPTABLE_RESULTS, "--adoptable-result")
+    normalized_rework = _validate_choice(controller_rework, _CONTROLLER_REWORK, "--controller-rework")
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    if task.phase not in DISPATCH_SUCCESS_PHASES:
+        payload = {
+            "ok": False,
+            "error": "task_not_ready_for_acceptance",
+            "task_id": task_id,
+            "phase": task.phase,
+            "expected_phases": sorted(DISPATCH_SUCCESS_PHASES),
+        }
+        if json_output:
+            _emit_json(payload)
+        else:
+            expected = ", ".join(payload["expected_phases"])
+            typer.echo(
+                f"Refused: task {task_id} is {task.phase}; expected one of: {expected}",
+                err=True,
+            )
+        raise typer.Exit(code=1)
+    if task.is_approved:
+        updated = task
+    else:
+        tasks.mark_approved(task_id=task_id)
+        journal.append(task_id, "cli", "accepted", note or "controller accepted terminal evidence pack")
+        updated = tasks.get_task(task_id)
+    adoption = _update_controller_adoption(
+        paths=paths,
+        tasks=tasks,
+        task_id=task_id,
+        adoptable_result=normalized_adoptable,
+        controller_rework=normalized_rework,
+        note=note,
+    )
+    if json_output:
+        _emit_json(
+            {
+                "ok": True,
+                "task_id": task_id,
+                "phase": updated.phase if updated else task.phase,
+                "is_approved": bool(updated.is_approved) if updated else True,
+                "adoption_result": adoption,
+            }
+        )
+        return
+    typer.echo(task_id)
+
+
+@app.command("adopt")
+def adopt_task(
+    task_id: str,
+    from_report: bool = typer.Option(False, "--from-report", help="Adopt available report/stdout evidence without changing the task phase."),
+    adoptable_result: str = typer.Option("partial", "--adoptable-result", help="Controller adoption result: yes, partial, no, or unknown."),
+    controller_rework: str = typer.Option("minor", "--controller-rework", help="Controller rework required: none, minor, major, redone, or unknown."),
+    note: str | None = typer.Option(None, "--note", help="Controller note recorded with adoption metadata."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    normalized_adoptable = _validate_choice(adoptable_result, _ADOPTABLE_RESULTS, "--adoptable-result")
+    normalized_rework = _validate_choice(controller_rework, _CONTROLLER_REWORK, "--controller-rework")
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    if not from_report:
+        raise typer.BadParameter("Only --from-report adoption is supported.")
+    artifact_paths, artifact_top_level = _artifact_payload(paths, task)
+    report_path = artifact_paths.get("report") or _str_or_none(artifact_top_level.get("report_path"))
+    stdout_path = artifact_paths.get("stdout") or _str_or_none(artifact_top_level.get("stdout_path"))
+    if not report_path and not stdout_path:
+        payload = {
+            "ok": False,
+            "error": "adoption_evidence_missing",
+            "task_id": task_id,
+            "required": ["report_path", "stdout_path"],
+        }
+        if json_output:
+            _emit_json(payload)
+        else:
+            typer.echo("Refused: no report or stdout artifact is available to adopt.", err=True)
+        raise typer.Exit(code=1)
+    if not task.is_approved:
+        tasks.mark_approved(task_id=task_id)
+    attempt = tasks.current_attempt(task_id)
+    protocol_warnings: tuple[str, ...] = ()
+    protocol_errors: tuple[str, ...] = ()
+    if attempt is not None:
+        warnings = _json_value(attempt.protocol_warnings_json, [])
+        errors = _json_value(attempt.protocol_errors_json, [])
+        if isinstance(warnings, list):
+            protocol_warnings = tuple(str(item) for item in warnings if item)
+        if isinstance(errors, list):
+            protocol_errors = tuple(str(item) for item in errors if item)
+    original_body = _original_body_for_task(paths, task_id)
+    effective_policy = resolve_effective_task_policy(
+        requested_completion_policy=task.completion_policy,
+        authorization_profile=task.authorization_profile,
+        body=original_body,
+        controller=_controller_from_current_attempt(paths, task_id),
+    )
+    receipt = _latest_terminal_receipt(paths, task_id, task.terminal_receipt_json) if task.phase in TERMINAL_PHASES else None
+    match normalized_rework:
+        case "none" | "minor" | "major" | "redone" | "unknown":
+            controller_rework_value: ControllerRework = normalized_rework
+        case _:
+            controller_rework_value = "minor"
+    decision = derive_adoption_decision(
+        effective_policy=effective_policy,
+        receipt=receipt,
+        report_path=report_path,
+        stdout_path=stdout_path,
+        receipt_path=artifact_paths.get("receipt") or _str_or_none(artifact_top_level.get("receipt_path")),
+        protocol_warnings=protocol_warnings,
+        protocol_errors=protocol_errors,
+        controller_rework=controller_rework_value,
+    )
+    adoption_payload = decision.to_dict()
+    if normalized_adoptable is not None:
+        adoption_payload["adoptable_result"] = normalized_adoptable
+    adoption = _update_controller_adoption(
+        paths=paths,
+        tasks=tasks,
+        task_id=task_id,
+        adoptable_result=normalized_adoptable,
+        controller_rework=normalized_rework,
+        note=note,
+        adoption_payload=adoption_payload,
+    )
+    journal.append(task_id, "cli", "controller_adopted_report", note or "controller adopted report/stdout evidence")
+    updated = tasks.get_task(task_id)
+    if json_output:
+        _emit_json(
+            {
+                "ok": True,
+                "task_id": task_id,
+                "phase": updated.phase if updated else task.phase,
+                "is_approved": bool(updated.is_approved) if updated else True,
+                "adoption_result": adoption,
+                "report_path": report_path,
+                "stdout_path": stdout_path,
+            }
+        )
+        return
+    typer.echo(task_id)
+
+
+# ---------------------------------------------------------------------------
+# task wait
+# ---------------------------------------------------------------------------
+
+
+@app.command("wait")
+def wait_task(
+    task_id: str,
+    repo_path: str | None = typer.Option(None, "--repo-path", "--repo", help="Optional repo context; must match the task's stored repo."),
+    target: str | None = typer.Option(None, "--target", help="Optional target context; must match the task's stored repo."),
+    interval_seconds: float = _INTERVAL_OPTION,
+    timeout_seconds: float = _TIMEOUT_OPTION,
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Wait for a task to reach a terminal phase.
+
+    Terminal phases: ready_for_review, evidence_ready, blocked, committed, stuck, abandoned.
+    Also exits early if the daemon watchdog flags the task (acked + retry_recommended).
+
+    Exit code 0 for ready_for_review / evidence_ready / committed.
+    Exit code 1 for blocked / stuck / abandoned / timeout / watchdog.
+    """
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+            raise typer.Exit(code=1)
+        typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    _ensure_task_repo_context(
+        paths,
+        task,
+        repo_path=repo_path,
+        target=target,
+        json_output=json_output,
+    )
+
+    if not json_output:
+        typer.echo(f"Waiting for task {task_id} to reach a terminal phase …")
+    task_before_wait = task
+    result = wait_for_terminal_phase(
+        paths.db_path,
+        task_id,
+        interval_seconds=interval_seconds,
+        timeout_seconds=timeout_seconds,
+        controller_wait_seconds=task_before_wait.controller_wait_seconds if task_before_wait else None,
+        background_ok=bool(task_before_wait.background_ok) if task_before_wait else False,
+        strict_watchdog=(task_before_wait.wait_policy in {"terminal", "strict"}) if task_before_wait else True,
+        waiter_command="task_wait",
+    )
+
+    code = exit_code_for_dispatch(result)
+    current_task = tasks.get_task(task_id)
+    if json_output:
+        task_payload = build_task_payload(paths, current_task) if current_task is not None else None
+        failure_context = task_payload["failure_context"] if task_payload is not None else None
+        blocker_type = failure_context["blocker_type"] if failure_context else None
+        agent_result = task_payload.get("agent_result") if task_payload is not None else None
+        agent_action = (
+            agent_result.get("controller_action")
+            if result.phase in TERMINAL_PHASES
+            and isinstance(agent_result, dict)
+            and isinstance(agent_result.get("controller_action"), str)
+            else None
+        )
+        recommended_action = agent_action or result.recommended_action or (
+            task_payload.get("controller_action") if task_payload is not None else None
+        )
+        recovery_decision = None
+        if current_task is not None:
+            wait_signal_summary = build_signal_summary(
+                current_task,
+                freshness_seconds=effective_no_progress_seconds(current_task),
+            )
+            recovery_decision = _recovery_decision_for_task(
+                paths,
+                current_task,
+                agent_result=agent_result if isinstance(agent_result, dict) else None,
+                signal_summary=wait_signal_summary,
+                wait_outcome=result.outcome,
+                requested_executor=_requested_executor_from_current_attempt(paths, current_task.task_id),
+            )
+        _emit_json(
+            {
+                "ok": code == 0,
+                "task_id": task_id,
+                "phase": result.phase,
+                "a2a_state_hint": a2a_state_hint_from_phase(result.phase, blocker_type=blocker_type),
+                "timed_out": result.timed_out,
+                "watchdog_triggered": result.watchdog_triggered,
+                "outcome": result.outcome,
+                "controller_lease_expired": result.controller_lease_expired,
+                "agent_result": agent_result,
+                "recommended_action": recommended_action,
+                "recovery_decision": recovery_decision,
+                "status_command": f"agpair task status {task_id} --json",
+                "evidence_commands": [
+                    f"agpair task logs {task_id} --include-executor-output",
+                    f"agpair task diff {task_id}",
+                    f"agpair task apply {task_id} --check",
+                ],
+                "background_ok": bool(current_task.background_ok) if current_task is not None else False,
+                "exit_code": code,
+                "task": task_payload,
+                "committed_result": task_payload["committed_result"] if task_payload is not None else None,
+                "failure_context": failure_context,
+            }
+        )
+        if code != 0:
+            raise typer.Exit(code=code)
+        return
+
+    if result.controller_lease_expired:
+        typer.echo(
+            f"Controller wait lease expired for task {task_id}; task remains backgrounded.\n"
+            f"Use: agpair task watch {task_id} or agpair task wait {task_id}"
+        )
+        return
+
+    if result.outcome == "soft_no_progress":
+        typer.echo(
+            f"Task {task_id} has no fresh progress signal yet; task remains backgrounded.\n"
+            f"Inspect logs or continue watching with: agpair task watch {task_id}"
+        )
+        return
+
+    if result.watchdog_triggered:
+        typer.echo(
+            f"Watchdog: task {task_id} is still acked but the daemon watchdog "
+            f"threshold was reached — retry is recommended.\n"
+            f"Run: agpair task retry {task_id}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    if result.timed_out:
+        typer.echo(
+            f"Timed out after {timeout_seconds}s — current phase: {result.phase}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    typer.echo(f"Task {task_id} reached phase: {result.phase}")
+    if code != 0:
+        raise typer.Exit(code=code)
+
+
+# ---------------------------------------------------------------------------
+# task watch
+# ---------------------------------------------------------------------------
+
+
+@app.command("watch")
+def watch_task(
+    task_id: str,
+    interval_seconds: float = _INTERVAL_OPTION,
+    timeout_seconds: float = _TIMEOUT_OPTION,
+    cursor: str | None = typer.Option(None, "--cursor", help="Resume cursor emitted by a previous JSON watch event."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Stream task progress until it reaches a terminal phase or times out.
+
+    This command periodically outputs task updates, avoiding spam by only
+    emitting when the phase, heartbeat, workspace activity, or terminal receipt changes.
+    """
+    import time
+    from datetime import UTC, datetime
+
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    from agpair.storage.journal import JournalRepository
+    journal = JournalRepository(paths.db_path)
+
+    if tasks.get_task(task_id) is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+
+    start_time = time.time()
+    deadline = start_time + timeout_seconds
+    last_emitted_state = None
+    initial_cursor = cursor
+    # JSON consumers (LLM Monitor) re-read every event, so throttle activity-only
+    # emissions. Phase / terminal-receipt changes always emit immediately.
+    activity_throttle_seconds = 60.0
+    last_activity_emit_mono = -float("inf")
+
+    if not json_output:
+        typer.echo(f"Watching task {task_id} ...")
+
+    while True:
+        task = tasks.get_task(task_id)
+        if task is None:
+            # Should not happen if it existed above, but handle gracefully
+            raise typer.Exit(code=1)
+
+        current_phase = task.phase
+
+        # Inline executor poll for daemon-free detection
+        session_id = task.executor_session_id or task.antigravity_session_id
+        if current_phase == "acked" and session_id:
+            from agpair.cli.wait import _try_inline_poll
+            _try_inline_poll(tasks, task, journal)
+            # Re-read task after potential state transition
+            task = tasks.get_task(task_id)
+            if task is None:
+                raise typer.Exit(code=1)
+            current_phase = task.phase
+
+        watchdog = is_watchdog_triggered(task)
+        timed_out = time.time() >= deadline
+        is_terminal = current_phase in TERMINAL_PHASES
+
+        payload = build_task_payload(paths, task)
+        progress_payload = _watch_progress_payload(payload)
+        raw_signal_payload = payload.get("signal_state")
+        signal_payload = raw_signal_payload if isinstance(raw_signal_payload, dict) else {}
+        recovery_payload = payload.get("recovery_decision") if isinstance(payload.get("recovery_decision"), dict) else None
+        artifact_result_payload = payload.get("artifact_result") if isinstance(payload.get("artifact_result"), dict) else None
+        soft_no_progress = (
+            watchdog
+            and bool(task.background_ok)
+            and task.wait_policy not in {"terminal", "strict"}
+        )
+
+        # state tuple for deduplication:
+        # (phase, heartbeat, workspace_activity, terminal_receipt, live output, signal, action, cursor)
+        # Note: terminal_receipt and active artifacts are parsed dicts or None.
+        event_cursor = f"{task.updated_at}:{task.phase}:{task.attempt_no}"
+        active_artifact_state = (
+            json.dumps(payload.get("active_attempt_artifacts"), sort_keys=True)
+            if payload.get("active_attempt_artifacts")
+            else None
+        )
+        current_state = (
+            payload["phase"],
+            payload["last_heartbeat_at"],
+            payload["last_workspace_activity_at"],
+            json.dumps(payload.get("terminal_receipt"), sort_keys=True) if payload.get("terminal_receipt") else None,
+            active_artifact_state,
+            signal_payload.get("state"),
+            signal_payload.get("stdout_bytes"),
+            signal_payload.get("stderr_bytes"),
+            signal_payload.get("last_signal_at"),
+            payload.get("controller_action"),
+            json.dumps(artifact_result_payload, sort_keys=True) if artifact_result_payload else None,
+            json.dumps(recovery_payload, sort_keys=True) if recovery_payload else None,
+            event_cursor,
+        )
+
+        if last_emitted_state is None:
+            phase_or_receipt_changed = True
+            activity_changed = False
+        else:
+            phase_or_receipt_changed = (
+                current_state[0] != last_emitted_state[0]
+                or current_state[3] != last_emitted_state[3]
+            )
+            activity_changed = (
+                current_state[1] != last_emitted_state[1]
+                or current_state[2] != last_emitted_state[2]
+                or current_state[4] != last_emitted_state[4]
+                or current_state[5] != last_emitted_state[5]
+                or current_state[6] != last_emitted_state[6]
+                or current_state[7] != last_emitted_state[7]
+                or current_state[8] != last_emitted_state[8]
+                or current_state[9] != last_emitted_state[9]
+                or current_state[10] != last_emitted_state[10]
+                or current_state[11] != last_emitted_state[11]
+            )
+
+        now_mono = time.monotonic()
+        if json_output and activity_changed and not phase_or_receipt_changed:
+            activity_emit_allowed = (now_mono - last_activity_emit_mono) >= activity_throttle_seconds
+        else:
+            activity_emit_allowed = True
+
+        changed = phase_or_receipt_changed or (activity_changed and activity_emit_allowed)
+        if initial_cursor and event_cursor == initial_cursor and not watchdog and not timed_out and not is_terminal:
+            changed = False
+
+        if changed or (watchdog and not soft_no_progress) or timed_out or is_terminal:
+            agent_result = payload.get("agent_result") if isinstance(payload.get("agent_result"), dict) else None
+            event_type = "status_update"
+            event_name = event_type
+            if soft_no_progress:
+                event_type = "soft_no_progress"
+                event_name = event_type
+            elif watchdog:
+                event_type = "watchdog"
+                event_name = event_type
+            elif timed_out:
+                event_type = "timeout"
+                event_name = event_type
+            elif is_terminal:
+                event_type = "terminal"
+                event_name = "agent_result_changed" if agent_result else event_type
+            elif payload.get("active_attempt_artifacts") and current_phase == "acked":
+                event_type = "artifact_progress"
+                event_name = event_type
+
+            if json_output:
+                typer.echo(json.dumps({
+                    "event_type": event_type,
+                    "event": event_name,
+                    "task_id": task_id,
+                    "phase": current_phase,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "cursor": event_cursor,
+                    "blocker_type": (payload.get("failure_context") or {}).get("blocker_type"),
+                    "summary": (payload.get("terminal_receipt") or {}).get("summary") if payload.get("terminal_receipt") else payload.get("stuck_reason"),
+                    "receipt_path": payload.get("receipt_path"),
+                    "stdout_path": payload.get("stdout_path"),
+                    "stderr_path": payload.get("stderr_path"),
+                    "report_path": payload.get("report_path"),
+                    "environment_mode": payload.get("environment_mode"),
+                    "environment_mode_source": payload.get("environment_mode_source"),
+                    "skill_policy": payload.get("skill_policy"),
+                    "mcp_policy": payload.get("mcp_policy"),
+                    "executor_output_excerpt": payload.get("executor_output_excerpt"),
+                    "active_attempt_artifacts": payload.get("active_attempt_artifacts"),
+                    "last_executor_output_at": payload.get("last_executor_output_at"),
+                    "no_progress_threshold_seconds": payload.get("no_progress_threshold_seconds"),
+                    "signal_state": payload.get("signal_state"),
+                    "controller_action": payload.get("controller_action"),
+                    "agent_result": agent_result,
+                    "artifact_result": artifact_result_payload,
+                    "recovery_decision": recovery_payload,
+                    "outcome": "soft_no_progress" if soft_no_progress else None,
+                    **progress_payload,
+                    "payload": payload,
+                }, ensure_ascii=False))
+            else:
+                if changed:
+                    ts = datetime.now().strftime("%H:%M:%S")
+                    prev_phase = last_emitted_state[0] if last_emitted_state else None
+                    if current_phase != prev_phase:
+                        typer.echo(f"[{ts}] Task {task_id} phase: {current_phase}")
+
+                    prev_hb = last_emitted_state[1] if last_emitted_state else None
+                    if payload["last_heartbeat_at"] != prev_hb and payload["last_heartbeat_at"]:
+                        typer.echo(f"  -> Heartbeat: {payload['last_heartbeat_at']}")
+
+                    prev_ws = last_emitted_state[2] if last_emitted_state else None
+                    if payload["last_workspace_activity_at"] != prev_ws and payload["last_workspace_activity_at"]:
+                        typer.echo(f"  -> Workspace activity: {payload['last_workspace_activity_at']}")
+
+                    prev_rec = last_emitted_state[3] if last_emitted_state else None
+                    if current_state[3] != prev_rec and payload.get("terminal_receipt"):
+                        summary = payload["terminal_receipt"].get("summary", "No summary")
+                        typer.echo(f"  -> Terminal receipt received: {summary}")
+
+                if soft_no_progress:
+                    typer.echo(
+                        f"Soft no-progress: task {task_id} is still running in background. "
+                        f"Inspect logs or keep watching.",
+                        err=True,
+                    )
+                elif watchdog:
+                    typer.echo(
+                        f"Watchdog: task {task_id} is flagged for retry and silent.\n"
+                        f"Run: agpair task retry {task_id}",
+                        err=True,
+                    )
+                elif timed_out:
+                    typer.echo(f"Timed out after {timeout_seconds}s.", err=True)
+
+            last_emitted_state = current_state
+            initial_cursor = None
+            last_activity_emit_mono = now_mono
+
+            if is_terminal:
+                code = exit_code_for_dispatch(WaitResult(phase=current_phase, timed_out=False))
+                raise typer.Exit(code=code)
+
+            if (watchdog and not soft_no_progress) or timed_out:
+                raise typer.Exit(code=1)
+
+        time.sleep(interval_seconds)
+
+
+def _emit_worktree_error(
+    *,
+    task_id: str,
+    error: str,
+    message: str,
+    json_output: bool,
+    stderr: str = "",
+) -> None:
+    if json_output:
+        _emit_json(
+            {
+                "ok": False,
+                "task_id": task_id,
+                "error": error,
+                "reason": message,
+                "stderr": stderr,
+            }
+        )
+    else:
+        detail = f": {stderr}" if stderr else ""
+        typer.echo(f"{error}: {message}{detail}", err=True)
+
+
+@app.command("diff")
+def diff_task(
+    task_id: str,
+    stat_only: bool = typer.Option(False, "--stat", help="Show only diff stat."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Show the worker diff for an isolated worktree task."""
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    try:
+        diff = build_worktree_diff(task=task, session_state=_session_state_for_task(task))
+    except WorktreeAdoptionError as exc:
+        _emit_worktree_error(task_id=task_id, error=exc.reason, message=str(exc), json_output=json_output)
+        raise typer.Exit(code=1)
+
+    if json_output:
+        _emit_json(
+            {
+                "ok": True,
+                "task_id": task_id,
+                "base_ref": diff.base_ref,
+                "execution_repo_path": diff.execution_repo_path,
+                "changed_files": list(diff.changed_files),
+                "stat": diff.stat,
+                "patch_path": None,
+                "has_patch": bool(diff.patch.strip()),
+            }
+        )
+        return
+    output = diff.stat if stat_only else diff.patch
+    typer.echo(output, nl=not output.endswith("\n"))
+
+
+@app.command("apply")
+def apply_task(
+    task_id: str,
+    check: bool = typer.Option(False, "--check", help="Only check whether the worker diff applies cleanly."),
+    force: bool = typer.Option(False, "--force", help="Bypass phase/adoptable-result guards."),
+    json_output: bool = _JSON_OPTION,
+) -> None:
+    """Apply an isolated worker diff to the controller repository."""
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    task = tasks.get_task(task_id)
+    if task is None:
+        if json_output:
+            _emit_json(_not_found_payload(task_id))
+        else:
+            typer.echo(f"task not found: {task_id}", err=True)
+        raise typer.Exit(code=1)
+    if task.phase not in {"ready_for_review", "evidence_ready"} and not force:
+        _emit_worktree_error(
+            task_id=task_id,
+            error="phase_not_applyable",
+            message="Task must be ready_for_review or evidence_ready before apply; pass --force to override.",
+            json_output=json_output,
+        )
+        raise typer.Exit(code=1)
+    attempt = tasks.current_attempt(task_id)
+    if attempt is not None and attempt.adoptable_result == "no" and not force:
+        _emit_worktree_error(
+            task_id=task_id,
+            error="adoptable_result_no",
+            message="Current attempt is marked adoptable_result=no; pass --force to override.",
+            json_output=json_output,
+        )
+        raise typer.Exit(code=1)
+    try:
+        diff = build_worktree_diff(task=task, session_state=_session_state_for_task(task))
+    except WorktreeAdoptionError as exc:
+        _emit_worktree_error(task_id=task_id, error=exc.reason, message=str(exc), json_output=json_output)
+        raise typer.Exit(code=1)
+    if not diff.patch.strip():
+        _emit_worktree_error(
+            task_id=task_id,
+            error="diff_missing",
+            message="No worker diff is available for this task.",
+            json_output=json_output,
+        )
+        raise typer.Exit(code=1)
+
+    result = (
+        check_apply_to_controller_repo(repo_path=task.repo_path, patch=diff.patch)
+        if check
+        else apply_to_controller_repo(repo_path=task.repo_path, patch=diff.patch)
+    )
+    if not result.ok:
+        _emit_worktree_error(
+            task_id=task_id,
+            error=result.reason or "apply_failed",
+            message="Worker diff does not apply cleanly.",
+            json_output=json_output,
+            stderr=result.stderr,
+        )
+        raise typer.Exit(code=1)
+    if not check:
+        JournalRepository(paths.db_path).append(
+            task_id,
+            "controller",
+            "controller_applied_diff",
+            json.dumps({"changed_files": list(diff.changed_files)}, ensure_ascii=False, sort_keys=True),
+        )
+    payload = {
+        "ok": True,
+        "task_id": task_id,
+        "check": check,
+        "base_ref": diff.base_ref,
+        "changed_files": list(diff.changed_files),
+        "stat": diff.stat,
+        "applied": not check,
+    }
+    if json_output:
+        _emit_json(payload)
+        return
+    action = "Apply check passed" if check else "Applied worker diff"
+    typer.echo(f"{action}: {', '.join(diff.changed_files) or 'no files'}")
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _require_task_with_session(tasks: TaskRepository, task_id: str):
+    task = tasks.get_task(task_id)
+    if task is None:
+        typer.echo(f"Error: task {task_id!r} not found", err=True)
+        raise typer.Exit(code=1)
+    session_id = task.executor_session_id or task.antigravity_session_id
+    if not session_id:
+        typer.echo(f"Error: task {task_id!r} has no executor session (phase={task.phase!r})", err=True)
+        raise typer.Exit(code=1)
+    return task
+
+
+def _guard_live_task(task, *, force: bool, command: str) -> None:
+    """Block intervention on a live acked task unless --force is passed.
+
+    Only guards acked tasks. Non-acked tasks (terminal phases, new, etc.)
+    are allowed through unconditionally.
+    """
+    if task.phase != "acked":
+        return
+    if force:
+        return
+    if is_task_live(task):
+        liveness = classify_liveness(task)
+        source = liveness.value.replace("active_via_", "").replace("_", " / ")
+        typer.echo(
+            f"Refused: task {task.task_id} still appears active due to recent {source}. "
+            f"Wait longer or pass --force to override.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+
+def _guard_active_waiter(paths: AppPaths, task_id: str, *, force: bool, command: str) -> None:
+    """Block intervention while another wait is in progress unless --force."""
+    if force:
+        return
+    waiters = WaiterRepository(paths.db_path)
+    waiter = waiters.get_active_waiter(task_id)
+    if waiter:
+        typer.echo(
+            f"Refused: task {task_id} has an active wait in progress "
+            f"(waiter={waiter.waiter_id}, command={waiter.command}, "
+            f"started_at={waiter.started_at}). "
+            f"Another process is still waiting on this task. "
+            f"Pass --force to override.",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+
+
+
+# ---------------------------------------------------------------------------
+# task retry
+# ---------------------------------------------------------------------------
+
+
+def _git_command_text(repo_path: str, args: list[str]) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", *args],
+            cwd=repo_path,
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except Exception:
+        return ""
+
+
+def _original_brief_from_journal(journal: JournalRepository, task_id: str) -> str:
+    for row in reversed(journal.tail(task_id, limit=100)):
+        if row.source == "cli" and row.event == "created" and row.body.strip():
+            return row.body.strip()
+    return ""
+
+
+def _build_retry_from_block_body(
+    *,
+    paths: AppPaths,
+    task,
+    journal: JournalRepository,
+    next_attempt: int,
+    authorization_profile: str,
+    authorization_summary: str,
+    new_environment_mode: str,
+) -> str:
+    original_brief = _original_brief_from_journal(journal, task.task_id) or "(original brief unavailable)"
+    terminal_receipt = _latest_terminal_receipt(paths, task.task_id, task.terminal_receipt_json)
+    artifact_paths, artifact_top_level = _artifact_payload(paths, task)
+    current_attempt = TaskRepository(paths.db_path).current_attempt(task.task_id)
+    effective_policy = resolve_effective_task_policy(
+        requested_completion_policy=task.completion_policy,
+        authorization_profile=task.authorization_profile,
+        body=original_brief,
+    )
+    journal_tail = [
+        {
+            "created_at": row.created_at,
+            "source": row.source,
+            "event": row.event,
+            "body": row.body[:1000],
+        }
+        for row in reversed(journal.tail(task.task_id, limit=8))
+    ]
+    retry_context = {
+        "task_id": task.task_id,
+        "attempt_no": next_attempt,
+        "previous_phase": task.phase,
+        "previous_executor_backend": task.executor_backend,
+        "previous_environment_mode": current_attempt.environment_mode if current_attempt else None,
+        "new_environment_mode": new_environment_mode,
+        "previous_authorization_profile": task.authorization_profile,
+        "new_authorization_profile": authorization_profile,
+        "previous_blocked_reason": task.stuck_reason,
+        "terminal_receipt": terminal_receipt,
+        "artifact_paths": artifact_paths,
+        "executor_output_excerpt": artifact_top_level.get("executor_output_excerpt"),
+        "effective_task_policy": effective_policy.to_dict(),
+        "journal_tail": journal_tail,
+        "git_status": _git_command_text(task.repo_path, ["status", "--short"]),
+        "git_diff": _git_command_text(task.repo_path, ["diff", "--stat"]),
+        "recent_commits": _git_command_text(task.repo_path, ["log", "--oneline", "-5"]),
+    }
+    return (
+        f"Fresh retry requested for {task.task_id} attempt {next_attempt}\n\n"
+        f"Authorization profile: {authorization_profile}\n"
+        f"{authorization_summary}\n\n"
+        f"Environment mode: {new_environment_mode}\n\n"
+        "Original brief:\n"
+        f"{original_brief}\n\n"
+        f"Previous blocked reason: {task.stuck_reason or 'unknown'}\n\n"
+        "Structured blocked retry context JSON:\n"
+        f"{json.dumps(retry_context, ensure_ascii=False, indent=2, sort_keys=True)}\n"
+    )
+
+
+@app.command("retry", help="Retry a task. Wait controls: --wait/--no-wait, --interval-seconds, --timeout-seconds.")
+def retry_task(
+    task_id: str,
+    body: str | None = typer.Option(None, "--body", "--prompt"),
+    from_block: bool = typer.Option(False, "--from-block", help="Build a new attempt from structured blocked context."),
+    next_executor: bool = typer.Option(False, "--next-executor", help="Retry a blocked task on the next eligible executor."),
+    authorization_profile: str | None = typer.Option(None, "--authorization-profile", help="Authorization profile for the new attempt."),
+    completion_policy: str | None = typer.Option(None, "--completion-policy", help="Completion policy for the new attempt."),
+    task_kind: str | None = typer.Option(None, "--task-kind", help="Task kind for the new attempt."),
+    wait_policy: str | None = typer.Option(None, "--wait-policy", help="Wait policy for the new attempt: terminal, lease, background, or strict."),
+    controller_wait_seconds: float | None = typer.Option(
+        None,
+        "--controller-wait-seconds",
+        "--controller-wait-lease",
+        min=0,
+        help="Controller wait lease in seconds.",
+    ),
+    execution_budget_seconds: float | None = typer.Option(
+        None,
+        "--execution-budget-seconds",
+        "--execution-budget",
+        min=1,
+        help="Hard execution budget in seconds.",
+    ),
+    background_ok: bool | None = typer.Option(None, "--background-ok/--no-background-ok", help="Whether lease expiry may detach while the executor continues."),
+    dirty_snapshot: str | None = typer.Option(None, "--dirty-snapshot", help="Dirty worktree snapshot mode for the new attempt: off or tracked."),
+    controller: str = typer.Option("generic", "--controller", help="Controller id for executor-suppression policy."),
+    executor: str | None = typer.Option(None, "--executor", help=f"Executor backend for the new attempt ({', '.join(supported_executor_ids())})."),
+    allow_self_executor: bool = typer.Option(False, "--allow-self-executor", help="Permit controller to delegate to the same external CLI."),
+    force: bool = typer.Option(False, "--force", help="Bypass liveness and waiter guards."),
+    wait: bool = _WAIT_OPTION,
+    interval_seconds: float = _INTERVAL_OPTION,
+    timeout_seconds: float = _TIMEOUT_OPTION,
+) -> None:
+    from agpair.executors import get_executor, is_local_cli_backend
+    from agpair.executors.local_cli import WorktreeProvisionError
+
+    paths = _paths()
+    tasks = TaskRepository(paths.db_path)
+    journal = JournalRepository(paths.db_path)
+    try:
+        task = tasks.prepare_retry(task_id=task_id)
+    except TaskNotFoundError:
+        raise typer.Exit(code=1)
+    _guard_active_waiter(paths, task_id, force=force, command="retry")
+    _guard_live_task(task, force=force, command="retry")
+    next_attempt = task.attempt_no + 1
+    if next_executor and not from_block:
+        typer.echo("--next-executor requires --from-block", err=True)
+        raise typer.Exit(code=1)
+    if next_executor and executor:
+        typer.echo("--next-executor cannot be combined with --executor", err=True)
+        raise typer.Exit(code=1)
+    if from_block and task.executor_backend == "gemini_cli" and not executor and not next_executor:
+        typer.echo("legacy gemini_cli retry requires --executor", err=True)
+        raise typer.Exit(code=1)
+    requested_retry_executor = executor or task.executor_backend
+    if next_executor:
+        requested_retry_executor = next_eligible_executor(
+            controller=controller,
+            current_executor=task.executor_backend,
+            requested_executor=None,
+            allow_self_executor=allow_self_executor,
+            require_available=True,
+        )
+        if requested_retry_executor is None:
+            typer.echo("no_eligible_executor", err=True)
+            raise typer.Exit(code=1)
+    try:
+        policy_decision = resolve_controller_policy(
+            controller=controller,
+            requested_executor=requested_retry_executor,
+            allow_self_executor=allow_self_executor,
+            require_available=True,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if executor and policy_decision.rejected_executor:
+        reason = policy_decision.reasons[-1] if policy_decision.reasons else "requested executor is not eligible"
+        raise typer.BadParameter(reason)
+    if policy_decision.selected_executor is None:
+        raise typer.BadParameter(_no_available_executor_message(policy_decision))
+    selected_executor = policy_decision.selected_executor
+    try:
+        selected_executor = validate_supported_executor(selected_executor)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    try:
+        next_environment = resolve_environment_metadata(selected_executor)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    if from_block:
+        if task.phase not in {"blocked", "stuck"}:
+            typer.echo("--from-block requires a blocked or stuck task", err=True)
+            raise typer.Exit(code=1)
+        if not selected_executor or not is_supported_executor(selected_executor):
+            typer.echo("retry --from-block requires a supported executor", err=True)
+            raise typer.Exit(code=1)
+
+    next_authorization_profile = validate_authorization_profile(
+        authorization_profile or task.authorization_profile
+    )
+    next_authorization_summary = authorization_profile_summary(next_authorization_profile)
+    next_completion_policy = completion_policy or task.completion_policy
+    wait_override_requested = any(
+        value is not None
+        for value in (
+            task_kind,
+            wait_policy,
+            controller_wait_seconds,
+            execution_budget_seconds,
+            background_ok,
+        )
+    )
+    if wait_override_requested:
+        try:
+            retry_wait_budget = resolve_wait_budget(
+                task_kind=task_kind or task.task_kind,
+                wait_policy=wait_policy or task.wait_policy,
+                controller_wait_seconds=(
+                    controller_wait_seconds
+                    if controller_wait_seconds is not None
+                    else task.controller_wait_seconds
+                ),
+                execution_budget_seconds=(
+                    execution_budget_seconds
+                    if execution_budget_seconds is not None
+                    else task.execution_budget_seconds
+                ),
+                background_ok=background_ok if background_ok is not None else task.background_ok,
+            )
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc)) from exc
+        if retry_wait_budget.task_kind in {"implementation", "test_fix"}:
+            if next_authorization_profile == "local_readonly":
+                raise typer.BadParameter(
+                    f"--task-kind {retry_wait_budget.task_kind} requires a mutating authorization profile; "
+                    "use local_mutating or choose a review/report task kind"
+                )
+            if next_completion_policy == "auto":
+                next_completion_policy = "evidence"
+    explicit_retry_body = body is not None
+    retry_body = body or (
+        _build_retry_from_block_body(
+            paths=paths,
+            task=task,
+            journal=journal,
+            next_attempt=next_attempt,
+            authorization_profile=next_authorization_profile,
+            authorization_summary=next_authorization_summary,
+            new_environment_mode=next_environment.environment_mode,
+        )
+        if from_block
+        else f"Fresh retry requested for {task.task_id} attempt {next_attempt}"
+    )
+    if explicit_retry_body:
+        retry_body, auto_structured_missing_sections = _normalize_task_body_for_cli(
+            body=retry_body,
+            authorization_profile=next_authorization_profile,
+            completion_policy=next_completion_policy,
+        )
+    try:
+        next_effective_policy = resolve_effective_task_policy(
+            requested_completion_policy=next_completion_policy,
+            authorization_profile=next_authorization_profile,
+            body=retry_body,
+            controller=controller,
+        )
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    resolved_dirty_snapshot_mode = _resolve_dirty_snapshot_mode(
+        requested=dirty_snapshot,
+        isolated_worktree=task.isolated_worktree,
+        authorization_profile=next_authorization_profile,
+        effective_completion_policy=next_effective_policy.effective_completion_policy,
+    )
+
+    if is_local_cli_backend(selected_executor):
+        exec_instance = get_executor(selected_executor)
+        if exec_instance is None:
+            reason = f"dispatch failed: executor backend unavailable for retry ({selected_executor})"
+            journal.append(task.task_id, "cli", "retry_failed", reason)
+            typer.echo(reason, err=True)
+            raise typer.Exit(code=1)
+        try:
+            dispatch_result = exec_instance.dispatch(
+                task_id=task.task_id,
+                body=retry_body,
+                repo_path=task.repo_path,
+                isolated_worktree=task.isolated_worktree,
+                worktree_boundary=task.worktree_boundary,
+                authorization_profile=next_authorization_profile,
+                authorization_summary=next_authorization_summary,
+                environment_mode=next_environment.environment_mode,
+                skill_policy=next_environment.skill_policy,
+                mcp_policy=next_environment.mcp_policy,
+                dirty_snapshot_mode=resolved_dirty_snapshot_mode,
+                completion_policy=next_completion_policy,
+                **({"coordination_role": task.coordination_role} if task.coordination_role else {}),
+            )
+        except (subprocess.SubprocessError, FileNotFoundError, BusSendError, WorktreeProvisionError, ValueError) as exc:
+            reason = f"dispatch failed: {exc}"
+            journal.append(task.task_id, "cli", "retry_failed", reason)
+            typer.echo(reason, err=True)
+            raise typer.Exit(code=1)
+        if not dispatch_result.session_id:
+            reason = f"dispatch failed: local executor {selected_executor} did not return a session_id"
+            journal.append(task.task_id, "cli", "retry_failed", reason)
+            typer.echo(reason, err=True)
+            raise typer.Exit(code=1)
+        updated = tasks.apply_retry_dispatch(
+            task_id=task.task_id,
+            executor_backend=selected_executor,
+            authorization_profile=next_authorization_profile,
+            authorization_summary=next_authorization_summary,
+            completion_policy=next_completion_policy,
+            task_kind=task_kind,
+            wait_policy=wait_policy,
+            controller_wait_seconds=controller_wait_seconds,
+            execution_budget_seconds=execution_budget_seconds,
+            background_ok=background_ok,
+            effective_policy_json=_effective_policy_json(
+                next_effective_policy,
+                requested_executor=selected_executor,
+            ),
+            environment_mode=next_environment.environment_mode,
+            environment_mode_source=next_environment.environment_mode_source,
+            skill_policy=next_environment.skill_policy,
+            mcp_policy=next_environment.mcp_policy,
+            dirty_snapshot_mode=resolved_dirty_snapshot_mode,
+        )
+        if dispatch_result.execution_repo_path:
+            tasks.set_execution_repo_path(
+                task_id=updated.task_id,
+                execution_repo_path=dispatch_result.execution_repo_path,
+            )
+        _persist_attempt_dirty_snapshot_from_state(
+            tasks=tasks,
+            task_id=updated.task_id,
+            session_id=dispatch_result.session_id,
+        )
+        tasks.mark_acked(task_id=updated.task_id, session_id=dispatch_result.session_id)
+        journal.append(
+            updated.task_id,
+            "cli",
+            "retried",
+            f"local session={dispatch_result.session_id} attempt={updated.attempt_no}",
+        )
+    else:
+        bus = AgentBusClient(paths.agent_bus_bin)
+        try:
+            message_id = bus.send_task(task_id=task.task_id, body=retry_body, repo_path=task.repo_path)
+        except (subprocess.SubprocessError, FileNotFoundError, BusSendError) as exc:
+            reason = f"dispatch failed: {exc}"
+            journal.append(task.task_id, "cli", "retry_failed", reason)
+            typer.echo(reason, err=True)
+            raise typer.Exit(code=1)
+        updated = tasks.apply_retry_dispatch(
+            task_id=task.task_id,
+            executor_backend=selected_executor,
+            authorization_profile=next_authorization_profile,
+            authorization_summary=next_authorization_summary,
+            completion_policy=next_completion_policy,
+            task_kind=task_kind,
+            wait_policy=wait_policy,
+            controller_wait_seconds=controller_wait_seconds,
+            execution_budget_seconds=execution_budget_seconds,
+            background_ok=background_ok,
+            effective_policy_json=_effective_policy_json(
+                next_effective_policy,
+                requested_executor=selected_executor,
+            ),
+            environment_mode=next_environment.environment_mode,
+            environment_mode_source=next_environment.environment_mode_source,
+            skill_policy=next_environment.skill_policy,
+            mcp_policy=next_environment.mcp_policy,
+            dirty_snapshot_mode=resolved_dirty_snapshot_mode,
+        )
+        journal.append(updated.task_id, "cli", "retried", f"id={message_id} attempt={updated.attempt_no}")
+    if next_executor:
+        typer.echo(f"selected_executor: {selected_executor}", err=True)
+    typer.echo(task.task_id)
+
+    maybe_auto_wait(
+        paths.db_path,
+        task.task_id,
+        wait=wait,
+        success_phases=DISPATCH_SUCCESS_PHASES,
+        interval_seconds=interval_seconds,
+        timeout_seconds=timeout_seconds,
+        waiter_command="task_retry_auto_wait",
+    )

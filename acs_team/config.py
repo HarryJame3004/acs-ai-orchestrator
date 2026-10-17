@@ -1,0 +1,74 @@
+import json
+import os
+from pathlib import Path
+
+# Base Paths
+ORCHESTRATOR_HOME = Path(os.path.expanduser("~/.local/share/acs-orchestrator"))
+STATE_DIR = ORCHESTRATOR_HOME / "state"
+CONTEXT_DIR = ORCHESTRATOR_HOME / "context"
+CONTEXT_FILE = CONTEXT_DIR / "ACS_VERIFIED_PROJECT_STATE.md"
+WORKTREES_DIR = ORCHESTRATOR_HOME / "worktrees"
+WORKSPACES_DIR = ORCHESTRATOR_HOME / "workspaces"
+LOGS_DIR = ORCHESTRATOR_HOME / "logs"
+BACKUPS_DIR = Path(os.path.expanduser("~/.local/share/acs-orchestrator-backups"))
+
+# Executables
+VENV_BIN = ORCHESTRATOR_HOME / "venv" / "bin"
+VENV_PYTHON = VENV_BIN / "python3"
+AGPAIR_BIN = VENV_BIN / "agpair"
+CODEX_BIN = Path(os.path.expanduser("~/.npm-global/bin/codex"))
+AGY_BIN = Path(os.path.expanduser("~/.local/bin/agy"))
+AGY_B_BIN = Path(os.path.expanduser("~/.local/bin/agy-b"))
+AGY_B_HOME = Path(os.path.expanduser("~/.local/share/agy-google-b/home"))
+GIT_BIN = Path("/usr/bin/git")
+BWRAP_BIN = Path("/usr/bin/bwrap")
+ACS_CORE_DIR = Path(os.path.expanduser("~/autonomous-coding-system"))
+
+# Ensure runtime directories exist
+STATE_DIR.mkdir(parents=True, exist_ok=True)
+CONTEXT_DIR.mkdir(parents=True, exist_ok=True)
+WORKTREES_DIR.mkdir(parents=True, exist_ok=True)
+WORKSPACES_DIR.mkdir(parents=True, exist_ok=True)
+LOGS_DIR.mkdir(parents=True, exist_ok=True)
+BACKUPS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Database & IPC
+DB_PATH = STATE_DIR / "acs_ai.db"
+SOCKET_PATH = ORCHESTRATOR_HOME / "acs_ai.sock"
+AUTH_TOKEN_PATH = ORCHESTRATOR_HOME / "auth.token"
+PID_FILE = ORCHESTRATOR_HOME / "daemon.pid"
+API_PORT = int(os.environ.get("ACS_API_PORT", "20129"))
+API_HOST = os.environ.get("ACS_API_HOST", "127.0.0.1")
+
+# Resource Safeguards
+MIN_DISK_FREE_GB = 10.0  # Circuit breaker threshold for 256GB SSD
+DISK_MIN_FREE_BYTES = int(MIN_DISK_FREE_GB * (1024**3))
+MAX_CONCURRENT_WORKERS = 3
+
+# 9Router configuration
+ROUTER_BASE_URL = os.environ.get("ROUTER_BASE_URL", "http://127.0.0.1:20128/v1")
+
+
+def get_router_api_key() -> str:
+    """Retrieve 9router API key from environment or ~/.claude/settings.json."""
+    if os.environ.get("NINE_ROUTER_API_KEY"):
+        return os.environ["NINE_ROUTER_API_KEY"]
+    claude_settings = Path(os.path.expanduser("~/.claude/settings.json"))
+    if claude_settings.exists():
+        try:
+            data = json.loads(claude_settings.read_text(encoding="utf-8"))
+            token = data.get("env", {}).get("ANTHROPIC_AUTH_TOKEN")
+            if token:
+                return token
+        except Exception:
+            pass
+    return os.environ.get("ROUTER_API_KEY", "")
+
+
+ROUTER_API_KEY = get_router_api_key()
+
+# Model assignments (all verified free tier on 9Router)
+MODEL_PLANNER = os.environ.get("ACS_MODEL_PLANNER", "free-coding")
+MODEL_REVIEWER = os.environ.get("ACS_MODEL_REVIEWER", "free-review")
+MODEL_TESTER = os.environ.get("ACS_MODEL_TESTER", "free-testing")
+MODEL_FALLBACK = "free-light"

@@ -1,0 +1,18 @@
+{
+  "mission_id": "ACS_PHASES_16_17_COMPLETION",
+  "repo_path": "/home/khoi/autonomous-coding-system",
+  "phases": [
+    {
+      "phase_id": "phase16_claude_launcher",
+      "name": "Phase 16: Claude Code CLI Autonomous Launcher & Service Orchestrator",
+      "goal": "Implement scripts/claude_launcher.sh and scripts/manage_claude_launcher.py to wrap Claude Code CLI (/home/khoi/.local/share/claude/versions/2.1.300), verifying and starting 9Router (http://127.0.0.1:20128), n8n (http://127.0.0.1:5678), and ACS Job Manager (http://127.0.0.1:5050) before launching Claude, with full argument preservation, exit code propagation, safe rollback, and comprehensive tests in tests/test_phase16_launcher.py.",
+      "test_cmd": "pytest tests/test_phase16_launcher.py tests/test_claude_bridge.py"
+    },
+    {
+      "phase_id": "phase17_tool_agent_integrations",
+      "name": "Phase 17: Tool & Agent Integrations (Alibaba OpenCodeReview, Gitleaks, Semantic Classifier & DAG Scheduler)",
+      "goal": "Integrate the production-hardened Phase 17 module from /home/khoi/Projects/acs-phase17-lab/src/phase17 into /home/khoi/autonomous-coding-system/src/phase17, port the 100-test suite into tests/test_phase17/, and ensure full compatibility with the ACS Core architecture and test runner.",
+      "test_cmd": "pytest tests/test_phase17/ tests/test_phase16_launcher.py tests/test_claude_bridge.py"
+    }
+  ]
+}

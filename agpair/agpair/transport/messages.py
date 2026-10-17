@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+TASK = "TASK"
+ACK = "ACK"
+RUNNING = "RUNNING"
+EVIDENCE_PACK = "EVIDENCE_PACK"
+BLOCKED = "BLOCKED"
+COMMITTED = "COMMITTED"
+
+CODE_SENDER = "code"
+DESKTOP_SENDER = "desktop"
+DESKTOP_READER = "desktop"
