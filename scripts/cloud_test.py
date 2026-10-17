@@ -52,7 +52,8 @@ class Capture:
 
     def pytest_collection_modifyitems(self, items: list[Any]) -> None:
         for item in items:
-            policy = self.policy.get(item.nodeid, {"label": "CLOUD_REAL"})
+            label = "CLOUD_SIMULATED" if item.get_closest_marker("simulated") else "CLOUD_REAL"
+            policy = self.policy.setdefault(item.nodeid, {"label": label})
             if policy["label"] == "LOCAL_VERIFICATION_REQUIRED":
                 item.add_marker(pytest.mark.local_only)
                 item.add_marker(pytest.mark.skip(reason=policy["local_reason"]))

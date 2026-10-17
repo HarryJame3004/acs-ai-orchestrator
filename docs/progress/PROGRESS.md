@@ -1,5 +1,15 @@
 # Upgrade progress
 
+## Overnight execution — Stage 1 checkpoint
+
+The final user directive authorizes all safe stages without merge waits.
+Stage 0 PR #1 is OPEN and its latest hosted CI passed. Stage 1 recovery tooling
+is implemented and validated: 59 passed / 4 local-only skips, no failures;
+CLOUD_REAL 54 passed, CLOUD_SIMULATED 5 passed. See STAGE_1_REPORT.md and
+reports/REQUIREMENTS.json. No local deployment occurred. Continue to V2.3 on a
+dependent branch; maintain upgrade/overnight-integration by fast-forward only.
+Original historical checkpoints follow.
+
 ## Latest continuation checkpoint
 
 Latest network diagnosis: **CLOUD_REAL PASS**. Unauthenticated api.github.com

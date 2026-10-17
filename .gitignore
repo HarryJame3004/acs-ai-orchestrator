@@ -74,6 +74,8 @@ logs/
 workspaces/
 worktrees/
 backups/
+*.acs-backup/
+*.acs-staging/
 agy_b_home/
 .agpair/
 
