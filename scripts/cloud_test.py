@@ -133,6 +133,13 @@ def main() -> int:
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({k: report[k] for k in ("counts", "by_label", "pytest_exit_code", "regressions")}))
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        # Expose metadata through check annotations when log-download hosts are
+        # unreachable. Never publish raw exceptions, source, or captured output.
+        for row in results:
+            if row["outcome"] in {"failed", "error"}:
+                node = row["nodeid"].replace("%", "%25").replace("\n", "%0A").replace("\r", "%0D")
+                print(f"::error title=Cloud test failed::{node} ({row.get('failure_type', 'error')})")
     if args.compare_baseline:
         # The original CLI failure is repaired: current acceptance requires a
         # clean pytest result, even if a historical failure later reappears.
