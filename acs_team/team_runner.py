@@ -75,12 +75,49 @@ class TeamRunner:
         )
         verifier = verification_runner or run_verification
         def labeled_verification(command, workspace, timeout=180):
-            return {**verifier(command, workspace, timeout), 'label': self.execution_label}
+            started = time.monotonic()
+            try:
+                result = {**verifier(command, workspace, timeout), 'label': self.execution_label}
+            except Exception as exc:
+                self._verification_event(command, workspace, started, {
+                    'executed': False, 'passed': False,
+                    'exception_type': type(exc).__name__, 'output': redact(str(exc))[:65536],
+                    'label': self.execution_label,
+                })
+                raise
+            self._verification_event(command, workspace, started, result)
+            return result
         self.verify = labeled_verification
         self.control = RuntimeControl(store.db, initialize=False)
         self._allocation = threading.Lock()
         self._owned_leases: dict[tuple[str,str],int] = {}
         self._leases_lock = threading.Lock()
+
+    def _verification_event(self, command, workspace, started, result):
+        """Keep failed subprocess evidence before rollback or fixture teardown.
+
+        Successful runs retain small transition metadata; failed runs additionally
+        retain private, signed, bounded diagnostics. Recording never converts a
+        failure to success or retries a provider/verification operation.
+        """
+        mission = getattr(self, '_mission_id', None)
+        details = {'command': command, 'workspace': str(workspace),
+                   'runtime_seconds': time.monotonic() - started,
+                   'executed': result.get('executed', False),
+                   'passed': result.get('passed', False),
+                   'exit_code': result.get('exit_code'), 'reason': result.get('reason'),
+                   'counts': result.get('counts', {}), 'label': self.execution_label}
+        if not result.get('executed') or not result.get('passed'):
+            head = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=workspace,
+                                  capture_output=True, text=True, timeout=10)
+            bounded = {**details, 'output': redact(str(result.get('output', '')))[:65536],
+                       'exception_type': result.get('exception_type')}
+            evidence = EvidenceEngine(self.key).create_evidence(
+                mission or 'verification-diagnostic', None,
+                head.stdout.strip() if head.returncode == 0 else '0' * 40,
+                bounded, {'kind': 'failed-verification-diagnostic'}).to_dict()
+            details['evidence_ref'] = str(persist_evidence(evidence, self.artifacts))
+        self.store.db.record_audit_event(mission, 'verifier', 'VERIFICATION_RESULT', details)
 
     @contextmanager
     def _keep_leases(self):
@@ -331,7 +368,7 @@ class TeamRunner:
                 test_command=" ".join(task.verification_commands[0]),
             )
             if not verdict.approved:
-                raise PermissionError("Guardian vetoed task")
+                raise PermissionError("Guardian vetoed task: " + '; '.join(verdict.veto_reasons))
             # Re-check after reviewer and Guardian callbacks, which are also
             # untrusted producers. Signed evidence must describe a clean SHA.
             if (
@@ -531,6 +568,7 @@ class TeamRunner:
                         failures[task.task_id] = redact(str(exc))[:4096]
                         self.store.db.record_audit_event(plan.mission_id,worker_id,'WORKER_FAILURE',
                             {'task_id':task.task_id,'fingerprint':hashlib.sha256(failures[task.task_id].encode()).hexdigest(),
+                             'exception_type':type(exc).__name__, 'reason':failures[task.task_id],
                              'stage':'task-verification-or-integration','label':self.execution_label})
                         try:
                             recovery.rolled_back(plan.mission_id,task.task_id)
