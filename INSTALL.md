@@ -91,8 +91,10 @@ provider with its own identity and a fresh report/receipt destination:
 "$ACS_AI" verify-team --output /path/to/NEW-team-fixture --report /path/to/NEW-team.json --execute-probe
 ```
 
-Enable the documented provider-contract, supervision and coordination flags only
-after the local prerequisites are verified. Configure delegated cgroups/private
+Enable the documented provider-contract, supervision, coordination and
+`ACS_ENABLE_PROVIDER_LEDGER=1` flags only after the local prerequisites are
+verified. Inspect session ceilings with `"$ACS_AI" provider-usage`. Uncertain
+reservations require review; they are not automatically retried or refunded. Configure delegated cgroups/private
 bounded storage where required; never bypass absent capabilities. Read
 [Arch acceptance](reports/ARCH_LINUX_LOCAL_ACCEPTANCE.md) for kernel, recovery,
 MCP, real roles and original integrated-scenario gates. These are all

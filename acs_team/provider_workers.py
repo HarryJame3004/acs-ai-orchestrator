@@ -30,9 +30,13 @@ class ProviderWorker(BaseWorker):
         super().__init__(contract.worker_id, activations.valid(contract, receipt))
 
     def session(self, prompt: str, workspace: Path, readonly: bool = False) -> dict:
+        import os
         from .managed_worker import _CONTEXT
+        from .provider_ledger import ProviderLedger, ProviderInvocationBlocked
         if not self.activations.valid(self.contract, self.receipt):
             raise WorkerUnverifiedError('Provider activation expired or changed')
+        from .providers import validate_bindings
+        validate_bindings(self.contract, self.runtime.private)
         context = _CONTEXT.get()
         control, mission = context if context else (None, None)
         if control:
@@ -42,7 +46,29 @@ class ProviderWorker(BaseWorker):
             current = control.db.get_mission(mission) if control else None
             return bool(control and (control.stopped() or current and current['state'] == 'CANCELLED'))
 
+        if cancelled():
+            raise ProviderInvocationBlocked('Mission cancelled before provider admission')
+        ledger = None
+        invocation = owner = ''
+        enabled = os.environ.get('ACS_ENABLE_PROVIDER_LEDGER') == '1'
+        if self.runtime.executor is None and (not enabled or not context):
+            raise ProviderInvocationBlocked('Native mission calls require a durable provider ledger and mission context')
+        if enabled and control is not None and mission is not None:
+            current = control.db.get_mission(mission)
+            if current is None or current['state'] in {'FAILED', 'COMPLETED', 'CANCELLED'}:
+                raise ProviderInvocationBlocked('Provider admission requires a durable active mission')
+            ledger = ProviderLedger(control.db, self.activations.key)
+            invocation, owner, cached = ledger.reserve(mission, self.worker_id, self.contract.digest(), prompt, readonly)
+            if cached is not None:
+                control.db.record_audit_event(mission, self.worker_id, 'PROVIDER_RESULT_REUSED', {
+                    'invocation_id':invocation, 'session_id':cached['session_id'], 'readonly':True,
+                    'label':cached['label'], 'fresh_provider_execution':False})
+                return cached
+        # RESERVED commits before any external execution. Any exception, death or
+        # failed completion leaves a consumed, uncertain reservation; never retry it.
         result = self.runtime.run(self.contract, workspace, prompt, readonly=readonly, cancelled=cancelled)
+        if ledger:
+            ledger.complete(invocation, owner, result)
         if control:
             control.db.record_audit_event(mission, self.worker_id, 'PROVIDER_SESSION', {
                 'session_id':result['session_id'], 'readonly':readonly, 'label':result['label']})

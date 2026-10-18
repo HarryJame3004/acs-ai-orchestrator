@@ -35,7 +35,7 @@ for runtime_path in (ORCHESTRATOR_HOME, BACKUPS_DIR):
         raise ValueError('Runtime state/backups may not be located inside a protected project')
 
 # Read-only discovery/preview must not initialize an operational installation.
-READ_ONLY_INVOCATION = any(arg in {'verify-local', '--dry-run', '--help', '-h', 'mcp'} for arg in sys.argv)
+READ_ONLY_INVOCATION = any(arg in {'verify-local', 'provider-usage', '--dry-run', '--help', '-h', 'mcp'} for arg in sys.argv)
 if not READ_ONLY_INVOCATION:
     if any(os.environ.get(name) == '1' for name in ('ACS_REQUIRE_HARD_STORAGE','ACS_REQUIRE_SERVICE_LIMITS')):
         from .aggregate_limits import configured_limits, require_managed_write

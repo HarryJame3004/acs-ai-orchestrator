@@ -11,6 +11,12 @@ from .recovery import private_write
 
 
 def execute(args):
+    if args.command == 'provider-usage':
+        from .config import DB_PATH
+        from .db import DatabaseManager
+        from .provider_ledger import provider_usage
+        print(json.dumps(provider_usage(DatabaseManager(Path(args.database) if args.database else DB_PATH, read_only=True))))
+        return
     if args.command == 'verify-team':
         if not args.execute_probe:
             raise SystemExit('Real team evaluation requires explicit --execute-probe; it consumes provider quota')
@@ -151,6 +157,9 @@ def execute(args):
 
 
 def register(subparsers, mcp_subs):
+    usage = subparsers.add_parser('provider-usage',help='Read-only durable session reservations; no provider calls or cost estimates')
+    usage.add_argument('--database')
+    usage.set_defaults(func=execute)
     team = subparsers.add_parser('verify-team',help='Explicit real-provider two-task evaluation on a new retained fixture repo')
     team.add_argument('--output',required=True,help='New private probe directory; never an existing user repo')
     team.add_argument('--report',required=True,help='New private local-report JSON file')

@@ -24,7 +24,7 @@ from .worker_adapters import WorkerRegistry
 
 
 def run_local_team_probe(destination: Path) -> dict:
-    for flag in ['ACS_ENABLE_PROVIDER_CONTRACTS','ACS_ENABLE_COORDINATION','ACS_ENABLE_SUPERVISION']:
+    for flag in ['ACS_ENABLE_PROVIDER_CONTRACTS','ACS_ENABLE_COORDINATION','ACS_ENABLE_SUPERVISION','ACS_ENABLE_PROVIDER_LEDGER']:
         if os.environ.get(flag) != '1':
             raise PermissionError(f'Authenticated team probe requires {flag}=1')
     from .config import PROTECTED_PATHS, STATE_DIR

@@ -27,8 +27,8 @@ old receipt; automatic credential rotation is unsupported. Binary presence and
 simulated executors never establish activation. Authenticated identity, installed
 CLI syntax/version and network availability still need local verification.
 
-Opt-ins: `ACS_ENABLE_PROVIDER_CONTRACTS=1`, `ACS_ENABLE_COORDINATION=1`, and
-`ACS_ENABLE_SUPERVISION=1`. Natural-language foreground missions and the daemon
+Opt-ins: `ACS_ENABLE_PROVIDER_CONTRACTS=1`, `ACS_ENABLE_COORDINATION=1`,
+`ACS_ENABLE_SUPERVISION=1`, and `ACS_ENABLE_PROVIDER_LEDGER=1`. Natural-language foreground missions and the daemon
 queue use the same TeamMissionController. Tester sessions see specifications
 before implementation. Reviewer sessions get a host-bound commit/diff and a
 readonly tree. Host session IDs are distinct from implementer IDs. Every task
@@ -183,3 +183,39 @@ report. The separate local-only test additionally requires
 ACS_RUN_LOCAL_TEAM_PROBE=1. The kernel attachment test requires a dedicated empty
 delegated cgroup and ACS_RUN_LOCAL_AGGREGATE_PROBE=1. Neither is silently enabled
 by verify-local. The older read-only verifier continues to list pending checks.
+
+
+## Durable provider admission
+
+Native mission sessions require the opt-in ledger and host mission context.
+A FULL-synchronous SQLite reservation commits before external dispatch. Admission
+binds the mission, worker, exact provider contract, prompt digest and readonly mode.
+An implementation task shares one logical reservation across worker/contract or
+instruction changes, preventing uncertain failover from spending another call;
+prompts are not stored in the ledger. Concurrent controllers cannot dispatch
+that invocation twice. Exceptions and process death retain RESERVED uncertainty
+and consume a session slot; there is no automatic retry or refund.
+
+Completed readonly results can be reused for the same immutable invocation,
+with a host HMAC and original provenance/session identity. Audit distinguishes
+reuse from fresh execution. This is reuse of the prior analysis, not evidence of
+a newly inspected filesystem. Completed mutating sessions are never replayed
+into a fresh worktree. An uncertain or already-mutating invocation requires
+operator reconciliation with retained worktree/provider evidence; the system
+fails closed rather than promising exactly-once behavior at an external API.
+Do not delete the reservation to retry a potentially billed operation.
+
+`ACS_PROVIDER_MAX_MISSION_CALLS` defaults to 16 (range 1–64), shared across
+workers; `ACS_PROVIDER_MAX_TOTAL_CALLS` defaults to 64 (range 1–10000), shared
+across this AI database. Both include failed and uncertain calls. These are
+session ceilings, **not currency or token metering**. Native CLIs do not expose
+an independently enforced monetary ceiling; the Core-first paid analyzer remains
+disabled until an adapter can enforce that contract. Explicit operator activation
+probes are separate from mission calls and can consume provider quota.
+
+Inspect counts with `acsai provider-usage [--database PATH]`. It reads an existing
+AI database without initializing an installation, exposes no stored outputs,
+and distinguishes completed from uncertain reservations. An empty ledger is not
+proof of zero historic spending: legacy execution and explicit activation probes
+are not reconstructed. Back up the database with its ledger; never clear rows to
+silently reset the session ceiling. Actual token/currency usage remains unverified.

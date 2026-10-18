@@ -22,6 +22,7 @@ from acs_team.worktree_manager import WorktreeManager
 @pytest.mark.parametrize('route',['direct','cli','daemon','review','recover','escalate','dependent'])
 def test_native_protocol_natural_language_team_to_signed_integration_and_review(tmp_path, monkeypatch,route):
     monkeypatch.setenv('ACS_ENABLE_COORDINATION','1')
+    monkeypatch.setenv('ACS_ENABLE_PROVIDER_LEDGER','1')
     monkeypatch.setenv('ACS_ENABLE_INTELLIGENCE','1')
     if route=='direct':
         monkeypatch.setenv('ACS_ENABLE_ACCEPTED_WORKTREE_CLEANUP','1')
