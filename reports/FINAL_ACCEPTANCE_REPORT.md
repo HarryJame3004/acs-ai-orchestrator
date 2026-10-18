@@ -28,6 +28,14 @@ sessions, and imported-review escalation/re-execution. Every provider-backed
 variant is CLOUD_SIMULATED. A verified lesson is explicitly seeded by fixture
 human review; fake outcomes never verify new production lessons.
 
+Latest root result: **171 passed, 7 skipped**: **135 CLOUD_REAL** and
+**36 CLOUD_SIMULATED** passed; **7 LOCAL_VERIFICATION_REQUIRED** checks skipped
+explicitly. Scoped Ruff/mypy: 0/0; 15 known scanner candidates, zero new.
+Targeted bridge profile: 56 passed. All three hosted profiles passed at 2c42da3;
+later head checks must be refreshed. New `verify-team` provides explicit
+operator-run three-profile fixture evaluation and private failure reporting;
+authenticated execution was not performed in cloud. No new dependency was added.
+
 Remaining **HIGH source** work: a hard aggregate disk ceiling and accounting for
 all scratch/tool/Git/artifact storage; whole-service controller limits; production
 readiness of reviewed baseline-test exceptions and coverage comparison. Kernel

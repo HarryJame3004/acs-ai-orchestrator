@@ -1,5 +1,37 @@
 # Upgrade progress
 
+## Latest saved continuation — PARTIAL
+
+Source milestones: 35372c1, bf9e542 and 2c42da3, followed by the explicit
+authenticated local-team probe increment (see git log). Implemented actual native
+provider contracts/role sessions, CLI/daemon team dispatch, whole-mission gates,
+durable crash/lease/Git/process recovery, reviewed corrections preserving all
+original criteria, consumed dependency handoffs, clean accepted-worktree retention,
+template/test/risk propagation and real controller resource measurements.
+
+Latest root: **171 passed, 7 explicit local skips** — 135 CLOUD_REAL,
+36 CLOUD_SIMULATED, 7 LOCAL_VERIFICATION_REQUIRED. Full scoped static checks:
+Ruff/mypy 0/0, 15 known candidates, zero new. A subsequent targeted real refusal/
+CLI failure-report check and mypy passed. No assertion/baseline was weakened.
+Earlier checkpoints below are historical. See reports/continuation_tests.json,
+continuation_static.json, continuation_history.json and INTEGRATED_TEAM_ACCEPTANCE.md.
+Targeted bridge 56 passed; all hosted jobs passed at 2c42da3 (refresh later heads).
+
+`verify-team` is delivered for explicit operator-run real-provider evaluation;
+cloud verifies refusal/failure reporting and never claims authenticated success.
+The new authenticated team and delegated-kernel tests remain local-only. No Core
+change, main push/merge, credential request or local deployment occurred.
+
+Remaining HIGH: hard storage/scratch/Git accounting and whole-service resource
+ceilings; reviewed baseline exceptions/coverage comparison. Remaining MEDIUM:
+complete MCP mission/HTTP/per-operation approval/provider-visible integration,
+sensitive classification, producer/quota/failover/alternative instrumentation,
+specialized profiles, outcome-driven learning, randomized and dependency/license
+campaigns. Real provider/sandbox/cgroup/service/MCP/laptop checks remain local-only.
+Next task: follow the CURRENT section of reports/NEXT_SESSION_HANDOFF.md; preserve
+these implementations and continue the remaining source backlog without ordinary
+stage approval pauses. This checkpoint is not FULL PASS or deployment acceptance.
+
 ## Active continuation — durable provider-backed team
 
 Source now includes crash-released mission/integration locks, durable Git intents,

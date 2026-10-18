@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "pytest_exit_code": 0,
-  "duration_s": 134.579,
+  "duration_s": 124.678,
   "counts": {
-    "skipped": 6,
-    "passed": 170
+    "skipped": 7,
+    "passed": 171
   },
   "by_label": {
     "CLOUD_REAL": {
-      "passed": 134
+      "passed": 135
     },
     "CLOUD_SIMULATED": {
       "passed": 36
     },
     "LOCAL_VERIFICATION_REQUIRED": {
-      "skipped": 6
+      "skipped": 7
     }
   },
   "tests": [
@@ -463,6 +463,17 @@
       "nodeid": "tests/test_intelligence.py::test_multisolution_requires_optin_and_cannot_select_failed_proposal",
       "label": "CLOUD_REAL",
       "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_local_team_probe.py::test_real_probe_refuses_missing_activation_before_output_writes",
+      "label": "CLOUD_REAL",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests/test_local_team_probe.py::test_local_authenticated_team_probe",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "outcome": "skipped",
+      "local_reason": "Requires explicit local quota authorization and three authenticated sandbox-verified provider profiles"
     },
     {
       "nodeid": "tests/test_local_verification.py::test_readonly_local_cli_does_not_initialize_runtime_or_read_credentials",

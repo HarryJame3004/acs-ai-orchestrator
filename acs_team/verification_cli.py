@@ -11,6 +11,29 @@ from .recovery import private_write
 
 
 def execute(args):
+    if args.command == 'verify-team':
+        if not args.execute_probe:
+            raise SystemExit('Real team evaluation requires explicit --execute-probe; it consumes provider quota')
+        if Path(args.report).exists() or Path(args.report).is_symlink():
+            raise FileExistsError('Local team report destination must be new')
+        from .local_team_probe import run_local_team_probe
+        import time
+        started = time.monotonic()
+        try:
+            result = run_local_team_probe(Path(args.output))
+        except Exception as exc:
+            from datetime import datetime, timezone
+            from .local_verification import LocalReport, LocalCheck
+            result = LocalReport(generated_at=datetime.now(timezone.utc).isoformat(),repo_commit='UNKNOWN',
+                environment={'probe_root':args.output},checks=[LocalCheck(id='multiagent.real_e2e',status='FAIL',
+                    evidence=f'Activation prerequisites or actual team execution failed ({type(exc).__name__}); elapsed={time.monotonic()-started:.3f}s; duration field capped at 3600s; inspect retained artifacts if created',
+                    duration_s=min(time.monotonic()-started,3600.))],
+                summary={'pass':0,'fail':1,'skipped':0,'error':0}).model_dump()
+        private_write(Path(args.report),(json.dumps(result,indent=2)+'\n').encode())
+        print(json.dumps({'report':args.report,'summary':result['summary'],'label':'LOCAL_VERIFICATION_REQUIRED'}))
+        if result['summary']['fail']:
+            raise SystemExit(1)
+        return
     if args.command == 'provider-activate':
         if not args.execute_probe:
             raise SystemExit('Activation requires explicit --execute-probe on the local host')
@@ -128,6 +151,11 @@ def execute(args):
 
 
 def register(subparsers, mcp_subs):
+    team = subparsers.add_parser('verify-team',help='Explicit real-provider two-task evaluation on a new retained fixture repo')
+    team.add_argument('--output',required=True,help='New private probe directory; never an existing user repo')
+    team.add_argument('--report',required=True,help='New private local-report JSON file')
+    team.add_argument('--execute-probe',action='store_true')
+    team.set_defaults(func=execute)
     activation = subparsers.add_parser('provider-activate', help='Explicit local sandbox/auth challenge and signed activation')
     activation.add_argument('worker_id', choices=['codex-primary','agy-google-a','agy-google-b'])
     activation.add_argument('--contracts', required=True)

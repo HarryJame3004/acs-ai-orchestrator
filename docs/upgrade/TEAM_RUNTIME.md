@@ -112,3 +112,25 @@ pytest profiles; specialized C/C++/web/performance profiles are incomplete.
 The completion artifact records VERIFIED, its exact SHA/evidence and verification
 label; durable mission state determines whether finalization reached COMPLETED.
 Verified lesson context is advisory. Fake outcomes never promote candidate lessons.
+
+## Explicit authenticated fixture evaluation
+
+After the operator completes real activation for all three profiles,
+`acsai verify-team --output NEW_PRIVATE_DIRECTORY --report NEW_REPORT.json --execute-probe`
+creates a new retained fixture repository/database, never targets the user's
+checkout, and consumes provider quota. Codex plans and supplies independent
+tester/reviewer sessions; AGY A and B implement separate modules. A fixed
+baseline behavior test is committed before execution. Plans must contain exactly
+two independent module scopes with the expected isolated implementers. Actual
+tests, Guardian, signed evidence, all three observed identities and unchanged
+fixture main are required. The output is a LocalReport with
+LOCAL_VERIFICATION_REQUIRED labels; failures produce a nonzero exit and private
+failure report. Artifacts remain for inspection. No automatic activation,
+credential prompt, live DB operation or deployment is performed.
+
+This command is delivered but was not executed with real providers in the cloud.
+The cloud tests verify refusal before provider activation and an honest failure
+report. The separate local-only test additionally requires
+ACS_RUN_LOCAL_TEAM_PROBE=1. The kernel attachment test requires a dedicated empty
+delegated cgroup and ACS_RUN_LOCAL_AGGREGATE_PROBE=1. Neither is silently enabled
+by verify-local. The older read-only verifier continues to list pending checks.

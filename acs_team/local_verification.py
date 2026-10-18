@@ -408,7 +408,7 @@ def verify_local(
         ),
         (
             "multiagent.real_e2e",
-            "Real provider tester/reviewer role verification is incomplete",
+            "Run acsai verify-team --output NEW_DIRECTORY --report NEW_REPORT --execute-probe after real activation; discovery is not team verification",
         ),
         (
             "suite.local_only",

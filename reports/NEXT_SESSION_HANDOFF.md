@@ -1,5 +1,94 @@
 # Exact next-session handoff
 
+## Current handoff — supersedes the historical instructions below
+
+Continue PR #7 on upgrade/stage-7-verification-release and fast-forward only
+upgrade/overnight-integration. Do not restart completed stages. Tested source
+milestones: 35372c1 (provider contracts/real team route), bf9e542 (durable recovery,
+shared limits and correction runs), 2c42da3 (daemon recovery/dependencies/retention).
+Use git log/status for the subsequent explicit local-team probe and final evidence
+commits. Main must not be pushed/merged. Never modify ACS Core, request credentials
+or deploy. The original MASTER_SPEC.md and baselines remain unchanged.
+
+Implemented production path: activated ProviderWorker → ProviderTeamPlanner →
+TeamMissionController → concurrent TeamRunner → independent tester/reviewer sessions
+→ signed task evidence/Guardian → sequential integration → final combined tests/
+Guardian → review/completion exports → durable COMPLETED state. CLI and daemon
+use it behind coordination flags. Imported reviews can create at most two
+dependent correction missions per lineage; original requirements AND criteria
+must survive. BLOCKED parents require reconciled claims and exact baseline or
+accepted integration evidence. Duplicate corrections do not execute twice.
+
+Crash tests terminate a controller between Git merge and durable integration
+completion. They verify preservation, rollback of only the owned checkout,
+fresh fencing and completed-output reuse; seven provider calls stay seven.
+Daemon resumption requires ACS_ENABLE_TEAM_RECOVERY=1 and expired leases/dead
+owner proof. Integration uses a crash-released lock without holding SQLite's
+writer during tests; a keeper renews completed/integrating leases. Parent-death
+guards reap provider descendants, including escaped sessions.
+
+Shared CPU/RAM/PID cgroup contracts fail closed when enabled without exact
+delegation. Storage is sampled, not a hard quota. Accepted-checkout cleanup is
+opt-in, requires signed completed evidence/ancestry/clean registered worktrees,
+retains branches/artifacts and refuses dirty data. Failed work remains retained.
+Source flags/defaults and exact local procedures: docs/upgrade/TEAM_RUNTIME.md.
+Activation lifetime defaults to one hour; explicit signed lifetime may reach
+24 hours. Existing receipts are never silently replaced or renewed.
+
+New local `acsai verify-team` requires explicit --execute-probe, three activated
+real providers and a new output repository/database. It delivers a fixed baseline
+behavior test and narrow two-task plan validation, runs the production controller,
+requires all three actual provider identities and retains evidence. It is not run
+with authenticated providers in cloud. Missing activation produces a private
+failure report and nonzero exit; no new token is requested. Separate real-provider
+and delegated-cgroup tests remain explicit local-only checks.
+
+Evidence: continuation_tests.json and continuation_static.json hold latest root
+counts/labels; continuation_history.json holds the latest committed-history scan.
+INTEGRATED_TEAM_ACCEPTANCE.md maps the 20-step flow to actual scenario assertions,
+including CLI/daemon, barrier-proven concurrency, consumed dependency handoffs,
+escalation/replanning, crash recovery and a retained advisory lesson. Lessons are
+explicitly human-reviewed fixtures; simulated outcomes cannot verify real lessons.
+Full bridge/companion snapshots remain in their existing reports. Targeted bridge
+guard-related profile: 56 passed. Hosted checks all passed at 2c42da3; refresh newer
+heads. Do not mistake a prior source ZIP for the latest candidate.
+
+Next work, without repeating the implemented source:
+
+1. Inspect newest PR #7 checks/annotations and git status before edits. Keep exact
+   counts in machine reports. Actions log host may still proxy-403; API works.
+2. Finish resource coverage: hard disk quotas, bounded private scratch placement/
+   accounting (provider homes and verification/MCP scratch currently need complete
+   coverage), Git object/log/artifact storage, whole-service controller caps and
+   measured kernel enforcement. Never label sampled storage a hard ceiling.
+3. Implement reviewed baseline-test exceptions plus meaningful coverage comparison;
+   current default denies baseline edits. Preserve that denial until a complete
+   trusted approval path exists. Expand sensitive-area classification/escalation.
+4. Implement MCP HTTP/general mission operations, per-operation remote-write
+   approvals and actual provider-visible least-privilege bindings together. Current
+   external broker permits only exact approved harmless probes; do not add isolated
+   transport scaffolding or treat inventory as connectivity.
+5. Complete remaining legacy producer schemas, measured provider quota/failover,
+   optional alternative-run accounting and language/performance verification
+   profiles. Template/risk/test-command propagation now exists; do not redo it.
+6. Connect evidence-backed lesson production to real outcomes/imported local proof;
+   retain advisory-only semantics and never promote fake mission outcomes.
+7. Extend randomized/flaky campaigns and full dependency/license audit. Review
+   crash boundaries beyond controller termination, e.g. host power loss and artifact
+   fsync. Current evidence does not establish those guarantees.
+8. Rerun affected tests/static/history, commit focused increments, update all
+   requirement coverage and regenerate a source bundle only after the candidate
+   is stable. Keep overall PARTIAL until every cloud-verifiable requirement passes.
+
+Local-only blockers: actual Codex/AGY identity/auth/CLI compatibility, real sandbox
+and delegated cgroup behavior, MCP authentication/tools, services/watchdog, live
+backup/rollback, terminal UI and deployment. Do not ask for credentials or execute
+these on the user's laptop. Provide procedures; keep local checks explicitly
+LOCAL_VERIFICATION_REQUIRED. Ordinary safe development needs no stage approval.
+No cloud background continuation is promised after this turn.
+
+## Historical handoff (absent-source claims below are superseded)
+
 ## Resume state
 
 Read AGENTS.md, docs/progress/PROGRESS.md, this file and the unchanged original

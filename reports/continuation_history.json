@@ -1,0 +1,317 @@
+{
+  "label": "CLOUD_REAL",
+  "commits": 39,
+  "unique_blobs": 728,
+  "candidates": [
+    {
+      "file": "agpair/agpair/executors/claude_auth.py",
+      "commit": "2c42da381ce9",
+      "line": 186,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/companion-extension/src/__tests__/bridgeAuth.test.ts",
+      "commit": "2c42da381ce9",
+      "line": 497,
+      "type": "Secret Keyword",
+      "fingerprint": "20b83e6cfd2a8010feac4ffa9848f9bce95f0817",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/companion-extension/src/bridge/authResolver.ts",
+      "commit": "2c42da381ce9",
+      "line": 21,
+      "type": "Secret Keyword",
+      "fingerprint": "7337a28a8dda1aa9fd02147f24b031c7a61c3551",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/integration/test_claude_cli.py",
+      "commit": "2c42da381ce9",
+      "line": 111,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/integration/test_completion_policy.py",
+      "commit": "2c42da381ce9",
+      "line": 300,
+      "type": "Hex High Entropy String",
+      "fingerprint": "6740d1ecb48c5c9ca3b2a3cb1ca2f4b4d4487473",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/integration/test_completion_policy.py",
+      "commit": "2c42da381ce9",
+      "line": 305,
+      "type": "Hex High Entropy String",
+      "fingerprint": "fe44eb76a1f3f388a3b8b1912e10d1e0c3dc9e63",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/integration/test_doctor.py",
+      "commit": "2c42da381ce9",
+      "line": 744,
+      "type": "Secret Keyword",
+      "fingerprint": "ca88c6098d0d433a8a5fe1b237cd2aa52fd55373",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_claude_code_executor.py",
+      "commit": "2c42da381ce9",
+      "line": 154,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "commit": "2c42da381ce9",
+      "line": 392,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "commit": "2c42da381ce9",
+      "line": 490,
+      "type": "Secret Keyword",
+      "fingerprint": "feb0d6043824d6433ba8a68dacd6fb5d53d4254a",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_executor_lifecycle.py",
+      "commit": "2c42da381ce9",
+      "line": 525,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_local_cli_executor.py",
+      "commit": "2c42da381ce9",
+      "line": 43,
+      "type": "Secret Keyword",
+      "fingerprint": "dbdab9be92cacdae6a97e8601332bfaa8545800f",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/baseline_tests.json",
+      "commit": "2c42da381ce9",
+      "line": 3,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ffe960bcda5285ae6570bdfab1c32e85736aee22",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/secret_scan.json",
+      "commit": "2c42da381ce9",
+      "line": 4,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ffe960bcda5285ae6570bdfab1c32e85736aee22",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "tests/test_gate5_guardian_and_security.py",
+      "commit": "2c42da381ce9",
+      "line": 74,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ccdd30d64e668771bc1efb2028e833b044b6be3b",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 8,
+      "type": "Hex High Entropy String",
+      "fingerprint": "7deba362d4bdbb6950ac694c71cada23ed3a01e3",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 11,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ffd4daf1011c33cd09f7146382c9c1d302b39d75",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 19,
+      "type": "Hex High Entropy String",
+      "fingerprint": "cb2875064cafb2aef0044ed121acba6708c7ba0c",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 27,
+      "type": "Hex High Entropy String",
+      "fingerprint": "fa8ca9f84b27f593622683a93420d683d9ce93dc",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 43,
+      "type": "Hex High Entropy String",
+      "fingerprint": "c88086a6f327066ea8c60fe1cb43019419c708d1",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 51,
+      "type": "Hex High Entropy String",
+      "fingerprint": "44e8b6e6707f1dbb77238281dfcce5524fbcf7f4",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 59,
+      "type": "Hex High Entropy String",
+      "fingerprint": "d29ca4cc070c03bb18698b62ca57f32d7acaef8b",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 67,
+      "type": "Hex High Entropy String",
+      "fingerprint": "40d27d2d7f163f02fd19aedb2f1e9c01f7cc72f8",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 83,
+      "type": "Hex High Entropy String",
+      "fingerprint": "c744c1d6414877c2f391299904cefb3e4051e52c",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 99,
+      "type": "Hex High Entropy String",
+      "fingerprint": "19bea6c088dcd9b3159e386d88ad34336442916c",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 107,
+      "type": "Hex High Entropy String",
+      "fingerprint": "8577a800bfcf52a18515b5ef31e59c6a0bb8f399",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 123,
+      "type": "Hex High Entropy String",
+      "fingerprint": "22debb2c88b422650576a4fbac201fe7dad60441",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 128,
+      "type": "Hex High Entropy String",
+      "fingerprint": "80a204770117721ac6312d8921a925e6b6ef86be",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 136,
+      "type": "Hex High Entropy String",
+      "fingerprint": "8db0ed421fdd957f3b019d83442b28559d51facc",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 168,
+      "type": "Hex High Entropy String",
+      "fingerprint": "0ee81148823d3376d7846bec05f6ba6cf66d4033",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "reports/stage_7_history.json",
+      "commit": "2b07fb149ce1",
+      "line": 176,
+      "type": "Hex High Entropy String",
+      "fingerprint": "e0ce845bee38c699227d70cbc3cf0dda94be2ab0",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/agpair/executors/claude_auth.py",
+      "commit": "a263e04598dc",
+      "line": 186,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/integration/test_doctor.py",
+      "commit": "422d0c34a58d",
+      "line": 740,
+      "type": "Secret Keyword",
+      "fingerprint": "ca88c6098d0d433a8a5fe1b237cd2aa52fd55373",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "tests/test_gate5_guardian_and_security.py",
+      "commit": "e69f67e3b6b3",
+      "line": 74,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ccdd30d64e668771bc1efb2028e833b044b6be3b",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/agpair/executors/claude_auth.py",
+      "commit": "ece9be74be40",
+      "line": 185,
+      "type": "Secret Keyword",
+      "fingerprint": "55587fe36aa44eb8becf7f214715282cc290bccb",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_claude_code_executor.py",
+      "commit": "ece9be74be40",
+      "line": 154,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "agpair/tests/unit/test_claude_code_executor.py",
+      "commit": "21831cd0e4d5",
+      "line": 161,
+      "type": "Secret Keyword",
+      "fingerprint": "fe1bae27cb7c1fb823f496f286e78f1d2ae87734",
+      "known_fixture_or_metadata": true
+    },
+    {
+      "file": "tests/test_gate5_guardian_and_security.py",
+      "commit": "071cc2aedcff",
+      "line": 64,
+      "type": "Hex High Entropy String",
+      "fingerprint": "ccdd30d64e668771bc1efb2028e833b044b6be3b",
+      "known_fixture_or_metadata": true
+    }
+  ],
+  "skipped": [],
+  "limitations": [
+    "Heuristic text scan; no credential validation",
+    "Scanner fingerprint baseline excluded",
+    "Binary blobs not analyzed"
+  ]
+}
