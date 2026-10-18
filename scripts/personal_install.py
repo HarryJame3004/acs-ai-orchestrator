@@ -123,7 +123,7 @@ def install(source: Path, prefix: Path, *, yes=False, wheelhouse: Path | None = 
     home = target / 'installer-home'
     home.mkdir(mode=0o700)
     environment = {k: v for k, v in os.environ.items() if not k.startswith(('ACS_', 'AGPAIR_'))}
-    environment.update(HOME=str(home), ACS_HOME=str(target / 'state'),
+    environment.update(HOME=str(home), ACS_HOME=str(target),
                        ACS_BACKUPS_DIR=str(target / 'backups'),
                        ACS_CREDENTIALS_FILE=str(target / 'unconfigured-credentials.json'))
     log = target / 'install.log'
@@ -145,7 +145,9 @@ def install(source: Path, prefix: Path, *, yes=False, wheelhouse: Path | None = 
         run([python, '-m', 'pip', 'check'])
         run([python, '-I', '-c', 'import acs_team, agpair, sqlite3; assert sqlite3.connect(":memory:").execute("PRAGMA integrity_check").fetchone()[0] == "ok"'])
         run([python, '-m', 'acs_team.cli', '--help'])
-    configuration = {'ACS_HOME': str(target / 'state'), 'ACS_BACKUPS_DIR': str(target / 'backups'),
+    # Legacy bridge discovery intentionally uses ACS_HOME/venv/bin/agpair.
+    # Keep that contract while config.py places the database under ACS_HOME/state.
+    configuration = {'ACS_HOME': str(target), 'ACS_BACKUPS_DIR': str(target / 'backups'),
                      'ACS_CREDENTIALS_FILE': str(target / 'unconfigured-credentials.json')}
     configuration_path = target / 'config.json'
     fd = os.open(configuration_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
