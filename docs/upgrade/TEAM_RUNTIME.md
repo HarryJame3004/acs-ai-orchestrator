@@ -50,6 +50,13 @@ SQLite is writable for heartbeats while integration tests run. Owned launchers
 receive a parent-death signal and reap descendant processes after a controller
 crash. Never kill an arbitrary PID or delete retained worktrees to bypass recovery.
 
+Coordinated execution uses SQLite WAL with `synchronous=FULL` on every database
+connection, synchronizing journal commits before acknowledging them. Legacy
+execution retains `NORMAL`. Evidence publication synchronizes file contents and
+the containing directory before returning a reference to a database caller;
+partial files are not published as evidence. These are durability primitives,
+not a claim of verified host power-loss recovery or storage-device guarantees.
+
 With `ACS_ENABLE_TEAM_RECOVERY=1`, daemon startup recognizes dead controller
 owners with durable validated plans, waits for expired leases and resumes through
 the same reconciler. It never steals live controller ownership. The native

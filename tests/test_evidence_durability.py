@@ -53,3 +53,18 @@ def test_failed_persistence_never_returns_an_evidence_reference(tmp_path,monkeyp
         assert json.loads(published[0].read_text()) == payload
     else:
         assert published == []
+
+
+@pytest.mark.parametrize('enabled,expected',[('0',1),('1',2)])
+def test_coordinated_sqlite_connections_sync_the_wal_before_acknowledgement(tmp_path,monkeypatch,enabled,expected):
+    from acs_team.db import DatabaseManager
+    monkeypatch.setenv('ACS_ENABLE_COORDINATION',enabled)
+    db = DatabaseManager(tmp_path/'fixture.db')
+    for _ in range(2):
+        with db.connection() as connection:
+            assert connection.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'
+            assert connection.execute('PRAGMA synchronous').fetchone()[0] == expected
+            assert connection.execute('PRAGMA foreign_keys').fetchone()[0] == 1
+    db.create_mission('durability-fixture','fixture',str(tmp_path),'Keep history')
+    reopened = DatabaseManager(tmp_path/'fixture.db')
+    assert reopened.get_mission('durability-fixture')['state'] == 'CREATED'

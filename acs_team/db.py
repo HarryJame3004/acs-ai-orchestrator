@@ -1,7 +1,7 @@
 """ACS AI V2 SQLite Database Engine with WAL, FTS5, and Single-Writer Safety.
 Enforces:
 PRAGMA journal_mode=WAL;
-PRAGMA synchronous=NORMAL;
+PRAGMA synchronous=NORMAL (FULL when coordinated mission execution is enabled);
 PRAGMA busy_timeout=5000;
 PRAGMA foreign_keys=ON;
 """
@@ -181,7 +181,15 @@ class DatabaseManager:
 
         con.row_factory = sqlite3.Row
         con.execute("PRAGMA journal_mode=WAL;")
-        con.execute("PRAGMA synchronous=NORMAL;")
+        # Coordinated execution journals Git integration and provider completion.
+        # Its commit acknowledgement must include the WAL sync before an
+        # external Git/provider action can rely on that journal. Preserve the
+        # historical NORMAL setting for callers outside the opt-in team path.
+        coordinated = os.environ.get('ACS_ENABLE_COORDINATION') == '1'
+        con.execute("PRAGMA synchronous=FULL;" if coordinated else "PRAGMA synchronous=NORMAL;")
+        if coordinated and con.execute('PRAGMA synchronous').fetchone()[0] != 2:
+            con.close()
+            raise RuntimeError('Coordinated execution requires synchronous SQLite WAL commits')
         con.execute("PRAGMA busy_timeout=5000;")
         con.execute("PRAGMA foreign_keys=ON;")
         return con
