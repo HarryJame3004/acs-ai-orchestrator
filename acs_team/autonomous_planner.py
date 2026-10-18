@@ -57,6 +57,11 @@ class AutonomousMissionPlanner:
                     worker_preference: str = "auto", test_command: Optional[str] = None,
                     max_retries: int = 3, log_callback: Optional[Callable[[str], None]] = None,
                     risk_profile: Optional[str] = None, dispatch_claim: Optional[str] = None) -> Dict[str, Any]:
+        if os.environ.get('ACS_ENABLE_COORDINATION') == '1':
+            from .team_missions import TeamMissionController
+            return TeamMissionController(self.db, self.registry, evidence_key=self.auth_token).run_mission(
+                mission_id,prompt,repo_path,worker_preference,test_command,max_retries,log_callback,
+                risk_profile,dispatch_claim)
         started = time.monotonic()
         result = self._run_mission(mission_id, prompt, repo_path, worker_preference,
                                    test_command, max_retries, log_callback, risk_profile, dispatch_claim)

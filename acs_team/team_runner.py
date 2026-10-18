@@ -64,7 +64,16 @@ class TeamRunner:
             evidence_key,
             concurrency,
         )
-        self.verify = verification_runner or run_verification
+        from .provider_workers import ProviderWorker
+        self.execution_label = (
+            'LOCAL_VERIFICATION_REQUIRED' if verification_runner is None
+            and all(isinstance(w, ProviderWorker) and w.runtime.executor is None for w in workers.values())
+            else 'CLOUD_SIMULATED'
+        )
+        verifier = verification_runner or run_verification
+        def labeled_verification(command, workspace):
+            return {**verifier(command, workspace), 'label': self.execution_label}
+        self.verify = labeled_verification
         self.control = RuntimeControl(store.db, initialize=False)
         self._allocation = threading.Lock()
 
@@ -118,7 +127,8 @@ class TeamRunner:
                 plan.mission_id, task.task_id, token, worktree=str(worktree)
             )
             # Tester has no worker checkout or implementation at this point.
-            supplied = self.tester.prepare(task, plan.requirements)
+            with worker_context(self.control, plan.mission_id):
+                supplied = self.tester.prepare(task, plan.requirements)
             if not supplied or len(supplied) > 16:
                 raise ValueError("Independent bounded contract tests required")
             protected = {}
@@ -230,9 +240,10 @@ class TeamRunner:
             )
             if reviewer_id is None:
                 raise PermissionError("Independent review unavailable")
-            review = Review.model_validate(
-                self.reviewers[reviewer_id](task, worktree, worker_id, sha).model_dump()
-            )
+            with worker_context(self.control, plan.mission_id):
+                review = Review.model_validate(
+                    self.reviewers[reviewer_id](task, worktree, worker_id, sha).model_dump()
+                )
             if (
                 review.reviewer != reviewer_id
                 or review.implementer != worker_id

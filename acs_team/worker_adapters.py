@@ -437,6 +437,9 @@ class WorkerRegistry:
             "agy-google-a": AGYGoogleAWorker(),
             "agy-google-b": AGYGoogleBWorker(),
         }
+        if os.environ.get("ACS_ENABLE_PROVIDER_CONTRACTS") == "1":
+            from .provider_workers import configured_workers
+            self._workers.update(configured_workers())
 
     def get_worker(self, worker_id: str) -> BaseWorker:
         if worker_id not in self._workers:

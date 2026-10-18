@@ -1,0 +1,13 @@
+{
+  "label": "CLOUD_REAL",
+  "counts": {
+    "ruff": 0,
+    "mypy": 0,
+    "secret_candidates": 15
+  },
+  "new_findings": {
+    "ruff": [],
+    "mypy": [],
+    "secret_candidates": []
+  }
+}

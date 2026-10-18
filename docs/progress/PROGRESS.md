@@ -1,5 +1,18 @@
 # Upgrade progress
 
+## Active continuation — provider-backed team execution
+
+Added pinned provider catalogs, isolated auth/toolchain mounts, mandatory sandbox
+challenge plus signed expiring activation, explicit local provider-activate CLI,
+contract-backed registry workers, host-owned independent tester/reviewer sessions,
+and natural-language/daemon routing through TeamMissionController and TeamRunner.
+Native protocol fake-provider E2E executes real Git/SQLite/pytest/Guardian and review
+export. 157 passed / 5 local skips (128 CLOUD_REAL, 29 CLOUD_SIMULATED); scoped
+Ruff/mypy 0/0, zero new candidates. Evidence: reports/provider_team_tests.json and
+provider_team_static.json. Real authentication/bwrap remains local-only. Work
+continues on crash reconciliation, aggregate limits and reviewed re-execution;
+older acceptance/handoff below describe the preceding checkpoint.
+
 ## Current checkpoint — integrated candidate PARTIAL
 
 The overnight directive explicitly authorizes dependent stages without waiting

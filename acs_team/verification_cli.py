@@ -11,6 +11,30 @@ from .recovery import private_write
 
 
 def execute(args):
+    if args.command == 'provider-activate':
+        if not args.execute_probe:
+            raise SystemExit('Activation requires explicit --execute-probe on the local host')
+        from .providers import load_catalog, ProviderRuntime, Activations
+        from .config import AUTH_TOKEN_PATH, PROTECTED_PATHS
+        from .auth import get_or_create_auth_token
+        catalog = load_catalog(Path(args.contracts))
+        contract = next((p for p in catalog.providers if p.worker_id == args.worker_id), None)
+        if contract is None:
+            raise ValueError('Provider is not in the approved catalog')
+        runtime = ProviderRuntime((STATE_DIR, AUTH_TOKEN_PATH, *PROTECTED_PATHS,
+                                   *(Path(p.auth_home) for p in catalog.providers if p != contract)))
+        key = get_or_create_auth_token(STATE_DIR/'evidence.key')
+        receipt = Activations(key).verify(contract, runtime)
+        target = STATE_DIR/'provider-activation'
+        target.mkdir(mode=0o700, exist_ok=True)
+        import os
+        if target.is_symlink() or target.stat().st_uid != os.getuid() or target.stat().st_mode & 0o077:
+            raise PermissionError('Activation directory is not private and owned')
+        # A new output is mandatory; revocation/renewal is an explicit operator action.
+        private_write(target/f'{contract.worker_id}.json', (json.dumps(receipt)+'\n').encode())
+        print(json.dumps({'worker':contract.worker_id, 'status':'PASS', 'label':'LOCAL_VERIFICATION_REQUIRED',
+                          'expires_at':receipt['expires_at']}))
+        return
     if args.command == "verify-local":
         result = verify_local(
             Path(args.repository),
@@ -104,6 +128,11 @@ def execute(args):
 
 
 def register(subparsers, mcp_subs):
+    activation = subparsers.add_parser('provider-activate', help='Explicit local sandbox/auth challenge and signed activation')
+    activation.add_argument('worker_id', choices=['codex-primary','agy-google-a','agy-google-b'])
+    activation.add_argument('--contracts', required=True)
+    activation.add_argument('--execute-probe', action='store_true')
+    activation.set_defaults(func=execute)
     verify = subparsers.add_parser(
         "verify-local",
         help="Read-only environment inspection; optional disposable probes",

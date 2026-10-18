@@ -141,6 +141,9 @@ class ReviewWorkflow:
         except (ValueError, TypeError):
             plan = {}
         criteria = plan.get("acceptance_criteria", []) if isinstance(plan, dict) else []
+        if isinstance(plan, dict) and isinstance(plan.get('tasks'), list):
+            criteria = list(dict.fromkeys(c for task in plan['tasks'] if isinstance(task, dict)
+                                          for c in task.get('acceptance_criteria', []) if isinstance(c, str)))
         guardian = [
             e["details"]
             for e in events
