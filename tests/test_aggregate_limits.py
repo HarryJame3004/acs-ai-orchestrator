@@ -58,3 +58,18 @@ def test_exact_cgroup_contract_rejects_unlimited_or_mismatched_budgets(tmp_path)
         limits.validate_kernel_contract(mount)
     with pytest.raises(PermissionError):
         AggregateLimits(Path('/sys/fs/cgroup'),(tmp_path,)).validate_kernel_contract()
+
+
+@pytest.mark.local_only(reason='Requires an explicitly enabled empty delegated cgroup v2; cloud delegation is unavailable')
+def test_local_owned_launcher_really_joins_delegated_kernel_group(tmp_path):
+    if os.environ.get('ACS_RUN_LOCAL_AGGREGATE_PROBE') != '1':
+        pytest.skip('Operator must explicitly enable the delegated-kernel probe')
+    limits = configured_limits()
+    assert limits is not None
+    assert not (limits.cgroup/'cgroup.procs').read_text().strip(), 'Use an empty dedicated group; never probe active worker groups'
+    result = ProcessSupervisor().run([sys.executable,'-c',
+        'from pathlib import Path;print(Path("/proc/self/cgroup").read_text())'],tmp_path,timeout=10)
+    assert result['exit_code']==0 and result['reason']=='completed'
+    expected = str(limits.cgroup.relative_to('/sys/fs/cgroup'))
+    assert result['stdout'].strip() == '0::/'+expected
+    assert not (limits.cgroup/'cgroup.procs').read_text().strip()

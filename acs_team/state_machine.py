@@ -167,12 +167,33 @@ class StateMachine:
             MissionState.INTEGRATING.value,
             MissionState.TESTING.value,
             MissionState.PLANNING.value,
+            MissionState.READY.value,
+            MissionState.REVIEWING.value,
         ]
         reconciled = []
         for state in active_states:
             missions = self.db.list_missions(limit=100, state=state)
             for m in missions:
                 mid = m["mission_id"]
+                import os
+                if os.environ.get('ACS_ENABLE_COORDINATION') == '1':
+                    with self.db.connection() as con:
+                        exists = con.execute("SELECT 1 FROM sqlite_master WHERE name='team_runs' AND type='table'").fetchone()
+                        run = con.execute('SELECT * FROM team_runs WHERE mission=?',(mid,)).fetchone() if exists else None
+                    if run:
+                        import json
+                        from .team_recovery import owner_alive
+                        from .schemas import Plan, parse_data
+                        if owner_alive(json.loads(run['owner'])):
+                            continue  # A second observer must not steal a live run.
+                        if run['phase']=='ACTIVE' and run['plan']:
+                            parse_data(Plan,run['plan'])
+                            self.db.update_mission_state(mid,'RECOVERING',expected_state=m['state'],
+                                error_info='Interrupted team run; durable plan awaits fenced Git/claim reconciliation')
+                            updated = self.db.get_mission(mid)
+                            if updated:
+                                reconciled.append(updated)
+                            continue
                 logger.warning(
                     f"Found interrupted mission {mid} in state {m['state']}; recovering..."
                 )

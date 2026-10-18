@@ -232,7 +232,9 @@ class Activations:
     def _signature(self, receipt: dict) -> str:
         return hmac.new(self.key, json.dumps(receipt, sort_keys=True, separators=(',', ':')).encode(), hashlib.sha256).hexdigest()
 
-    def verify(self, contract: ProviderContract, runtime: ProviderRuntime) -> dict:
+    def verify(self, contract: ProviderContract, runtime: ProviderRuntime, *, valid_for_seconds: int = 3600) -> dict:
+        if type(valid_for_seconds) is not int or not 900 <= valid_for_seconds <= 86400:
+            raise ValueError('Explicit activation lifetime must be 15 minutes to 24 hours')
         if not runtime.boundary_probe(contract):
             raise PermissionError('Real sandbox boundary probe is required for activation')
         nonce = secrets.token_hex(16)
@@ -243,16 +245,19 @@ class Activations:
                 raise PermissionError('Authenticated provider challenge failed')
         issued = self.clock()
         receipt = {'worker_id':contract.worker_id, 'contract_digest':contract.digest(), 'verified_at':issued,
-                   'expires_at':issued+3600, 'session_id':result['session_id'], 'sandbox_verified':True,
+                   'expires_at':issued+valid_for_seconds, 'valid_for_seconds':valid_for_seconds,
+                   'session_id':result['session_id'], 'sandbox_verified':True,
                    'label':'LOCAL_VERIFICATION_REQUIRED'}
         return {**receipt, 'signature':self._signature(receipt)}
 
     def valid(self, contract: ProviderContract, receipt: dict) -> bool:
         unsigned = {k:v for k,v in receipt.items() if k != 'signature'}
         try:
+            lifetime = receipt.get('valid_for_seconds',3600)
             return (hmac.compare_digest(self._signature(unsigned), receipt['signature'])
+                    and type(lifetime) is int and 900 <= lifetime <= 86400
                     and receipt['worker_id'] == contract.worker_id and receipt['contract_digest'] == contract.digest()
-                    and receipt['verified_at'] <= self.clock() < receipt['expires_at'] <= receipt['verified_at']+3600
+                    and receipt['verified_at'] <= self.clock() < receipt['expires_at'] <= receipt['verified_at']+lifetime
                     and receipt['sandbox_verified'] is True and receipt['label'] == 'LOCAL_VERIFICATION_REQUIRED')
         except (KeyError, TypeError, ValueError):
             return False

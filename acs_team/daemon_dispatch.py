@@ -82,6 +82,7 @@ class DaemonDispatcher:
                 dispatch_claim=owner,
                 test_command=options.get("test_command"),
                 risk_profile=options.get("risk"),
+                template=options.get('template','add-feature'),
             )
             return result
         except Exception as exc:
@@ -108,6 +109,8 @@ class DaemonDispatcher:
                 self.active.pop(future)
         if self.active:
             return 0
+        if self._recover_one():
+            return 1
         with self.db.connection() as con:
             for sql in DISPATCH_SQL:
                 con.execute(sql)
@@ -138,6 +141,47 @@ class DaemonDispatcher:
         future = self.pool.submit(self._run, mission, owner)
         self.active[future] = (mission_id, owner)
         return 1
+
+    def _recover_one(self) -> bool:
+        """Resume only a dead controller's previously authorized validated run."""
+        if os.environ.get('ACS_ENABLE_TEAM_RECOVERY') != '1' or os.environ.get('ACS_ENABLE_COORDINATION') != '1':
+            return False
+        from .team_recovery import owner_alive
+        import time
+        with self.db.connection() as con:
+            if not con.execute("SELECT 1 FROM sqlite_master WHERE name='team_runs' AND type='table'").fetchone():
+                return False
+            rows = con.execute('SELECT r.mission,r.owner FROM team_runs r JOIN missions m ON m.mission_id=r.mission WHERE r.phase="ACTIVE" AND r.plan IS NOT NULL AND m.state="RECOVERING" ORDER BY m.created_at LIMIT 100').fetchall()
+            eligible = [r for r in rows if not owner_alive(json.loads(r['owner'])) and not con.execute(
+                'SELECT 1 FROM coord_tasks WHERE mission=? AND state IN ("RUNNING","COMPLETED","INTEGRATING") AND expires>?',
+                (r['mission'],time.time())).fetchone()]
+        if not eligible:
+            return False
+        mission = eligible[0]['mission']
+        def resume():
+            try:
+                if self.factory:
+                    controller = self.factory(self.db)
+                else:
+                    from .team_missions import TeamMissionController
+                    controller = TeamMissionController(self.db)
+                self.control.require_dispatch()
+                result = controller.resume_mission(mission)
+                with self.db.connection() as con:
+                    if con.execute("SELECT 1 FROM sqlite_master WHERE name='daemon_dispatch' AND type='table'").fetchone():
+                        con.execute('UPDATE daemon_dispatch SET state="FINISHED" WHERE mission=?',(mission,))
+                return result
+            except Exception as exc:
+                # The mission lock/reconciler owns state changes. Do not turn a
+                # concurrent lock refusal into cancellation of another owner.
+                self.db.record_audit_event(mission,'daemon-recovery','RECOVERY_BLOCKED',
+                                           {'reason':redact(str(exc))[:1024]})
+                return {'status':'BLOCKED'}
+        if self.pool is None:
+            self.pool = ThreadPoolExecutor(max_workers=1,thread_name_prefix='acs-daemon-mission')
+        future = self.pool.submit(resume)
+        self.active[future] = (mission,'recovery')
+        return True
 
     def close(self) -> None:
         self.closed = True

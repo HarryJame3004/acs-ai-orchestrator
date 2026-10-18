@@ -1,8 +1,8 @@
 {
   "label": "CLOUD_REAL",
   "counts": {
-    "ruff": 99,
-    "mypy": 13,
+    "ruff": 0,
+    "mypy": 0,
     "secret_candidates": 15
   },
   "new_findings": {

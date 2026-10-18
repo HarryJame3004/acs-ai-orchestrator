@@ -1,5 +1,68 @@
 # ACS AI upgrade acceptance checkpoint
 
+## Current continuation (supersedes the historical source-gap snapshot below)
+
+Candidate remains **PARTIAL**; release/deployment **BLOCKED**. Source commits
+35372c1 and bf9e542 implement provider activation contracts, isolated auth/toolchain
+bindings, independent production role sessions, actual CLI/daemon TeamRunner
+dispatch, durable claim/Git/process recovery and bounded review-driven execution.
+The next tested increment adds daemon crash resumption, preservation of original
+criteria during blocked/completed-parent corrections, dependency handoff delivery,
+whole-mission completion artifacts, template/test-command propagation, measured
+controller resources and opt-in clean accepted-checkout retention. Consult
+docs/upgrade/TEAM_RUNTIME.md and git log for the latest source checkpoint.
+
+The original six HIGH source headings below describe the preceding candidate;
+they are no longer an accurate claim that these interfaces are absent. Actual
+authenticated provider/account identity, CLI compatibility and sandbox/cgroup
+behavior remain **LOCAL_VERIFICATION_REQUIRED**. No local runtime was inspected
+or modified, no credential requested, no Core modification, main push, merge or
+deployment occurred. No stage or full system is promoted to PASS.
+
+Current evidence: continuation_tests.json, continuation_static.json,
+continuation_history.json and INTEGRATED_TEAM_ACCEPTANCE.md. The native-protocol
+scenario now covers real production CLI/service/daemon paths, concurrent workers,
+a dependent task consuming both handoffs, independent pytest/review, final
+Guardian/evidence/dashboard/export, crash recovery without repeating provider
+sessions, and imported-review escalation/re-execution. Every provider-backed
+variant is CLOUD_SIMULATED. A verified lesson is explicitly seeded by fixture
+human review; fake outcomes never verify new production lessons.
+
+Remaining **HIGH source** work: a hard aggregate disk ceiling and accounting for
+all scratch/tool/Git/artifact storage; whole-service controller limits; production
+readiness of reviewed baseline-test exceptions and coverage comparison. Kernel
+cgroup CPU/RAM/PID contracts are implemented but require actual local delegation
+proof. Sampled storage monitoring is not a filesystem quota.
+
+Remaining **MEDIUM source/acceptance** work: MCP HTTP/general mission operations,
+per-operation remote-write approvals and verified worker-visible bindings;
+complete sensitive-scope classification, all legacy producer schemas, measured
+quota/failover/alternative-run accounting, specialized language/performance
+profiles and automatic evidence-backed lesson production. Complete randomized
+campaign and dependency/license audit remain pending. Existing conservative
+denials remain in force. The 20-step mapping is scenario evidence, not proof that
+every V2.3–V2.6 acceptance bullet passed.
+
+Migration 6 adds team_runs, integration_intents, coord_recoveries and review_runs
+through additive SQL shared with stores. Crash tests cover controller process
+termination, SQLite writer availability and exact owned Git reconciliation;
+power-loss durability is not established. No new third-party dependency was added.
+New opt-ins default off: ACS_ENABLE_PROVIDER_CONTRACTS, ACS_ENABLE_COORDINATION,
+ACS_ENABLE_AGGREGATE_LIMITS, ACS_ENABLE_TEAM_RECOVERY,
+ACS_ENABLE_ACCEPTED_WORKTREE_CLEANUP and ACS_ENABLE_REVIEW_EXECUTION. Existing
+supervision/review/daemon/intelligence flags still apply. Activation lifetime is
+explicitly signed (one-hour default, 24-hour maximum); no automatic renewal or
+credential rotation occurs.
+
+Recovery retains failed/dirty work, branches and evidence. Accepted checkout
+cleanup never forces removal or prunes unrelated worktree registrations. Backups,
+copy migrations, scratch restores and rollback procedures remain in the existing
+local deployment guide. Live rollout, protected operations and release remain
+approval-gated. This is a saved development checkpoint; no background work is
+promised after the task ends.
+
+## Historical acceptance snapshot (counts and absent-source claims superseded)
+
 Overall **PARTIAL**. Live activation/release **BLOCKED** on the HIGH source gaps
 below. This report records implemented, verified increments; it does not certify
 the complete V2.3–V2.6 system. Package version stays 2.2.0. No live system was

@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import resource
+
 from .db import DatabaseManager
 from .security import redact
 
 
 def runtime_snapshot(db: DatabaseManager) -> dict:
+    measured = resource.getrusage(resource.RUSAGE_SELF)
     missions = db.list_missions(limit=20)
     with db.connection() as con:
         tables = {
@@ -74,7 +77,10 @@ def runtime_snapshot(db: DatabaseManager) -> dict:
             "emergency_stop": stopped,
             "resources": {
                 "database_bytes": db.db_path.stat().st_size,
-                "cpu_memory": "NOT_MEASURED",
+                "cpu_memory": "CONTROLLER_ONLY",
+                "controller_cpu_seconds":measured.ru_utime+measured.ru_stime,
+                "controller_peak_rss_bytes":measured.ru_maxrss*1024,
+                "worker_aggregate": "LOCAL_VERIFICATION_REQUIRED",
             },
         }
     )

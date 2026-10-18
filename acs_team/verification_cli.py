@@ -24,7 +24,7 @@ def execute(args):
         runtime = ProviderRuntime((STATE_DIR, AUTH_TOKEN_PATH, *PROTECTED_PATHS,
                                    *(Path(p.auth_home) for p in catalog.providers if p != contract)))
         key = get_or_create_auth_token(STATE_DIR/'evidence.key')
-        receipt = Activations(key).verify(contract, runtime)
+        receipt = Activations(key).verify(contract, runtime,valid_for_seconds=args.valid_for_seconds)
         target = STATE_DIR/'provider-activation'
         target.mkdir(mode=0o700, exist_ok=True)
         import os
@@ -132,6 +132,7 @@ def register(subparsers, mcp_subs):
     activation.add_argument('worker_id', choices=['codex-primary','agy-google-a','agy-google-b'])
     activation.add_argument('--contracts', required=True)
     activation.add_argument('--execute-probe', action='store_true')
+    activation.add_argument('--valid-for-seconds',type=int,default=3600,help='Explicit signed activation lifetime, 900–86400 seconds; default 3600')
     activation.set_defaults(func=execute)
     verify = subparsers.add_parser(
         "verify-local",

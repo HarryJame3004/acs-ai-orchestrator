@@ -381,7 +381,7 @@ def cmd_natural_language_mission(args):
             state="QUEUED",
             assigned_workers=[worker_pref],
             prompt=prompt,
-            plan_json=json.dumps({'dispatch_options': {'test_command': args.test_cmd, 'risk': getattr(args, 'risk', None)}}),
+            plan_json=json.dumps({'dispatch_options': {'test_command': args.test_cmd, 'risk': getattr(args, 'risk', None), 'template':getattr(args,'template','add-feature')}}),
         )
         if os.environ.get('ACS_ENABLE_DAEMON_EXECUTION') == '1':
             print(json.dumps({'mission_id':mission_id,'status':'QUEUED','execution':'daemon','repository':str(repo_path)}))
@@ -447,6 +447,7 @@ def cmd_natural_language_mission(args):
             test_command=args.test_cmd,
             log_callback=_cli_log,
             risk_profile=getattr(args, 'risk', None),
+            template=getattr(args,'template','add-feature'),
         )
     except PermissionError as pe:
         print(f"\n[SECURITY REJECTION] {pe}\n")

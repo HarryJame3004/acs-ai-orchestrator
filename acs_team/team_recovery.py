@@ -206,3 +206,58 @@ class TeamRecovery:
                                 (token,store.clock()+300,mission,row['task']))
             recovered.append(row['task'])
         return recovered
+
+    def cleanup_accepted_workers(self, mission: str, repository: Path) -> list[dict]:
+        """Remove clean accepted checkouts, retain their branches/evidence.
+
+        Never force removal, prune unrelated registrations or touch failed work.
+        Caller must already own the mission lock through finalization.
+        """
+        from .guardian import Guardian
+        Guardian(self.db,self.key).verify_corelock_safety(str(repository), [])
+        record = self.db.get_mission(mission)
+        if not record or record['state'] != 'COMPLETED':
+            raise PermissionError('Cleanup requires completed mission evidence')
+        reference = Path(record['evidence_ref'] or '')
+        artifacts = self.worktrees.parent/'artifacts'
+        if reference.is_symlink() or artifacts not in reference.resolve().parents or not reference.is_file() or reference.stat().st_size > 1024*1024:
+            raise PermissionError('Cleanup evidence unavailable')
+        evidence = json.loads(reference.read_bytes())
+        if evidence.get('mission_id') != mission or not EvidenceEngine(self.key).verify_evidence(evidence,record['commit_sha']):
+            raise PermissionError('Cleanup evidence invalid')
+        if self.git(repository,'rev-parse',record['git_branch']) != record['commit_sha']:
+            raise PermissionError('Accepted branch changed; retain checkouts')
+        results = []
+        integration_paths = set()
+        for row in CoordinationStore(self.db).tasks(mission):
+            if row['state'] != 'INTEGRATED':
+                raise PermissionError('Cleanup cannot discard unfinished work')
+            integrated = json.loads(row['result'])
+            integration_paths.add(integrated['integration_worktree'])
+            completion = integrated['worker_completion']
+            path = Path(completion['worktree'])
+            if not path.exists():
+                continue
+            self._owned_worktree(repository,path,completion['branch'])
+            if not completion['branch'].startswith(f'acsai/worker/{mission}/') or self.git(path,'rev-parse','HEAD') != completion['commit']:
+                raise PermissionError('Worker checkout changed; retain it')
+            if row['process'] and owner_alive(json.loads(row['process'])):
+                raise PermissionError('Owned worker process is still alive')
+            self.git(repository,'merge-base','--is-ancestor',completion['commit'],record['commit_sha'])
+            self.git(repository,'worktree','remove',str(path))
+            result = {'task_id':row['task'],'status':'REMOVED_CLEAN_ACCEPTED_CHECKOUT','branch_retained':completion['branch']}
+            self.db.record_audit_event(mission,'retention','WORKTREE_CLEANED',result)
+            results.append(result)
+        for name in sorted(integration_paths):
+            path = Path(name)
+            if not path.exists():
+                continue
+            self._owned_worktree(repository,path,record['git_branch'])
+            if self.git(path,'rev-parse','HEAD') != record['commit_sha']:
+                raise PermissionError('Final integration checkout changed; retain it')
+            self.git(repository,'worktree','remove',str(path))
+            result = {'task_id':'mission-integration','status':'REMOVED_CLEAN_ACCEPTED_CHECKOUT',
+                      'branch_retained':record['git_branch']}
+            self.db.record_audit_event(mission,'retention','WORKTREE_CLEANED',result)
+            results.append(result)
+        return results

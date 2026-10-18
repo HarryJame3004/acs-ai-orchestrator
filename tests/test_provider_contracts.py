@@ -137,3 +137,8 @@ def test_successful_local_challenge_is_signed_with_exact_expiry_and_fresh_challe
     assert authority.valid(c,signed)
     assert signed['expires_at']==signed['verified_at']+3600
     assert signed['signature'] != authority.verify(c,runtime)['signature']
+    overnight=authority.verify(c,runtime,valid_for_seconds=43200)
+    assert authority.valid(c,overnight) and overnight['expires_at']==43350.
+    assert not authority.valid(c,{**overnight,'valid_for_seconds':86400})
+    with pytest.raises(ValueError):
+        authority.verify(c,runtime,valid_for_seconds=86401)
