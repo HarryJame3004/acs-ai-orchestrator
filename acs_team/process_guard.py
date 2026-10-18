@@ -147,12 +147,13 @@ def run(argv: list[str], expected_parent: int | None = None) -> int:
                 return 128 + child_signal
             return result
         if stopping[0]:
-            if cleanup_started is None:
-                cleanup_started = time.monotonic()
             if not sent_term:
                 _signal_owned(os.getpid(), signal.SIGTERM)
                 sent_term = True
-            if time.monotonic() - cleanup_started >= 0.1:
+                # Discovery can be slow on kernels without /proc children.
+                # Start grace after TERM delivery and reap before scanning again.
+                cleanup_started = time.monotonic()
+            elif cleanup_started is not None and time.monotonic() - cleanup_started >= 0.1:
                 _signal_owned(os.getpid(), signal.SIGKILL)
             # Only ECHILD above establishes completed cleanup. A wall-clock
             # deadline here can expire while this helper is descheduled, after

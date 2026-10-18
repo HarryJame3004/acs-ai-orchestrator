@@ -205,6 +205,11 @@ class ProcessSupervisor:
                     if cancelled and cancelled():
                         reason = "cancelled"
                     elif time.monotonic() >= deadline:
+                        # A monitor or scheduler pause can outlive the child.
+                        # Refresh the observation before deciding to terminate;
+                        # preserve the actual status, including nonzero exits.
+                        if process.poll() is not None:
+                            break
                         reason = "timeout"
                     elif exceeded.is_set():
                         reason = "output_limit"

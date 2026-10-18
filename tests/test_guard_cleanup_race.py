@@ -24,7 +24,9 @@ original_signal = guard._signal_owned
 monotonic = time.monotonic
 shift = [0.0]
 observed = [False]
+signals = []
 def scheduled_pause(root, sig):
+    signals.append(int(sig))
     original_signal(root, sig)
     if sig == signal.SIGTERM:
         deadline = monotonic() + 5
@@ -61,9 +63,60 @@ worker = worker.replace('os._exit(0)', 'os._exit(' + sys.argv[2] + ')')
 status = guard.run([sys.executable, '-c', worker])
 print('CONTROLLED_WAITABLE_CHILD', observed[0], 'GUARD_RESULT', status, flush=True)
 assert observed[0], 'Scheduling injection did not execute'
+assert signals == [int(signal.SIGTERM)], 'Must reap a waitable child before another expensive discovery/signal pass'
 raise SystemExit(status)
 '''
     result = ProcessSupervisor().run([sys.executable, '-I', '-c', code, str(target), str(worker_status)], tmp_path, timeout=20)
     assert 'CONTROLLED_WAITABLE_CHILD True' in result['output'], result
     assert result['reason'] == 'completed', result
     assert result['exit_code'] == worker_status, result
+
+
+@pytest.mark.parametrize('relative', ['acs_team/process_guard.py', 'agpair/agpair/executors/process_guard.py'])
+def test_term_ignoring_adopted_child_is_killed_and_reaped(tmp_path, relative):
+    target = Path(__file__).resolve().parents[1]/relative
+    code = r'''
+import importlib.util, os, signal, sys
+from pathlib import Path
+spec=importlib.util.spec_from_file_location('guard_under_test',sys.argv[1])
+guard=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(guard)
+original=guard._signal_owned
+signals=[]
+def record(root,sig):
+    signals.append(int(sig))
+    original(root,sig)
+guard._signal_owned=record
+worker="""
+import os,signal,sys
+from pathlib import Path
+read,write=os.pipe()
+pid=os.fork()
+if pid==0:
+    os.close(read)
+    os.setsid()
+    signal.signal(signal.SIGTERM,signal.SIG_IGN)
+    os.write(write,b'1')
+    os.close(write)
+    while True: signal.pause()
+os.close(write)
+assert os.read(read,1)==b'1'
+os.close(read)
+Path(sys.argv[1]).write_text(str(pid))
+os._exit(0)
+"""
+marker=Path(sys.argv[2])
+status=guard.run([sys.executable,'-c',worker,str(marker)])
+assert status==0
+assert signals[0]==int(signal.SIGTERM) and int(signal.SIGKILL) in signals
+try:
+    os.kill(int(marker.read_text()),0)
+except ProcessLookupError:
+    pass
+else:
+    raise AssertionError('Adopted child was not reaped')
+print('TERM_KILL_REAP_VERIFIED',flush=True)
+'''
+    result = ProcessSupervisor().run([sys.executable,'-I','-c',code,str(target),str(tmp_path/'child.pid')], tmp_path, timeout=20)
+    assert result['exit_code'] == 0 and result['reason'] == 'completed', result
+    assert 'TERM_KILL_REAP_VERIFIED' in result['output']
