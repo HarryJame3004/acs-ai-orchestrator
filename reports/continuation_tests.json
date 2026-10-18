@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "pytest_exit_code": 0,
-  "duration_s": 124.678,
+  "duration_s": 153.549,
   "counts": {
     "skipped": 7,
     "passed": 171

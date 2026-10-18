@@ -12,6 +12,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+HISTORY_REPORTS = frozenset({'reports/stage_7_history.json','reports/continuation_history.json'})
 
 
 def git(*args: str) -> bytes:
@@ -25,7 +26,7 @@ def known_report_metadata(name: str, line: str, detector_hash: str,
     Never blanket-exclude reports: unknown values, other fields and source files
     still fail. Match the detector hash as well as the exact field/value identity.
     """
-    if name != "reports/stage_7_history.json":
+    if name not in HISTORY_REPORTS:
         return False
     match = re.fullmatch(r'\s*"(fingerprint|commit)"\s*:\s*"([a-f0-9]{7,40})"\s*,?\s*', line)
     if match is None:
@@ -34,7 +35,16 @@ def known_report_metadata(name: str, line: str, detector_hash: str,
     if hashlib.sha1(value.encode()).hexdigest() != detector_hash:
         return False
     if field == "fingerprint":
-        return value in known_fingerprints
+        if value in known_fingerprints:
+            return True
+        if name == 'reports/continuation_history.json':
+            # The first continuation artifact included the detector's metadata
+            # findings about earlier reports. Recognize exactly ONE derivation
+            # from already-known fingerprints/public Git refs, never arbitrary
+            # values, trusted flags, or recursive/unbounded hash chains.
+            public_metadata = known_fingerprints | {commit[:length] for commit in commits for length in range(7,41)}
+            return value in {hashlib.sha1(item.encode()).hexdigest() for item in public_metadata}
+        return False
     return any(commit.startswith(value) for commit in commits)
 
 
@@ -85,7 +95,7 @@ def main() -> int:
             target.write_bytes(content)
             target.chmod(0o600)
             mapping[str(target)] = (name, commit)
-            if name == "reports/stage_7_history.json":
+            if name in HISTORY_REPORTS:
                 metadata_lines[str(target)] = content.decode("utf-8").splitlines()
         scan = subprocess.run([sys.executable, "-m", "detect_secrets", "scan", "--no-verify", "--all-files", str(canary), *mapping],
                               cwd=directory, capture_output=True, text=True, check=True)
