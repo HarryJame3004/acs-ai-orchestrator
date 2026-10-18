@@ -137,7 +137,8 @@ class QualityEngine:
                 t_score = 0.0
                 veto_reasons.append("Automated test suite failed.")
         else:
-            t_score = 1.0  # No tests required / empty test suite
+            t_score = 0.0
+            veto_reasons.append("Automated test suite was not executed.")
 
         # S: Static analysis
         s_score = float(static_result.get("score", 1.0))

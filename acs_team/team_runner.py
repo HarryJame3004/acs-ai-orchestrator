@@ -74,8 +74,8 @@ class TeamRunner:
             else 'CLOUD_SIMULATED'
         )
         verifier = verification_runner or run_verification
-        def labeled_verification(command, workspace):
-            return {**verifier(command, workspace), 'label': self.execution_label}
+        def labeled_verification(command, workspace, timeout=180):
+            return {**verifier(command, workspace, timeout), 'label': self.execution_label}
         self.verify = labeled_verification
         self.control = RuntimeControl(store.db, initialize=False)
         self._allocation = threading.Lock()
