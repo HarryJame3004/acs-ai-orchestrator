@@ -186,7 +186,7 @@
   },
   "profile_source_note": "Final root/source static/history and latest randomized/stress at 511ff9b. Bridge/companion unchanged since ecbdbb7. Earlier profiles retain their own scope. Later passing repetitions do not erase a failed campaign.",
   "static": {
-    "command": ".venv/bin/python scripts/cloud_static.py --report /tmp/acs-delivery-static.json",
+    "command": ".venv/bin/python scripts/cloud_static.py --report /tmp/acs-packaging-static.json",
     "artifact": "reports/final_cloud_static.json",
     "counts": {
       "ruff": 0,
@@ -197,7 +197,8 @@
       "ruff": 0,
       "mypy": 0,
       "secret_candidates": 0
-    }
+    },
+    "scope": "Includes packaging fix e0c0a61; later checksum/record-only files separately detector scanned with zero candidates."
   },
   "history": {
     "command": ".venv/bin/python scripts/security_scan.py --history --report /tmp/acs-final-history.json",
@@ -364,7 +365,11 @@
     "fix": "Explicit fixed manifest ZipInfo timestamp/mode/compression",
     "targeted_command": ".venv/bin/python -m pytest tests/scaffolding/test_local_bundle.py -q",
     "targeted_result": "1 passed with forced future clock and byte equality; original exclusion/no-overwrite assertions preserved",
-    "complete_archive_comparison": "PENDING",
-    "scope": "Packaging helper changed after 511ff9b app regression; application source unchanged."
+    "complete_archive_comparison": "PASS: two full-source builds byte-identical",
+    "scope": "Packaging helper changed after 511ff9b app regression; application source unchanged.",
+    "archive_record": "reports/SOURCE_ARCHIVE.md",
+    "archive_commit": "e0c0a61",
+    "archive_bytes": 1393673,
+    "automatic_activation": false
   }
 }

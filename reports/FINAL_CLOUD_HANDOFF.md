@@ -1,3 +1,8 @@
+Packaging follow-up: e0c0a61 fixes generated manifest timestamps and strengthens
+the packaging test. Application code remains 511ff9b. Full-source archive was
+built twice byte-identically; external checksum/snapshot details are in
+SOURCE_ARCHIVE.md. It is a PARTIAL development candidate, not deployment approval.
+
 # Next cloud session — PARTIAL candidate
 
 Latest application source is 511ff9b0c69f94242b2b2bf6dc6291d5b69963d4. Resolve
