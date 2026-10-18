@@ -1,7 +1,7 @@
 """ACS AI V2 SQLite Database Engine with WAL, FTS5, and Single-Writer Safety.
 Enforces:
 PRAGMA journal_mode=WAL;
-PRAGMA synchronous=NORMAL;
+PRAGMA synchronous=NORMAL (FULL when coordinated mission execution is enabled);
 PRAGMA busy_timeout=5000;
 PRAGMA foreign_keys=ON;
 """
@@ -14,10 +14,12 @@ import json
 import logging
 import os
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Optional
 
-from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR
+from .config import ACS_CORE_DIR, DB_PATH, LOGS_DIR, PROTECTED_PATHS
+from .security import redact
 
 logger = logging.getLogger("acs_ai.db")
 
@@ -145,7 +147,26 @@ class DatabaseManager:
     def __init__(self, db_path: Optional[Path] = None, read_only: bool = False):
         self.db_path = Path(db_path or DB_PATH)
         self.read_only = read_only
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        canonical = self.db_path.resolve()
+        if any(canonical == p or p in canonical.parents for p in PROTECTED_PATHS):
+            raise PermissionError('Database path overlaps a protected project')
+        if self.db_path.is_symlink() or (self.db_path.exists() and self.db_path.stat().st_nlink != 1):
+            raise PermissionError('Database must not be a symlink or hard link')
+        if read_only:
+            if not self.db_path.is_file():
+                raise FileNotFoundError('Read-only database must already exist')
+        else:
+            from .aggregate_limits import require_managed_write
+            require_managed_write(self.db_path)
+            self.db_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            if not self.db_path.exists():
+                try:
+                    descriptor = os.open(self.db_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
+                except FileExistsError:
+                    if self.db_path.is_symlink():
+                        raise PermissionError('Concurrent database symlink replacement') from None
+                else:
+                    os.close(descriptor)
         self._ensure_initialized()
 
     def close(self) -> None:
@@ -162,16 +183,34 @@ class DatabaseManager:
 
         con.row_factory = sqlite3.Row
         con.execute("PRAGMA journal_mode=WAL;")
-        con.execute("PRAGMA synchronous=NORMAL;")
+        # Coordinated execution journals Git integration and provider completion.
+        # Its commit acknowledgement must include the WAL sync before an
+        # external Git/provider action can rely on that journal. Preserve the
+        # historical NORMAL setting for callers outside the opt-in team path.
+        coordinated = os.environ.get('ACS_ENABLE_COORDINATION') == '1'
+        con.execute("PRAGMA synchronous=FULL;" if coordinated else "PRAGMA synchronous=NORMAL;")
+        if coordinated and con.execute('PRAGMA synchronous').fetchone()[0] != 2:
+            con.close()
+            raise RuntimeError('Coordinated execution requires synchronous SQLite WAL commits')
         con.execute("PRAGMA busy_timeout=5000;")
         con.execute("PRAGMA foreign_keys=ON;")
         return con
+
+    @contextmanager
+    def connection(self) -> Iterator[sqlite3.Connection]:
+        """Internal short transaction scope; preserve get_connection compatibility."""
+        con = self.get_connection()
+        try:
+            with con:
+                yield con
+        finally:
+            con.close()
 
     def _ensure_initialized(self) -> None:
         """Applies schema if not present (only if writable)."""
         if self.read_only:
             return
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.executescript(SCHEMA_SQL)
             cur = con.execute("SELECT version FROM schema_version WHERE version = ?", (SCHEMA_VERSION,))
             if not cur.fetchone():
@@ -217,9 +256,10 @@ class DatabaseManager:
         prompt: Optional[str] = None,
         plan_json: Optional[str] = None,
     ) -> Dict[str, Any]:
+        goal, prompt = redact(goal), redact(prompt)
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
         workers_json = json.dumps(assigned_workers or [])
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 """
                 INSERT INTO missions (
@@ -234,12 +274,12 @@ class DatabaseManager:
                 mission_id=mission_id,
                 actor="system",
                 action="create_mission",
-                details={"goal": goal, "project_id": project_id, "state": state},
+                details={"goal": redact(goal), "project_id": project_id, "state": state},
             )
         return self.get_mission(mission_id)  # type: ignore
 
     def get_mission(self, mission_id: str) -> Optional[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT * FROM missions WHERE mission_id = ?", (mission_id,))
             row = cur.fetchone()
             if not row:
@@ -249,7 +289,7 @@ class DatabaseManager:
             return data
 
     def list_missions(self, limit: int = 50, state: Optional[str] = None) -> List[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             if state:
                 cur = con.execute(
                     "SELECT * FROM missions WHERE state = ? ORDER BY created_at DESC LIMIT ?",
@@ -274,15 +314,16 @@ class DatabaseManager:
         review_status: Optional[str] = None,
         quality_score: Optional[float] = None,
         evidence_ref: Optional[str] = None,
+        expected_state: Optional[str] = None,
     ) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             updates = ["state = ?", "updated_at = ?"]
             params: List[Any] = [new_state, now]
 
             if error_info is not None:
                 updates.append("error_info = ?")
-                params.append(error_info)
+                params.append(redact(error_info))
             if commit_sha is not None:
                 updates.append("commit_sha = ?")
                 params.append(commit_sha)
@@ -300,7 +341,12 @@ class DatabaseManager:
                 params.append(evidence_ref)
 
             params.append(mission_id)
-            con.execute(f"UPDATE missions SET {', '.join(updates)} WHERE mission_id = ?", params)
+            condition = ' AND state = ?' if expected_state is not None else ''
+            if expected_state is not None:
+                params.append(expected_state)
+            changed = con.execute(f"UPDATE missions SET {', '.join(updates)} WHERE mission_id = ?" + condition, params)
+            if expected_state is not None and changed.rowcount != 1:
+                raise RuntimeError('Concurrent mission state transition rejected')
             self.record_event(
                 con,
                 mission_id=mission_id,
@@ -311,7 +357,7 @@ class DatabaseManager:
 
     def increment_mission_retry(self, mission_id: str) -> int:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 "UPDATE missions SET retry_count = retry_count + 1, updated_at = ? WHERE mission_id = ?",
                 (now, mission_id),
@@ -328,7 +374,7 @@ class DatabaseManager:
         checkpoint_id = f"chk-{datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%d%H%M%S')}-{sha256_hash[:8]}"
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 """
                 INSERT INTO checkpoints (checkpoint_id, mission_id, state_name, payload_json, sha256_hash, created_at)
@@ -350,7 +396,7 @@ class DatabaseManager:
         return checkpoint_id
 
     def get_latest_checkpoint(self, mission_id: str) -> Optional[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute(
                 "SELECT * FROM checkpoints WHERE mission_id = ? ORDER BY created_at DESC LIMIT 1",
                 (mission_id,),
@@ -378,7 +424,7 @@ class DatabaseManager:
         task_id: Optional[str] = None,
     ) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        details_str = json.dumps(details or {})
+        details_str = json.dumps(redact(details or {}))
         con.execute(
             """
             INSERT INTO audit_events (mission_id, task_id, actor, action, details_json, timestamp)
@@ -395,12 +441,12 @@ class DatabaseManager:
         details: Optional[Dict[str, Any]] = None,
         task_id: Optional[str] = None,
     ) -> None:
-        with self.get_connection() as con:
+        with self.connection() as con:
             self.record_event(con, mission_id, actor, action, details, task_id)
             con.commit()
 
     def get_audit_trail(self, mission_id: str, limit: int = 100) -> List[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute(
                 "SELECT * FROM audit_events WHERE mission_id = ? ORDER BY event_id ASC LIMIT ?",
                 (mission_id, limit),
@@ -430,7 +476,7 @@ class DatabaseManager:
         sensitivity: str = "normal",
     ) -> str:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 """
                 INSERT OR REPLACE INTO memories (
@@ -460,7 +506,7 @@ class DatabaseManager:
         memory_type: Optional[str] = None,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             if query.strip():
                 # Clean query for FTS5
                 clean_query = "".join(c if c.isalnum() or c.isspace() else " " for c in query).strip()
@@ -499,7 +545,7 @@ class DatabaseManager:
 
     def mark_memory_stale(self, project_id: str, repository_id: str, commit_sha: str) -> int:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute(
                 """
                 UPDATE memories
@@ -515,7 +561,7 @@ class DatabaseManager:
     # ---------------------------------------------------------
     def update_mission_plan(self, mission_id: str, prompt: str, plan_dict: Dict[str, Any]) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 "UPDATE missions SET prompt = ?, plan_json = ?, updated_at = ? WHERE mission_id = ?",
                 (prompt, json.dumps(plan_dict), now, mission_id),
@@ -524,7 +570,7 @@ class DatabaseManager:
     def append_mission_log(self, mission_id: str, message: str) -> None:
         now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
         formatted = f"[{now}] {message.strip()}\n"
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT logs FROM missions WHERE mission_id = ?", (mission_id,))
             row = cur.fetchone()
             existing = row["logs"] if row and row["logs"] else ""
@@ -539,15 +585,15 @@ class DatabaseManager:
             pass
 
     def get_mission_logs(self, mission_id: str) -> List[str]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT logs FROM missions WHERE mission_id = ?", (mission_id,))
             row = cur.fetchone()
             if row and row["logs"]:
-                return [l for l in row["logs"].splitlines() if l.strip()]
+                return [line for line in row["logs"].splitlines() if line.strip()]
         log_file = LOGS_DIR / f"mission_{mission_id}.log"
         if log_file.exists():
             try:
-                return [l for l in log_file.read_text(encoding="utf-8", errors="replace").splitlines() if l.strip()]
+                return [line for line in log_file.read_text(encoding="utf-8", errors="replace").splitlines() if line.strip()]
             except Exception:
                 pass
         return []
@@ -565,7 +611,7 @@ class DatabaseManager:
     ) -> Dict[str, Any]:
         canonical_path = str(Path(path).resolve())
         now = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with self.get_connection() as con:
+        with self.connection() as con:
             con.execute(
                 """
                 INSERT INTO repositories (repo_id, name, path, is_protected, created_at, updated_at)
@@ -581,24 +627,24 @@ class DatabaseManager:
         return repo or {"repo_id": repo_id, "name": name, "path": canonical_path, "is_protected": is_protected}
 
     def list_repositories(self) -> List[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT * FROM repositories ORDER BY is_protected DESC, name ASC")
             return [dict(r) for r in cur.fetchall()]
 
     def get_repository(self, repo_id: str) -> Optional[Dict[str, Any]]:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT * FROM repositories WHERE repo_id = ?", (repo_id,))
             row = cur.fetchone()
             return dict(row) if row else None
 
     def get_repository_by_path(self, path: str) -> Optional[Dict[str, Any]]:
         canonical_path = str(Path(path).resolve())
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("SELECT * FROM repositories WHERE path = ?", (canonical_path,))
             row = cur.fetchone()
             return dict(row) if row else None
 
     def delete_repository(self, repo_id: str) -> bool:
-        with self.get_connection() as con:
+        with self.connection() as con:
             cur = con.execute("DELETE FROM repositories WHERE repo_id = ? AND is_protected = 0", (repo_id,))
             return cur.rowcount > 0

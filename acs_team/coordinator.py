@@ -106,7 +106,7 @@ class TeamCoordinator:
 
             # Step 3: Reviewer evaluates changes and executes automated tests
             logger.info(
-                f"[Step 3] Independent Reviewer evaluating changes and running tests..."
+                "[Step 3] Independent Reviewer evaluating changes and running tests..."
             )
             review_result = self.reviewer.review(
                 goal=goal,
@@ -143,7 +143,7 @@ class TeamCoordinator:
             # Step 4: If not approved and retries remain, Planner plans surgical correction
             if attempt < self.max_retries:
                 logger.info(
-                    f"[Step 4] AI Planner formulating surgical correction task..."
+                    "[Step 4] AI Planner formulating surgical correction task..."
                 )
                 correction_plan = self.planner.plan_correction(
                     original_plan=plan, reviewer_report=review_result

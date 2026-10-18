@@ -1,0 +1,109 @@
+name: Cloud baseline regression
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-baseline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Install pinned development dependencies
+        run: bash scripts/cloud_setup.sh
+      - name: Lint, type check and offline secret candidate regression
+        run: .venv/bin/python scripts/cloud_static.py --report /tmp/acs-static.json
+      - name: Original baseline coverage and zero current test failures
+        if: ${{ !cancelled() }}
+        run: .venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-tests.json
+      - name: Offline Git history candidate regression
+        if: ${{ !cancelled() }}
+        run: .venv/bin/python scripts/security_scan.py --history --report /tmp/acs-history.json
+      - name: Show actual check outcomes
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          .venv/bin/python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ('/tmp/acs-static.json', '/tmp/acs-tests.json'):
+              path = Path(name)
+              if path.exists():
+                  data = json.loads(path.read_text())
+                  print(name, json.dumps({k: v for k, v in data.items() if k != 'tests'}))
+          PY
+
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - run: bash scripts/cloud_setup.sh
+      - name: Bridge regression with fake providers (CLOUD_SIMULATED)
+        working-directory: agpair
+        env:
+          ACS_HOME: ${{ runner.temp }}/acs-bridge-fixture
+          AGPAIR_HOME: ${{ runner.temp }}/agpair-fixture
+          NO_COLOR: '1'
+          COLUMNS: '1000'
+          TERMINAL_WIDTH: '1000'
+        run: ../.venv/bin/python -m pytest tests -q -p no:cacheprovider --junitxml=/tmp/acs-bridge.xml
+      - name: Expose sanitized failures through check annotations
+        if: ${{ always() }}
+        run: |
+          .venv/bin/python - <<'PYTHON'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          from acs_team.security import redact
+          path = Path('/tmp/acs-bridge.xml')
+          if path.exists():
+              for case in ET.parse(path).iter('testcase'):
+                  for result in list(case):
+                      if result.tag not in {'failure', 'error'}:
+                          continue
+                      message = redact(f"{case.get('classname')}.{case.get('name')}: {result.get('message', '')}")[:8000]
+                      for before, after in [('%', '%25'), ('\r', '%0D'), ('\n', '%0A')]:
+                          message = message.replace(before, after)
+                      print(f'::error title=CLOUD_SIMULATED bridge regression::{message}')
+          PYTHON
+
+  companion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: agpair/companion-extension
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+      - name: Install locked packages without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Compile and test fake SDK and transports (CLOUD_SIMULATED)
+        run: npm test
+      - name: Build source bundle without installing into an IDE
+        run: npm run build:prod
+      - name: Published dependency advisory gate
+        run: npm audit --audit-level=low

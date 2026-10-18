@@ -1,0 +1,377 @@
+{
+  "schema_version": 1,
+  "overall_status": "PARTIAL",
+  "source_checkpoint": "511ff9b",
+  "source_identity": "Full SHA is in FINAL_CLOUD_HANDOFF.md; resolve this unique Git object before rerunning.",
+  "root": {
+    "command": ".venv/bin/python scripts/cloud_test.py --compare-baseline --report /tmp/acs-final-tested-source.json",
+    "result": {
+      "skipped": 7,
+      "passed": 220
+    },
+    "by_label": {
+      "CLOUD_REAL": {
+        "passed": 159
+      },
+      "CLOUD_SIMULATED": {
+        "passed": 61
+      },
+      "LOCAL_VERIFICATION_REQUIRED": {
+        "skipped": 7
+      }
+    },
+    "exit_code": 0,
+    "evidence": "reports/final_cloud_tests.json",
+    "checkout_source_stable": true,
+    "limits": "Harness fixture verifier applies only to fixed trusted test data; model/provider readiness is not authenticated."
+  },
+  "bridge": {
+    "command": "../.venv/bin/python -m pytest tests -q -p no:cacheprovider",
+    "cwd": "agpair",
+    "passed": 847,
+    "failed": 0,
+    "duration_s": 215.3,
+    "classification": "CLOUD_REAL_PASS",
+    "scope": "Bridge software regressions with fixture/double boundaries; no actual provider authentication claim."
+  },
+  "companion": {
+    "commands": [
+      "npm test",
+      "npm run build:prod"
+    ],
+    "cwd": "agpair/companion-extension",
+    "passed": 138,
+    "failed": 0,
+    "suites": 25,
+    "compile": "PASS",
+    "production_build": "PASS",
+    "classification": "CLOUD_REAL_PASS"
+  },
+  "production_team": {
+    "command": ".venv/bin/python -m pytest tests/test_evidence_durability.py tests/test_team_missions.py -q",
+    "result": "All seven direct/CLI/daemon/review/recover/escalate/dependent native-protocol scenarios pass in latest 220-case passing root set, with real independent Guardian re-execution after timeout-arity fix. Separate earlier targeted 12-case run retained as historical evidence.",
+    "classification": "CLOUD_SIMULATED_PASS",
+    "boundaries": "Real controller/Git/SQLite/subprocess/verification/Guardian; controlled provider output, no authenticated readiness.",
+    "evidence": "reports/final_cloud_tests.json"
+  },
+  "focused_supervisor": {
+    "command": ".venv/bin/python -m pytest tests/test_runtime_security.py -q -k \"guard or supervisor\"",
+    "result": "7 passed, 28 deselected",
+    "classification": "CLOUD_REAL_PASS",
+    "prior_failure": "Concurrent run: CPU test wall timeout returned -15; sequential unchanged run passed. d641fea keeps 1 CPU second, adds completed-reason assertion and 30 wall seconds."
+  },
+  "direct_diagnostic": {
+    "artifact": "reports/directive_direct_pytest.json",
+    "result": {
+      "passed": 173,
+      "failed": 3,
+      "skipped": 2
+    },
+    "classification": "LOCAL_VERIFICATION_REQUIRED",
+    "source_changed_during_run": true,
+    "note": "Three unchanged legacy provider readiness assertions fail closed; other tests passed. Not a clean acceptance run."
+  },
+  "randomized_profiles": [
+    {
+      "seed": 1337,
+      "command": ".venv/bin/python /tmp/acs-randomized-profile.py 1337",
+      "result": {
+        "passed": 103,
+        "skipped": 1,
+        "failed": 0
+      },
+      "classification": "CLOUD_SIMULATED_PASS",
+      "limits": "Mixed policy/real-kernel/fake-worker fixture coverage, no authenticated providers; bounded profile is not long soak.",
+      "source_checkpoint": "ecbdbb7"
+    },
+    {
+      "seed": 7331,
+      "command": ".venv/bin/python /tmp/acs-randomized-profile.py 7331",
+      "result": {
+        "passed": 103,
+        "failed": 0,
+        "skipped": 1
+      },
+      "classification": "CLOUD_SIMULATED_PASS",
+      "source_checkpoint": "ecbdbb7"
+    }
+  ],
+  "randomized_reproduction_source": "import os,random,sys,tempfile\nfrom pathlib import Path\nscratch=tempfile.TemporaryDirectory(prefix='acs-random-profile-')\nfor name in list(os.environ):\n    if name.startswith(('ACS_','AGPAIR_')): del os.environ[name]\nos.environ.update(HOME=scratch.name,ACS_HOME=scratch.name+'/state',ACS_BACKUPS_DIR=scratch.name+'/backups',ACS_CREDENTIALS_FILE=scratch.name+'/absent.json',GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',PYTHONNOUSERSITE='1')\nimport pytest\nclass Order:\n    def pytest_collection_modifyitems(self,items): random.Random(int(sys.argv[1])).shuffle(items)\nroot=Path('/workspace/acs-ai-orchestrator')\nsys.path.insert(0,str(root))\nresult=pytest.main([str(root/'tests'/name) for name in ['test_runtime_security.py','test_coordination.py','test_review_workflow.py','test_recovery.py','test_aggregate_limits.py','test_evidence_durability.py']]+['-q','-p','no:cacheprovider','--junitxml=/tmp/acs-random-'+sys.argv[1]+'.xml'],plugins=[Order()])\nscratch.cleanup()\nraise SystemExit(result)\n",
+  "dependency_audit": {
+    "python_command": "/tmp/acs-audit-tools/bin/python -m pip_audit --disable-pip --no-deps --vulnerability-service pypi -r requirements/cloud-dev.txt -f json -o /tmp/acs-final-python-audit.json",
+    "tool_version": "pip-audit 2.9.0 in isolated temporary venv",
+    "python_packages": 34,
+    "reported_python_vulnerabilities": 0,
+    "python_evidence": "reports/FINAL_PYTHON_DEPENDENCY_AUDIT.json",
+    "npm_command": "npm audit --json",
+    "npm_evidence": "reports/FINAL_COMPANION_DEPENDENCY_AUDIT.json",
+    "reported_npm_vulnerabilities": 0,
+    "license_scope": "37 installed Python distributions and 34 companion lockfile records, metadata only",
+    "license_blocker": "ACS application license undeclared; owner decision required",
+    "hash_lock": "NOT_COMPLETE"
+  },
+  "hosted_checks": {
+    "source_checkpoint": "511ff9b",
+    "results": [
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101503475/job/117598543853",
+        "name": "bridge",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101503475/job/117598543742",
+        "name": "companion",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101503475/job/117598543637",
+        "name": "checks",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101502577/job/117598541171",
+        "name": "companion",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101502577/job/117598541120",
+        "name": "bridge",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39101502577/job/117598540914",
+        "name": "checks",
+        "status": "completed"
+      }
+    ]
+  },
+  "github_connectivity": {
+    "target": "https://api.github.com",
+    "method": "Unauthenticated read-only GET via existing proxy",
+    "connect_status": 200,
+    "origin_http_status": 200,
+    "github_api_read": "PASS",
+    "authorized_branch_push": "PASS",
+    "new_token_needed": false,
+    "old_error": "Not currently reproducible; historical root cause not proven."
+  },
+  "independent_original_cases": {
+    "reported_old_counts": {
+      "passed": 148,
+      "failed": 24
+    },
+    "original_nodeids_available": false,
+    "exact_mapping": "BLOCKED",
+    "evidence": "reports/INDEPENDENT_FINDINGS_CLOSURE.md"
+  },
+  "uncompleted_profiles": [
+    "full long-running soak",
+    "all crash boundaries and host power loss",
+    "complete original per-bullet acceptance closure",
+    "actual provider/account authentication and laptop service operations",
+    "Unresolved latest seeded-order postmerge failure; later passing runs are not closure"
+  ],
+  "claims": {
+    "full_pass": false,
+    "cloud_development_complete": false,
+    "local_deployment_executed": false,
+    "main_merged_or_pushed": false,
+    "acs_core_modified": false
+  },
+  "profile_source_note": "Final root/source static/history and latest randomized/stress at 511ff9b. Bridge/companion unchanged since ecbdbb7. Earlier profiles retain their own scope. Later passing repetitions do not erase a failed campaign.",
+  "static": {
+    "command": ".venv/bin/python scripts/cloud_static.py --report /tmp/acs-packaging-static.json",
+    "artifact": "reports/final_cloud_static.json",
+    "counts": {
+      "ruff": 0,
+      "mypy": 0,
+      "secret_candidates": 15
+    },
+    "new_counts": {
+      "ruff": 0,
+      "mypy": 0,
+      "secret_candidates": 0
+    },
+    "scope": "Includes packaging fix e0c0a61; later checksum/record-only files separately detector scanned with zero candidates."
+  },
+  "history": {
+    "command": ".venv/bin/python scripts/security_scan.py --history --report /tmp/acs-final-history.json",
+    "artifact": "reports/final_cloud_history.json",
+    "source_checkpoint": "511ff9b",
+    "label": "CLOUD_REAL",
+    "commits": 51,
+    "unique_blobs": 792,
+    "known_candidate_count": 71,
+    "unknown_candidate_count": 0,
+    "skipped_blobs": 0,
+    "raw_report": "/tmp/acs-final-history.json",
+    "detector_canary": "PASS",
+    "note": "Counts retain the exact result without recursively duplicating public detector fingerprints."
+  },
+  "new_regressions": {
+    "baseline_integrity": {
+      "command": ".venv/bin/python -m pytest tests/test_baseline_integrity.py tests/test_team_missions.py -q",
+      "passed": 16,
+      "classification": "CLOUD_SIMULATED_PASS"
+    },
+    "guardian": {
+      "command": ".venv/bin/python -m pytest tests/test_guardian_verification_failure.py -q",
+      "passed": 6,
+      "classification": "CLOUD_SIMULATED_PASS"
+    },
+    "existing_guardian": {
+      "command": ".venv/bin/python -m pytest tests/test_gate5_guardian_and_security.py -q",
+      "passed": 4,
+      "classification": "CLOUD_REAL_PASS"
+    },
+    "managed_storage_durability": {
+      "command": ".venv/bin/python -m pytest tests/test_aggregate_limits.py tests/test_recovery.py tests/test_evidence_durability.py -q",
+      "passed": 49,
+      "skipped": 1,
+      "classification": "CLOUD_SIMULATED_PASS"
+    }
+  },
+  "randomized_latest": {
+    "source_checkpoint": "511ff9b",
+    "first_seed_1337": {
+      "passed": 137,
+      "failed": 1,
+      "skipped": 1,
+      "failure": "tests/test_coordination.py::test_coordinated_real_git_sqlite_guardian_with_fake_workers[postmerge]",
+      "symptom": "Both FAILED instead of one FAILED and one INTEGRATED",
+      "status": "STILL_BROKEN",
+      "log": "/tmp/acs-latest-random-1337.log",
+      "preserved_log": "reports/POSTMERGE_RANDOMIZED_FAILURE.txt",
+      "temporary_database": "Not retained after pytest temporary-directory rotation; original failure output preserved. Future reproduction must use explicit retained --basetemp and capture result errors/audit before teardown."
+    },
+    "diagnostic_seed_1337": {
+      "passed": 138,
+      "failed": 0,
+      "skipped": 1,
+      "command": ".venv/bin/python /tmp/acs-randomized-diagnostic.py 1337",
+      "note": "Passing reproduction does not close earlier failure; wrappers only log unchanged results.",
+      "classification": "CLOUD_SIMULATED_PASS"
+    },
+    "seed_7331": {
+      "passed": 138,
+      "failed": 0,
+      "skipped": 1,
+      "command": ".venv/bin/python /tmp/acs-randomized-diagnostic.py 7331",
+      "note": "Diagnostic wrappers only log unchanged results; not closure of earlier failure.",
+      "classification": "CLOUD_SIMULATED_PASS"
+    },
+    "stress_campaign": {
+      "command": "Two concurrent .venv/bin/python /tmp/acs-postmerge-stress.py a|b controllers; eight isolated pytest invocations each",
+      "results": [
+        {
+          "iteration": 0,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-0.log"
+        },
+        {
+          "iteration": 1,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-1.log"
+        },
+        {
+          "iteration": 2,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-2.log"
+        },
+        {
+          "iteration": 3,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-3.log"
+        },
+        {
+          "iteration": 4,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-4.log"
+        },
+        {
+          "iteration": 5,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-5.log"
+        },
+        {
+          "iteration": 6,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-6.log"
+        },
+        {
+          "iteration": 7,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-a-7.log"
+        },
+        {
+          "iteration": 0,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-0.log"
+        },
+        {
+          "iteration": 1,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-1.log"
+        },
+        {
+          "iteration": 2,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-2.log"
+        },
+        {
+          "iteration": 3,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-3.log"
+        },
+        {
+          "iteration": 4,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-4.log"
+        },
+        {
+          "iteration": 5,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-5.log"
+        },
+        {
+          "iteration": 6,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-6.log"
+        },
+        {
+          "iteration": 7,
+          "exit_code": 0,
+          "log": "/tmp/acs-postmerge-stress-b-7.log"
+        }
+      ],
+      "passed": 16,
+      "failed": 0,
+      "status": "EARLIER_FAILURE_REMAINS_OPEN",
+      "case_reproduction_source": "import os,sys,tempfile\nfrom pathlib import Path\nscratch=tempfile.TemporaryDirectory(prefix='acs-postmerge-stress-')\nfor name in list(os.environ):\n    if name.startswith(('ACS_','AGPAIR_')): del os.environ[name]\nos.environ.update(HOME=scratch.name,ACS_HOME=scratch.name+'/state',ACS_BACKUPS_DIR=scratch.name+'/backups',ACS_CREDENTIALS_FILE=scratch.name+'/absent.json',GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',PYTHONNOUSERSITE='1')\nsys.path.insert(0,'/workspace/acs-ai-orchestrator')\nfrom acs_team.guardian import Guardian\noriginal=Guardian.evaluate\ndef observe(self,*args,**kwargs):\n    verdict=original(self,*args,**kwargs)\n    if not verdict.approved:\n        print('FIXTURE_GUARDIAN_DIAGNOSTIC',verdict.veto_reasons,verdict.quality_report.details,flush=True)\n    return verdict\nGuardian.evaluate=observe\nimport pytest\nstatus=pytest.main(['/workspace/acs-ai-orchestrator/tests/test_coordination.py::test_coordinated_real_git_sqlite_guardian_with_fake_workers[postmerge]','-q','--showlocals','-p','no:cacheprovider'])\nscratch.cleanup()\nraise SystemExit(status)\n",
+      "runner_reproduction_source": "import subprocess,sys,json\nfrom pathlib import Path\nresults=[]\nfor index in range(8):\n    output=Path('/tmp')/('acs-postmerge-stress-'+sys.argv[1]+'-'+str(index)+'.log')\n    with output.open('w') as stream:\n        result=subprocess.run([sys.executable,'/tmp/acs-postmerge-stress-case.py'],stdout=stream,stderr=subprocess.STDOUT)\n    results.append({'iteration':index,'exit_code':result.returncode,'log':str(output)})\n    Path('/tmp/acs-postmerge-stress-'+sys.argv[1]+'.json').write_text(json.dumps(results,indent=2))\n    if result.returncode: break\nprint(json.dumps(results))\nraise SystemExit(int(any(r['exit_code'] for r in results)))\n",
+      "classification": "CLOUD_SIMULATED_PASS"
+    },
+    "reproduction_source": "import os,random,sys,tempfile\nfrom pathlib import Path\nscratch=tempfile.TemporaryDirectory(prefix='acs-random-profile-')\nfor name in list(os.environ):\n    if name.startswith(('ACS_','AGPAIR_')): del os.environ[name]\nos.environ.update(HOME=scratch.name,ACS_HOME=scratch.name+'/state',ACS_BACKUPS_DIR=scratch.name+'/backups',ACS_CREDENTIALS_FILE=scratch.name+'/absent.json',GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',PYTHONNOUSERSITE='1')\nimport pytest\nsys.path.insert(0,\"/workspace/acs-ai-orchestrator\")\nfrom acs_team.team_runner import TeamRunner\noriginal_run = TeamRunner.run\ndef diagnostic_run(self,*args,**kwargs):\n    result = original_run(self,*args,**kwargs)\n    if result.get('errors'):\n        print('DIAGNOSTIC_TEAM_ERRORS',result['errors'],flush=True)\n    return result\nTeamRunner.run = diagnostic_run\nclass Order:\n    def pytest_collection_modifyitems(self,items): random.Random(int(sys.argv[1])).shuffle(items)\nroot=Path('/workspace/acs-ai-orchestrator')\nsys.path.insert(0,str(root))\nresult=pytest.main([str(root/'tests'/name) for name in ['test_runtime_security.py','test_coordination.py','test_review_workflow.py','test_recovery.py','test_aggregate_limits.py','test_evidence_durability.py','test_baseline_integrity.py','test_guardian_verification_failure.py']]+['-q','--showlocals','-p','no:cacheprovider','--junitxml=/tmp/acs-random-'+sys.argv[1]+'.xml'],plugins=[Order()])\nscratch.cleanup()\nraise SystemExit(result)\n",
+    "campaign_classification": "FAIL"
+  },
+  "packaging": {
+    "initial_reproducibility": "FAIL: generated manifest timestamp used wall clock",
+    "fix": "Explicit fixed manifest ZipInfo timestamp/mode/compression",
+    "targeted_command": ".venv/bin/python -m pytest tests/scaffolding/test_local_bundle.py -q",
+    "targeted_result": "1 passed with forced future clock and byte equality; original exclusion/no-overwrite assertions preserved",
+    "complete_archive_comparison": "PASS: two full-source builds byte-identical",
+    "scope": "Packaging helper changed after 511ff9b app regression; application source unchanged.",
+    "archive_record": "reports/SOURCE_ARCHIVE.md",
+    "archive_commit": "e0c0a61",
+    "archive_bytes": 1393673,
+    "automatic_activation": false
+  },
+  "current_snapshot": "reports/CLOUD_VERIFICATION_2026_10_18.json",
+  "historical_snapshot_notice": "Other fields retain historical evidence; current tested source and outcomes are in current_snapshot."
+}

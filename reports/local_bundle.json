@@ -1,0 +1,16 @@
+{
+  "commit": "329e402",
+  "files": 444,
+  "excluded": 0,
+  "source_bytes": 4596704,
+  "archive_bytes": 1266419,
+  "automatic_activation": false,
+  "label": "CLOUD_REAL",
+  "status": "PASS",
+  "overall_candidate": "PARTIAL; activation BLOCKED",
+  "archive_path": "/workspace/artifacts/acs-ai-source-329e402.zip",
+  "archive_checksum_file": "/workspace/artifacts/acs-ai-source-329e402.zip.sha256",
+  "zip_integrity": "PASS",
+  "all_manifest_checksums": "PASS",
+  "private_mode": "0o600"
+}

@@ -1,0 +1,1765 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "0.1",
+      "requirement": "Existing system (reported by the user, NOT verified by you)",
+      "stage": "CROSS-STAGE",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "NOT_TESTED",
+      "implementation": [
+        "reports/PHASE_0_BASELINE_AUDIT.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Reported laptop installation was never inspected."
+    },
+    {
+      "id": "0.2",
+      "requirement": "Repository and branches",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "acs_team/config.py",
+        "acs_team/security.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/FINAL_ACCEPTANCE_REPORT.md"
+      ],
+      "remaining": "No Core access, main write, merge or deployment. Real protected-path/sandbox enforcement requires local evidence; this status is not release acceptance."
+    },
+    {
+      "id": "0.3",
+      "requirement": "Absolutely protected project",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "acs_team/config.py",
+        "acs_team/security.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/FINAL_ACCEPTANCE_REPORT.md"
+      ],
+      "remaining": "No Core access, main write, merge or deployment. Real protected-path/sandbox enforcement requires local evidence; this status is not release acceptance."
+    },
+    {
+      "id": "1.1",
+      "requirement": "Approval policy **[CLOUD ADAPTED]**",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "acs_team/config.py",
+        "acs_team/security.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/FINAL_ACCEPTANCE_REPORT.md"
+      ],
+      "remaining": "No Core access, main write, merge or deployment. Real protected-path/sandbox enforcement requires local evidence; this status is not release acceptance."
+    },
+    {
+      "id": "2.1",
+      "requirement": "Repository discovery",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
+      ],
+      "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
+    },
+    {
+      "id": "2.2",
+      "requirement": "Worker adapter analysis (static) **[CLOUD ADAPTED]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py",
+        "acs_team/providers.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Pinned contract-backed providers, readonly isolated auth/toolchains, challenge activation and production role sessions exist. Actual authenticated account/CLI compatibility and kernel boundaries remain LOCAL_VERIFICATION_REQUIRED."
+    },
+    {
+      "id": "2.3",
+      "requirement": "MCP inventory **[CLOUD ADAPTED]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
+      ],
+      "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
+    },
+    {
+      "id": "2.4",
+      "requirement": "Baseline tests",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
+      ],
+      "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
+    },
+    {
+      "id": "2.5",
+      "requirement": "Audit report",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
+      ],
+      "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
+    },
+    {
+      "id": "2.6",
+      "requirement": "AGENTS.md **[NEW]**",
+      "stage": "STAGE-0",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "reports/PHASE_0_BASELINE_AUDIT.md",
+        "scripts/cloud_setup.sh",
+        "scripts/cloud_test.py"
+      ],
+      "evidence": [
+        "reports/baseline_tests.json",
+        "reports/stage_0_tests.json",
+        "reports/GITHUB_API_DIAGNOSTIC.md",
+        "reports/stage_7_tests.json",
+        "reports/CI_STATUS.json"
+      ],
+      "remaining": "Static repository audit and unchanged baseline recorded. Original portable CLI failure fixed separately; actual installation/worker/MCP inventory remains local."
+    },
+    {
+      "id": "3.1",
+      "requirement": "Upgrade deployment tooling",
+      "stage": "STAGE-1",
+      "label": "CLOUD_SIMULATED",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "acs_team/recovery.py",
+        "UPGRADE_GUIDE.md"
+      ],
+      "evidence": [
+        "tests/test_recovery.py::test_application_health_failure_restores_previous_pointer"
+      ]
+    },
+    {
+      "id": "4.1",
+      "requirement": "Secret scanning",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.2",
+      "requirement": "Static analysis",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.3",
+      "requirement": "Guardian security hardening",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Unexecuted Guardian verification always vetoed; timeout propagated to real verifier. Baseline byte integrity now includes helpers/constants/configuration/new ignored collection controls at worker/integration/final gates. Trusted reviewed baseline exceptions and meaningful coverage-diff validation remain source gaps; current denial stays enforced."
+    },
+    {
+      "id": "4.4",
+      "requirement": "Sandbox verification **[CLOUD ADAPTED]**",
+      "stage": "V2.3",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md",
+        "acs_team/providers.py"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Mandatory bwrap contracts, binding validation and real activation challenge implemented. Real namespace/account isolation remains LOCAL_VERIFICATION_REQUIRED; simulated protocol tests do not activate providers."
+    },
+    {
+      "id": "4.5",
+      "requirement": "MCP least privilege",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.6",
+      "requirement": "Worker process supervision",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md",
+        "acs_team/process_guard.py"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Owned birth-identity process records, controller-parent death signaling and descendant reaping implemented/tested. Real provider/service behavior remains local-only."
+    },
+    {
+      "id": "4.7",
+      "requirement": "Resource management",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md",
+        "acs_team/aggregate_limits.py"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Source now supports managed scratch/shared-Git/state/DB/artifact/export admission, opt-in bounded block-filesystem enforcement and opt-in verified controller/worker parent cgroup. Actual dedicated filesystem/delegation/capacity probes remain LOCAL_VERIFICATION_REQUIRED. Complete live whole-service telemetry and evaluate supported storage deployment on the laptop; sampled mode alone is not hard enforcement."
+    },
+    {
+      "id": "4.8",
+      "requirement": "Network and quota resilience",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.9",
+      "requirement": "Database reliability",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Coordinated FULL WAL sync and atomic file/directory-synchronized evidence publication implemented. Consistent backups/migrations tested. Broader crash-boundary/power-loss campaigns and actual local restore/service proof remain."
+    },
+    {
+      "id": "4.10",
+      "requirement": "Systemd watchdog",
+      "stage": "V2.3",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.11",
+      "requirement": "Emergency stop",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "4.12",
+      "requirement": "V2.3 acceptance criteria",
+      "stage": "V2.3",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "reports/V2_3_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_3_tests.json",
+        "reports/v2_3_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "5.1",
+      "requirement": "Structured task planning",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/team_missions.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Actual provider-backed strict planner and shared CLI/daemon controller implemented. Complete all legacy producer schemas and richer planning/failover behavior."
+    },
+    {
+      "id": "5.2",
+      "requirement": "File ownership",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "5.3",
+      "requirement": "SQLite claims",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/team_recovery.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Durable plans, fenced claims, controller/process identities, lease renewal and recovery journal implemented. Further crash campaigns and power-loss durability remain unverified."
+    },
+    {
+      "id": "5.4",
+      "requirement": "Contract-first development",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "5.5",
+      "requirement": "Blackboard communication",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Structured host-stamped handoffs persist and are delivered to dependent workers; integrated native-protocol fixture verifies consumption. Actual provider collaboration remains local-only."
+    },
+    {
+      "id": "5.6",
+      "requirement": "Dynamic worker roles",
+      "stage": "V2.4",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/provider_workers.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Production spec-only tester and fresh readonly host-bound reviewer sessions implemented. Dynamic advanced role scheduling and actual provider identities require further/local verification."
+    },
+    {
+      "id": "5.7",
+      "requirement": "Independent testing",
+      "stage": "V2.4",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/provider_workers.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Unexecuted Guardian verification always vetoed; timeout propagated to real verifier. Baseline byte integrity now includes helpers/constants/configuration/new ignored collection controls at worker/integration/final gates. Trusted reviewed baseline exceptions and meaningful coverage-diff validation remain source gaps; current denial stays enforced."
+    },
+    {
+      "id": "5.8",
+      "requirement": "Cross-review",
+      "stage": "V2.4",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/provider_workers.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Host-bound independent review identity, exact SHA/diff, readonly checkout and criteria validation implemented. Authenticated role behavior remains local-only."
+    },
+    {
+      "id": "5.9",
+      "requirement": "Sequential integration",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Sequential crash-journaled integration, SQLite-writable heartbeat leases, whole-mission tests/evidence/Guardian and export finalization implemented. Additional crash/power-loss cases remain pending."
+    },
+    {
+      "id": "5.10",
+      "requirement": "Multi-agent failure recovery",
+      "stage": "V2.4",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md",
+        "acs_team/team_recovery.py"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Controller crash after Git merge recovers with preserved merge, fresh fencing and completed-output reuse. Opt-in daemon resumption tested. Broader crash/power-loss campaign remains pending."
+    },
+    {
+      "id": "5.11",
+      "requirement": "V2.4 acceptance criteria **[CLOUD ADAPTED]**",
+      "stage": "V2.4",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/coordination.py",
+        "acs_team/team_runner.py",
+        "acs_team/schemas.py",
+        "MULTI_AGENT_DESIGN.md"
+      ],
+      "evidence": [
+        "reports/v2_4_tests.json",
+        "reports/v2_4_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.1",
+      "requirement": "Lessons learned",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.2",
+      "requirement": "Better task decomposition",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.3",
+      "requirement": "Context selection",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.4",
+      "requirement": "Structured worker output",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.5",
+      "requirement": "Golden benchmark suite",
+      "stage": "V2.5",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.6",
+      "requirement": "Adaptive scheduling",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md",
+        "acs_team/team_runner.py"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Measured selection and per-worker mission outcomes now execute on the team path with strict simulation labels. Complete failure/quota/failover/alternative accounting."
+    },
+    {
+      "id": "6.7",
+      "requirement": "Multi-solution mode",
+      "stage": "V2.5",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "6.8",
+      "requirement": "V2.5 acceptance criteria",
+      "stage": "V2.5",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/intelligence.py",
+        "acs_team/context_selection.py",
+        "acs_team/benchmarks.py",
+        "acs_team/multi_solution.py",
+        "reports/V2_5_INTELLIGENCE_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_5_tests.json",
+        "reports/v2_5_static.json",
+        "reports/golden_fake_full.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "7.1",
+      "requirement": "Natural-language interface",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md",
+        "acs_team/team_missions.py"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Natural-language CLI and daemon now dispatch actual planner/team/verification/Guardian/integration, with durable resume and template/test/risk propagation. Authenticated use remains local-only."
+    },
+    {
+      "id": "7.2",
+      "requirement": "Dry-run",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "7.3",
+      "requirement": "Review package",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Whole-mission signed evidence, actual criterion matrix and bounded review/completion export implemented. Specialized profiles/remaining sensitive classification are incomplete."
+    },
+    {
+      "id": "7.4",
+      "requirement": "Escalation package",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md",
+        "acs_team/team_missions.py"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Real reviewer failures emit measured failure audits and bounded escalation packages; validated imported review can replan/re-execute. Complete remaining trigger/clipboard telemetry."
+    },
+    {
+      "id": "7.5",
+      "requirement": "Structured review import",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md",
+        "acs_team/team_missions.py"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Accepted mandatory findings drive bounded dependent correction missions from exact accepted/baseline heads. Original requirements/criteria preserved; duplicate and lineage limits enforced. Baseline edits remain denied pending reviewed exception support."
+    },
+    {
+      "id": "7.6",
+      "requirement": "Mission templates",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md",
+        "acs_team/team_missions.py"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Template criteria/risk/roles and explicit allowlisted test commands propagate through execution. Specialized C/C++/web/performance profiles remain incomplete."
+    },
+    {
+      "id": "7.7",
+      "requirement": "Notifications",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "7.8",
+      "requirement": "Dashboard improvements",
+      "stage": "V2.6",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Actual team state, workers, evidence/Guardian and controller CPU/peak RSS are projected. Complete worker aggregate telemetry and remaining dashboard fields."
+    },
+    {
+      "id": "7.9",
+      "requirement": "V2.6 acceptance criteria",
+      "stage": "V2.6",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/review_workflow.py",
+        "acs_team/mission_templates.py",
+        "acs_team/workflow_cli.py",
+        "acs_team/runtime_view.py",
+        "acs_team/daemon_dispatch.py",
+        "reports/V2_6_UX_REPORT.md"
+      ],
+      "evidence": [
+        "reports/v2_6_tests.json",
+        "reports/v2_6_static.json",
+        "reports/stage_7_tests.json",
+        "reports/stage_7_static.json"
+      ],
+      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+    },
+    {
+      "id": "8.1",
+      "requirement": "Existing MCP preservation",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.2",
+      "requirement": "MCP candidates (evaluate; integrate only when missing and useful)",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.3",
+      "requirement": "Supply-chain safety for MCP servers **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.4",
+      "requirement": "CLI tooling candidates",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.5",
+      "requirement": "Frameworks for reference only",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.6",
+      "requirement": "Routing architecture",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "8.7",
+      "requirement": "MCP verification (delivered as local tooling)",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/mcp_audit.py",
+        "acs_team/mcp_protocol.py",
+        "acs_team/mcp_manager.py",
+        "acs_team/safe_fs.py",
+        "MCP_INTEGRATION.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/MCP_VERIFICATION_REPORT.md"
+      ],
+      "remaining": "Native bounded file operations and pinned/hash-approved exact harmless stdio probe implemented. HTTP, arbitrary mission tools, per-operation remote-write approvals and authenticated visibility remain incomplete; no server installed or declared ready."
+    },
+    {
+      "id": "9.1",
+      "requirement": "Unit tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Root regression/failure injection plus bridge and companion verified. Fake workers are explicitly simulated. Complete CLI-to-team demonstration, real providers, random-order campaign and laptop gates are not complete."
+    },
+    {
+      "id": "9.2",
+      "requirement": "Integration tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Root regression/failure injection plus bridge and companion verified. Fake workers are explicitly simulated. Complete CLI-to-team demonstration, real providers, random-order campaign and laptop gates are not complete."
+    },
+    {
+      "id": "9.3",
+      "requirement": "Security tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Root regression/failure injection plus bridge and companion verified. Fake workers are explicitly simulated. Complete CLI-to-team demonstration, real providers, random-order campaign and laptop gates are not complete."
+    },
+    {
+      "id": "9.4",
+      "requirement": "Failure-injection tests",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Root regression/failure injection plus bridge and companion verified. Fake workers are explicitly simulated. Complete CLI-to-team demonstration, real providers, random-order campaign and laptop gates are not complete."
+    },
+    {
+      "id": "9.5",
+      "requirement": "End-to-end missions",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md",
+        "tests/test_team_missions.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Integrated production controller scenarios cover CLI, daemon, dependencies, concurrent work, independent gates, review correction and crash recovery. All provider responses are CLOUD_SIMULATED; real provider/MCP checks remain local-only."
+    },
+    {
+      "id": "9.6",
+      "requirement": "Flaky-test policy **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "scripts/cloud_test.py",
+        "tests/",
+        "agpair/tests/",
+        "agpair/companion-extension/src/__tests__/",
+        "TESTING.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/bridge_tests.json",
+        "reports/companion_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Open latest seed-1337 postmerge failure: both tasks FAILED; original log preserved. Isolated, diagnostic seeded and 16 stress passes do not establish closure. Expand retained-fixture randomized/flaky and long reliability campaigns."
+    },
+    {
+      "id": "12.1",
+      "requirement": "Autonomous continuation within a task",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Authorized dependent branches/PRs/checkpoints preserved across all stages; acceptance is incomplete and future source work is enumerated."
+    },
+    {
+      "id": "17.1",
+      "requirement": "Command",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/local_verification.py",
+        "acs_team/verification_cli.py",
+        "scripts/local_verify.sh",
+        "LOCAL_DEPLOYMENT_GUIDE.md",
+        "acs_team/local_team_probe.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/LOCAL_VERIFICATION_CHECKLIST.md",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Explicit verify-team command now runs the real controller on a retained fresh fixture with three activated providers, narrow tasks, baseline behavior tests and signed evidence. Delivered but not executed authenticated in cloud."
+    },
+    {
+      "id": "17.2",
+      "requirement": "Report format",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/local_verification.py",
+        "acs_team/verification_cli.py",
+        "scripts/local_verify.sh",
+        "LOCAL_DEPLOYMENT_GUIDE.md",
+        "acs_team/local_team_probe.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/LOCAL_VERIFICATION_CHECKLIST.md",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "LocalReport supports actual team-probe pass/failure with explicit local labels; reports are imported as untrusted evidence and never auto-enable flags. Real local execution remains required."
+    },
+    {
+      "id": "17.3",
+      "requirement": "Feature-flag rollout order **[NEW]**",
+      "stage": "STAGE-7",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "acs_team/local_verification.py",
+        "acs_team/verification_cli.py",
+        "scripts/local_verify.sh",
+        "LOCAL_DEPLOYMENT_GUIDE.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/LOCAL_VERIFICATION_CHECKLIST.md"
+      ],
+      "remaining": "Read-only inspection, explicit scratch probes/local tests, strict JSON import and ten-step gated rollout delivered. Real authenticated worker/MCP/role/E2E checks cannot run yet; helper reports these skipped/blocked honestly."
+    },
+    {
+      "id": "3",
+      "requirement": "Consistent backup, verify and scratch restore",
+      "stage": "STAGE-1",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "acs_team/recovery.py",
+        "acs_team/upgrade_cli.py"
+      ],
+      "evidence": [
+        "tests/test_recovery.py",
+        "reports/stage_1_tests.json"
+      ]
+    },
+    {
+      "id": "3.local",
+      "requirement": "Live backup, scratch restore, staged install and service rollback on user laptop",
+      "stage": "STAGE-1",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "NOT_TESTED",
+      "implementation": [
+        "BACKUP_AND_RECOVERY.md",
+        "UPGRADE_GUIDE.md"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "10",
+      "requirement": "Performance and resource requirements",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md",
+        "acs_team/team_recovery.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Source now supports managed scratch/shared-Git/state/DB/artifact/export admission, opt-in bounded block-filesystem enforcement and opt-in verified controller/worker parent cgroup. Actual dedicated filesystem/delegation/capacity probes remain LOCAL_VERIFICATION_REQUIRED. Complete live whole-service telemetry and evaluate supported storage deployment on the laptop; sampled mode alone is not hard enforcement."
+    },
+    {
+      "id": "11",
+      "requirement": "Required documentation",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "All named documentation/report paths provided, with honest gaps. Live activation instructions remain gated and source implementation is not fully accepted."
+    },
+    {
+      "id": "12",
+      "requirement": "Execution plan",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Every stage has a dependent branch/PR and tested increments; full acceptance remains unfinished."
+    },
+    {
+      "id": "13",
+      "requirement": "Acceptance gates",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "No full stage/release PASS asserted. Remaining HIGH source gaps and local-only checks block release."
+    },
+    {
+      "id": "14",
+      "requirement": "Final demonstration",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_SIMULATED",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md",
+        "tests/test_team_missions.py"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json",
+        "reports/continuation_tests.json",
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
+      ],
+      "remaining": "Twenty-step scenario mapping and actual integrated native-protocol controller variants are in INTEGRATED_TEAM_ACCEPTANCE.md. Seeded verified advisory lesson is a simulated operator review, not learned authenticated success. Remaining Master bullets and real local scenario are incomplete."
+    },
+    {
+      "id": "15",
+      "requirement": "Final report format",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Final acceptance snapshot and next-session handoff supplied; this is an interim partial delivery, not final release acceptance."
+    },
+    {
+      "id": "16",
+      "requirement": "Final directive",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "PARTIAL",
+      "implementation": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md",
+        "docs/progress/PROGRESS.md"
+      ],
+      "evidence": [
+        "reports/stage_7_tests.json",
+        "reports/golden_fake_final.json"
+      ],
+      "remaining": "Substantial production code integrated and tested; real autonomous three-provider application behavior is incomplete."
+    },
+    {
+      "id": "A.1",
+      "requirement": "Cloud scope",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.2",
+      "requirement": "Unavailable local environment",
+      "stage": "CROSS-STAGE",
+      "label": "LOCAL_VERIFICATION_REQUIRED",
+      "status": "NOT_TESTED",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.3",
+      "requirement": "Verification labels",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.4",
+      "requirement": "Allowed status values",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.5",
+      "requirement": "Portable protected paths",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.6",
+      "requirement": "Repository handoff",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.7",
+      "requirement": "Pull request policy",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.8",
+      "requirement": "Untrusted content",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    },
+    {
+      "id": "A.9",
+      "requirement": "Secrets handling",
+      "stage": "CROSS-STAGE",
+      "label": "CLOUD_REAL",
+      "status": "CLOUD_PASS_LOCAL_PENDING",
+      "implementation": [
+        "AGENTS.md",
+        "docs/progress/PROGRESS.md",
+        "SECURITY.md"
+      ],
+      "evidence": [
+        "reports/FINAL_ACCEPTANCE_REPORT.md",
+        "reports/NEXT_SESSION_HANDOFF.md"
+      ],
+      "remaining": "Operational acceptance remains pending; no local runtime, auth or zero-secret assurance is claimed."
+    }
+  ],
+  "overall_status": "PARTIAL",
+  "scope_note": "Numbered Master sections and cloud addenda; each section can contain incomplete subrequirements. Read remaining fields and acceptance gaps; no section status implies all bullets completed.",
+  "continuation_snapshot": {
+    "source_milestones": [
+      "35372c1",
+      "bf9e542",
+      "2c42da3",
+      "f8faffe",
+      "d641fea",
+      "a5ec808",
+      "ecbdbb7",
+      "c7a86af",
+      "dd07ec7",
+      "f888349",
+      "f461c9d",
+      "511ff9b"
+    ],
+    "status": "PARTIAL",
+    "tests": "reports/FULL_TEST_EVIDENCE.json",
+    "source_backlog": "reports/FINAL_CLOUD_HANDOFF.md"
+  },
+  "current_acceptance_matrix": "reports/FINAL_REQUIREMENT_MATRIX.json",
+  "current_source_gaps": "reports/CLOUD_SOURCE_GAPS.json",
+  "section_status_notice": "Historical section statuses below are not current per-bullet closure. Current matrix and source gaps govern PARTIAL readiness."
+}

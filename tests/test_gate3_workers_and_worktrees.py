@@ -1,7 +1,5 @@
 """Gate 3 Verification Suite: Workers, Worktree Isolation, Scope Reservation, and Integration."""
 
-import os
-import shutil
 import subprocess
 from pathlib import Path
 import pytest
@@ -9,14 +7,11 @@ import pytest
 from acs_team.scope_and_integration import (
     IntegrationManager,
     MergeConflictError,
-    ResourceManager,
     ScopeConflictError,
     ScopeManager,
 )
 from acs_team.worker_adapters import (
-    AGYGoogleAWorker,
     AGYGoogleBWorker,
-    CodexPrimaryWorker,
     WorkerRegistry,
     WorkerUnverifiedError,
 )
@@ -36,6 +31,7 @@ def test_git_repo(tmp_path):
     return repo
 
 
+@pytest.mark.local_only(reason='Requires authenticated AGY B; no worker credentials are provisioned in cloud. Legacy assertion preserved; portable fake-worker coverage belongs to V2.3/V2.4.')
 def test_worker_registry_and_banned_flags(tmp_path):
     registry = WorkerRegistry()
     available = registry.list_available_workers()

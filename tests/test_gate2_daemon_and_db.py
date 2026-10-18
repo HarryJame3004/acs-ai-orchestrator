@@ -1,17 +1,14 @@
 """Gate 2 Verification Suite: SQLite Engine, State Machine, Checkpointing, and Local API."""
 
 import json
-import os
-import tempfile
 import threading
 import time
 import urllib.error
 import urllib.request
-from pathlib import Path
 import pytest
 
 from acs_team.api_server import ACSServer
-from acs_team.auth import get_or_create_auth_token, verify_token
+from acs_team.auth import get_or_create_auth_token
 from acs_team.db import DatabaseManager
 from acs_team.state_machine import InvalidStateTransitionError, MissionState, StateMachine
 

@@ -61,8 +61,6 @@ def test_claude_code_command_is_print_json_and_managed_natural_by_default() -> N
         "--debug-file",
         "/tmp/agpair/claude-code-debug.log",
         "--no-chrome",
-        "--permission-mode",
-        "bypassPermissions",
         "--no-session-persistence",
         "--output-format",
         "json",
@@ -90,16 +88,11 @@ def test_claude_code_ignores_removed_oauth_profile_restriction(monkeypatch) -> N
     assert "--strict-mcp-config" not in cmd
     assert "--mcp-config" not in cmd
     assert "--disable-slash-commands" not in cmd
-    assert cmd[:7] == [
-        "env",
-        "CLAUDE_CODE_MAX_RETRIES=0",
-        "fake-claude",
-        "--debug-file",
-        "/tmp/agpair/claude-code-debug.log",
-        "--no-chrome",
-        "--permission-mode",
+    assert cmd[:6] == [
+        "env", "CLAUDE_CODE_MAX_RETRIES=0", "fake-claude", "--debug-file",
+        "/tmp/agpair/claude-code-debug.log", "--no-chrome",
     ]
-    assert cmd[cmd.index("--permission-mode") + 1] == "bypassPermissions"
+    assert "--permission-mode" not in cmd
 
 
 def test_claude_code_settings_file_is_passed_to_api_worker(monkeypatch) -> None:
@@ -214,3 +207,10 @@ exit 0
     ]
     assert env["ANTHROPIC_API_KEY"] == "test-secret"
     assert live_probe_count.read_text(encoding="utf-8") == "2"
+
+
+def test_claude_code_refuses_permission_bypass(monkeypatch):
+    import pytest
+    monkeypatch.setenv('AGPAIR_CLAUDE_CODE_PERMISSION_MODE','bypassPermissions')
+    with pytest.raises(PermissionError):
+        ClaudeCodeExecutor(claude_bin='fake-claude')._build_claude_cmd('fixture','/fake/repo',pathlib.Path('/tmp'))

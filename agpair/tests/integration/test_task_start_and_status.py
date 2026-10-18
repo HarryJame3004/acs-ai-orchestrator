@@ -2143,7 +2143,8 @@ def test_task_start_fails_before_dispatch_when_no_executor_is_available(tmp_path
     assert result.exit_code != 0
     assert "no available executor" in result.output
     assert "agpair" in result.output
-    assert "doctor --fresh" in result.output
+    from rich.text import Text
+    assert "doctor --fresh" in Text.from_ansi(result.output).plain, result.output
     assert make_task_repo(tmp_path).get_task("TASK-NO-EXECUTOR") is None
 
 
@@ -2184,6 +2185,7 @@ def test_task_start_without_repo_or_target_detects_git_root(tmp_path: Path, monk
 
 
 def test_task_retry_local_executor_redispatches_locally(tmp_path: Path, monkeypatch) -> None:
+    configure_fake_codex_cli(tmp_path, monkeypatch)
     binary, calls_path, pull_path = write_fake_agent_bus(tmp_path)
     monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
     monkeypatch.setenv("AGPAIR_AGENT_BUS_BIN", binary)
@@ -2942,8 +2944,9 @@ def test_task_start_rejects_home_repo_path_without_explicit_override(tmp_path: P
     )
 
     assert result.exit_code != 0
-    normalized_output = " ".join(result.output.split())
-    assert "Refused broad --repo-path" in normalized_output
+    from rich.text import Text
+    normalized_output = " ".join(Text.from_ansi(result.output).plain.split())
+    assert "Refused broad --repo-path" in normalized_output, result.output
     assert "home directory" in normalized_output
     assert "private logs" in normalized_output
     assert "--allow-broad-repo-path" in normalized_output
@@ -3486,6 +3489,7 @@ def test_inspect_json_surfaces_derived_antigravity_phase(tmp_path: Path, monkeyp
 
 
 def test_task_retry_preserves_isolated_worktree_metadata_for_local_cli(tmp_path: Path, monkeypatch) -> None:
+    configure_fake_codex_cli(tmp_path, monkeypatch)
     monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
     repo = make_task_repo(tmp_path)
     repo_path = tmp_path / "repo"
@@ -3538,3 +3542,26 @@ def test_task_retry_preserves_isolated_worktree_metadata_for_local_cli(tmp_path:
     assert updated is not None
     assert updated.phase == "acked"
     assert updated.execution_repo_path == execution_repo_path
+
+
+def test_terminal_receipt_preserves_host_controller_against_worker_policy(tmp_path: Path):
+    from agpair.task_terminal import finalize_executor_receipt
+
+    paths = make_paths(tmp_path)
+    tasks = make_task_repo(tmp_path)
+    tasks.create_task(
+        task_id="TASK-CONTROLLER-TERMINAL", repo_path=str(tmp_path),
+        completion_policy="report", authorization_profile="local_readonly",
+        effective_policy_json=json.dumps({"controller": "codex", "requested_executor": "grok-cli"}),
+    )
+    task = tasks.get_task("TASK-CONTROLLER-TERMINAL")
+    finalize_executor_receipt(
+        state_root=paths.root, tasks=tasks, journal=make_journal_repo(tmp_path), task=task,
+        raw_receipt={"status": "BLOCKED", "summary": "Fixture terminal failure",
+                     "payload": {"effective_task_policy": {"controller": "worker-spoof"}}},
+        source="fixture", original_body="Goal: report only",
+    )
+    attempt = tasks.current_attempt(task.task_id)
+    policy = json.loads(attempt.effective_policy_json)
+    assert policy["controller"] == "codex"
+    assert policy["requested_executor"] == "grok-cli"

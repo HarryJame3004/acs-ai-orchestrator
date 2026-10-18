@@ -1,0 +1,167 @@
+{
+  "label": "CLOUD_REAL",
+  "overall_acceptance": "PARTIAL",
+  "generated_at": "2026-10-18T00:56:35.114793+00:00",
+  "prs": [
+    {
+      "number": 1,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/stage-0-audit",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/1",
+      "checked_head": "8906cd1",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39062978528/job/117484594538"
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/stage-1-backup-upgrade",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/2",
+      "checked_head": "071cc2a",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39064704044/job/117489799243"
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/v2.3-security-runtime",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/3",
+      "checked_head": "cebfd08",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39066762698/job/117495944113"
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/v2.4-coordination",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/4",
+      "checked_head": "e960726",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39066781417/job/117495999760"
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/v2.5-intelligence",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/5",
+      "checked_head": "e933d72",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39067262668/job/117497396621"
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "state": "OPEN",
+      "isDraft": false,
+      "headRefName": "upgrade/v2.6-review-workflow",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/6",
+      "checked_head": "21831cd",
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39068017131/job/117499607674"
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "state": "OPEN",
+      "isDraft": true,
+      "headRefName": "upgrade/stage-7-verification-release",
+      "baseRefName": "main",
+      "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7",
+      "checked_head": "0eb6543",
+      "checks": [
+        {
+          "conclusion": "SUCCESS",
+          "name": "checks",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548013480"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "companion",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548012861"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "bridge",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548012655"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "companion",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548012131"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "checks",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548012115"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "bridge",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548011968"
+        }
+      ]
+    }
+  ],
+  "remote_main": "eecbce4",
+  "remote_main_unchanged": true,
+  "original_baselines_unchanged": {
+    "baseline_tests.json": true,
+    "baseline_static.json": true
+  },
+  "original_master_unchanged": true,
+  "integration_branch": "upgrade/overnight-integration",
+  "note": "Metadata snapshot; rerun on later commits. Test logic using fake providers remains CLOUD_SIMULATED; no operational or release acceptance.",
+  "latest_verified_source": "0eb6543",
+  "continuation_note": "All root/bridge/companion hosted check instances passed at 0eb6543; later evidence-only commits may trigger fresh checks. No merge or main push. Root local evidence: 171 passed, 7 explicit local skips."
+}

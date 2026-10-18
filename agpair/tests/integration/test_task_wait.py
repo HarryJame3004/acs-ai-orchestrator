@@ -578,6 +578,12 @@ def test_task_wait_json_reports_lease_outcome(tmp_path: Path, monkeypatch):
 def test_task_wait_json_uses_same_recovery_decision_for_soft_no_progress(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
     repo_path = _make_execution_repo(tmp_path, monkeypatch)
+    # A lease/no-progress scenario needs a still-running provider, not a CLI
+    # that already exited successfully without the required report artifact.
+    fake_cli = tmp_path / 'ongoing-antigravity'
+    fake_cli.write_text("#!/usr/bin/env python3\nimport sys,threading\nif '--help' in sys.argv or '--version' in sys.argv: print('fixture'); sys.exit(0)\nthreading.Event().wait(30)\n", encoding='utf-8')
+    fake_cli.chmod(0o755)
+    monkeypatch.setenv('AGPAIR_ANTIGRAVITY_CLI', str(fake_cli))
     runner = CliRunner()
 
     result = runner.invoke(
@@ -610,15 +616,23 @@ def test_task_wait_json_uses_same_recovery_decision_for_soft_no_progress(tmp_pat
     )
     assert result.exit_code == 0, result.output
 
-    wait = runner.invoke(
-        app,
-        ["task", "wait", "TASK-WAIT-RECOVERY", "--json", "--timeout-seconds", "1"],
-    )
-
-    assert wait.exit_code == 0, wait.output
-    payload = json.loads(wait.stdout)
-    assert payload["recommended_action"] in {"detach_and_continue", "wait_background"}
-    assert payload["recovery_decision"]["action"] == "wait_background"
+    try:
+        wait = runner.invoke(
+            app,
+            ["task", "wait", "TASK-WAIT-RECOVERY", "--json", "--timeout-seconds", "1"],
+        )
+    
+        assert wait.exit_code == 0, wait.output
+        payload = json.loads(wait.stdout)
+        assert payload["recommended_action"] in {"detach_and_continue", "wait_background"}
+        assert payload["recovery_decision"]["action"] == "wait_background"
+    finally:
+        from agpair.executors import get_executor
+        task = TaskRepository(_make_paths(tmp_path).db_path).get_task('TASK-WAIT-RECOVERY')
+        if task and task.executor_session_id:
+            executor = get_executor('antigravity-cli')
+            executor.cancel(task.task_id, task.executor_session_id)
+            executor.cleanup(task.executor_session_id)
 
 
 def test_task_wait_json_normalizes_committed_result_list_fields(tmp_path: Path, monkeypatch):
@@ -1152,6 +1166,12 @@ def test_auto_wait_exits_1_on_watchdog(tmp_path: Path, monkeypatch):
     """Default auto-wait on start also exits 1 for watchdog-marked tasks."""
     monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
     repo_path = _make_execution_repo(tmp_path, monkeypatch)
+    # A lease/no-progress scenario needs a still-running provider, not a CLI
+    # that already exited successfully without the required report artifact.
+    fake_cli = tmp_path / 'ongoing-antigravity'
+    fake_cli.write_text("#!/usr/bin/env python3\nimport sys,threading\nif '--help' in sys.argv or '--version' in sys.argv: print('fixture'); sys.exit(0)\nthreading.Event().wait(30)\n", encoding='utf-8')
+    fake_cli.chmod(0o755)
+    monkeypatch.setenv('AGPAIR_ANTIGRAVITY_CLI', str(fake_cli))
 
     from agpair.storage.tasks import TaskRepository
     from agpair.storage.db import ensure_database as ed
@@ -1161,8 +1181,10 @@ def test_auto_wait_exits_1_on_watchdog(tmp_path: Path, monkeypatch):
     import agpair.cli.task as task_mod
 
     original_auto_wait = task_mod.maybe_auto_wait
+    observed = []
 
     def patched_auto_wait(db_path, task_id, **kw):
+        observed.append(kw)
         # Simulate daemon marking retry_recommended before wait polls
         repo = TaskRepository(db_path)
         task = repo.get_task(task_id)
@@ -1173,19 +1195,28 @@ def test_auto_wait_exits_1_on_watchdog(tmp_path: Path, monkeypatch):
 
     monkeypatch.setattr(task_mod, "maybe_auto_wait", patched_auto_wait)
 
-    result = CliRunner().invoke(
-        app,
-        [
-            "task", "start",
-            "--repo-path", str(repo_path),
-            "--body", "Goal: test\nScope: test\nRequired changes: test\nExit criteria: test",
-            "--task-id", "T-AWD1",
-            "--interval-seconds", "0.01",
-            "--timeout-seconds", "5",
-        ],
-    )
-    assert result.exit_code == 1
-    assert "watchdog" in result.stdout.lower() or "watchdog" in (result.stderr or "").lower()
+    try:
+        result = CliRunner().invoke(
+            app,
+            [
+                "task", "start",
+                "--repo-path", str(repo_path),
+                "--body", "Goal: test\nScope: test\nRequired changes: test\nExit criteria: test",
+                "--task-id", "T-AWD1",
+                "--interval-seconds", "0.01",
+                "--timeout-seconds", "5",
+                "--wait-policy", "terminal",
+            ],
+        )
+        assert result.exit_code == 1, (result.output, observed)
+        assert "watchdog" in result.stdout.lower() or "watchdog" in (result.stderr or "").lower()
+    finally:
+        from agpair.executors import get_executor
+        task = TaskRepository(paths.db_path).get_task('T-AWD1')
+        if task and task.executor_session_id:
+            executor = get_executor('antigravity-cli')
+            executor.cancel(task.task_id, task.executor_session_id)
+            executor.cleanup(task.executor_session_id)
 
 
 # ---------------------------------------------------------------------------

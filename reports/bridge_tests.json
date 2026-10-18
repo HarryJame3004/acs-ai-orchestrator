@@ -1,0 +1,3402 @@
+{
+  "label": "CLOUD_SIMULATED",
+  "note": "Fake providers; actual controller/Git/SQLite/process logic. Forced CI terminal rendering and absent ambient primary Codex binary; no authenticated provider proof.",
+  "counts": {
+    "passed": 847,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "duration_s": 179.214,
+  "working_directory": "agpair",
+  "tests": [
+    {
+      "nodeid": "tests.integration.test_agent_bus_reserve_settle::test_reserve_returns_claim_without_marking_read",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_agent_bus_reserve_settle::test_settle_marks_message_read_by_claim_id",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_agent_bus_reserve_settle::test_expired_reservation_can_be_reserved_again",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_agpair_benchmark_script::test_benchmark_script_runs_fake_executor_matrix",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_cli_help_lists_claude_group",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_worker_settings_emits_isolated_api_key_helper_template",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_statusline_shows_idle_state_for_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_statusline_shows_active_task_and_worktree_name",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_emits_statusline_and_hook_commands",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_can_emit_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_writes_project_settings",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_can_include_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_reinstall_without_stop_downgrades_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_dry_run_prints_diff_without_writing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_sync_skill_install_and_uninstall",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_preserves_foreign_statusline_without_force",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_user_scope_writes_home_settings",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_preserves_foreign_event_hooks_without_force",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_migrates_legacy_managed_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_migrates_only_legacy_managed_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_install_migrates_absolute_path_managed_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_force_replaces_conflicting_managed_slots",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_uninstall_removes_only_managed_entries",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_config_uninstall_removes_empty_settings_file",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_session_start_hook_emits_agpair_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_user_prompt_submit_hook_emits_external_first_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_hooks_noop_inside_agpair_internal_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_hooks_noop_without_repo_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_blocks_ready_for_review_terminal_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_does_not_block_approved_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_allows_readonly_report_only_without_effective_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_blocks_readonly_report_only_with_effective_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_blocks_approval_required_blocker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_stop_hook_allows_plain_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_subagent_start_hook_is_advisory",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_observability_hooks_fail_open_without_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_external_first_hooks_fail_open_when_state_unavailable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_precompact_hook_blocks_when_live_task_exists",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_claude_cli::test_claude_precompact_hook_allows_when_no_live_task_exists",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_removes_old_journals",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_removes_old_receipts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_removes_old_terminal_tasks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_preserves_active_tasks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cleans_orphaned_waiters",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_auto_cleanup",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_dry_run",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_dry_run_reports_antigravity_transient_projects",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_removes_antigravity_transient_projects",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_executor_state_only_does_not_delete_old_task_data",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_dry_run_reports_agpair_orphan_worktrees_when_requested",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_removes_agpair_orphan_worktrees_when_requested",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_preserves_review_ready_agpair_worktrees",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_preserves_retry_pending_isolated_worktrees",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_preserves_agpair_worktrees_without_explicit_flag",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_ignores_symlinked_agpair_worktree_candidates",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cleanup::test_cleanup_cli_help",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cli_help::test_cli_help_lists_top_level_groups",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cli_help::test_cli_version_option",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_cli_help::test_doctor_is_a_top_level_command",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_emits_prompt_and_subagent_hooks_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_can_emit_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_install_preserves_foreign_hooks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_install_can_include_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_reinstall_without_stop_downgrades_optional_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_install_migrates_legacy_managed_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_install_migrates_absolute_path_managed_stop_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_uninstall_removes_empty_managed_hook_file",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_uninstall_preserves_foreign_hooks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_install_dry_run_prints_diff_without_writing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_sync_skill_dry_run_and_install",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_config_sync_skill_refuses_non_agpair_skill",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_hooks_fail_open_when_state_is_unreadable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_user_prompt_submit_emits_external_first_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_hooks_noop_inside_agpair_internal_probe",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_advisory_hooks_noop_without_repo_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_does_not_block_for_plain_acked_state",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_blocks_for_ready_for_review_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_does_not_block_approved_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_allows_readonly_report_only_without_effective_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_allows_auto_readonly_effective_report_without_effective_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_blocks_readonly_report_only_with_effective_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_reports_unapproved_task_after_approved_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_stop_blocks_for_approval_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_codex_cli::test_codex_subagent_start_is_advisory",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_finalize_report_policy_blocks_summary_only_receipt_without_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_finalize_report_policy_accepts_report_only_receipt_without_implementation_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_finalize_executor_receipt_preserves_vendor_and_debug_artifacts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_direct_commit_policy_rejects_evidence_pack",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_repo_evidence_fallback_direct_commit_evidence_ready",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_repo_evidence_fallback_direct_commit_acked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_completion_policy::test_detect_committed_task_in_repo_false_positive",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_codex_lifecycle::test_codex_lifecycle_success",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_codex_lifecycle::test_codex_lifecycle_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_codex_lifecycle::test_codex_evidence_ready_not_repolled",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_codex_lifecycle::test_codex_receipt_carries_real_attempt_no",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_gemini_lifecycle::test_legacy_gemini_cli_row_can_be_inspected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_gemini_lifecycle::test_new_gemini_cli_start_is_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_gemini_lifecycle::test_legacy_gemini_cli_is_not_polled_by_daemon",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_launchd::test_build_launch_agent_plist_includes_daemon_run_arguments_and_env",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_launchd::test_install_and_status_round_trip",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_ingests_ack_and_updates_session_mapping",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_accepts_colon_space_session_id_format",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_settles_each_reserved_claim_individually",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_ingests_structured_blocked_receipt_uses_summary_for_reason",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_ingests_structured_committed_receipt_preserves_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_cleans_up_local_cli_terminal_receipt_without_extra_cancel",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_sweeps_terminal_local_cli_sessions_until_removed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_daemon_sweep_uses_session_filtered_query_instead_of_phase_scans",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_blocked_reason_from_receipt_prefers_payload_message_when_summary_empty",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_receipts::test_blocked_reason_from_receipt_uses_fallback_when_summary_and_message_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_stuck_detection::test_daemon_marks_stuck_and_retry_recommended_after_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_stuck_detection::test_daemon_marks_retry_recommended_before_hard_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_stuck_detection::test_daemon_soft_watchdog_does_not_stuck_background_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_stuck_detection::test_daemon_uses_execution_budget_for_background_stuck",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_daemon_stuck_detection::test_daemon_does_not_mark_stuck_on_same_tick_as_soft_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_terminal_with_header",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_terminal_without_header",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_ack_with_header",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_nonterminal_running_ignores_header",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_committed_with_header",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_empty_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe.TestParseDeliveryHeader::test_header_only_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_message_id_duplicate_still_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_delivery_id_duplicate_rejected_different_message_id",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_delivery_id_null_allows_multiple",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_same_delivery_id_different_task_allowed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_e2e_duplicate_delivery_id_ignored",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_e2e_duplicate_blocked_delivery_id_ignored",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_terminal_without_header_still_works",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_ack_accepts_delivery_header_and_strips_it_from_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_duplicate_ack_delivery_id_is_ignored_after_terminal_progress",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_running_unaffected_by_delivery_header_in_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_journal_body_is_clean",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_blocked_reason_is_clean",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_migration_adds_delivery_id_column",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_migration_creates_unique_index",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_delivery_id_dedupe::test_stale_receipt_watermark_resets_on_reack",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_missing_bus_or_database_paths",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_external_cli_executor_health",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_claude_probe_timeout_not_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_daemon_status_and_latest_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_handles_corrupt_database_file",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_returns_cached_result_on_second_call",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_bypassed_with_fresh_flag",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_expires_after_ttl",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_does_not_cache_unhealthy_results",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_corrupt_cache_file",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[string-ttl]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[string-cached_at]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[string-report]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[null-ttl]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[list-report]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_tolerates_semantically_corrupted_envelope[non-dict-envelope]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_survives_across_subprocess_invocations",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_cache_fresh_flag_bypasses_across_subprocesses",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_repo_bridge_health_when_repo_marker_is_live",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_repo_bridge_health_when_repo_agpair_marker_is_live",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_repo_bridge_warning_when_ls_bridge_not_ready",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_warns_when_running_extension_does_not_match_repo_checkout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_accepts_installed_extension_when_id_and_version_match",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_surfaces_bridge_auth_posture_from_health[generated]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_surfaces_bridge_auth_posture_from_health[configured]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_surfaces_bridge_auth_posture_from_health[insecure]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_returns_none_when_health_omits_auth_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_does_not_leak_token_in_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_reports_pending_tasks_and_concurrency_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_target_substitution",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_doctor::test_doctor_rejects_target_and_repo_path_together",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_failure_modes::test_duplicate_receipt_is_ignored",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_failure_modes::test_stale_receipt_is_ignored",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_failure_modes::test_retry_exhaustion_stops_automatic_recovery",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_fake_executors::test_fake_executor_success_reaches_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_fake_executors::test_fake_executor_approval_required_reaches_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_fake_executors::test_fake_executor_malformed_receipt_does_not_reach_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_fake_executors::test_fake_executor_scope_violation_is_not_silently_accepted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_running_constant_exists",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_running_is_not_terminal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_daemon_ingests_running_heartbeat_without_terminal_transition",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_multiple_running_heartbeats_update_timestamp",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_running_followed_by_terminal_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_watchdog_does_not_trigger_with_recent_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_hard_timeout_does_not_trigger_with_recent_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_watchdog_triggers_after_heartbeat_goes_silent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_stuck_triggers_after_heartbeat_goes_silent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_no_heartbeat_null_still_triggers_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_wait_does_not_watchdog_exit_with_fresh_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_wait_watchdog_exits_after_heartbeat_silence",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_wait_no_heartbeat_watchdog_still_triggers",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_schema_migration_adds_heartbeat_column",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_schema_migration_is_idempotent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_end_to_end_heartbeat_prevents_then_silence_trips_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_new_task_has_null_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_heartbeat_liveness::test_retry_dispatch_resets_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_emits_pre_llm_call_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_writes_config_and_skill",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_preserves_existing_hooks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_uninstall_removes_only_managed_hook",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_preserves_other_managed_hook_events",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_accepts_hook_header_comments",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_dry_run_does_not_write",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_is_idempotent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_install_rejects_inline_pre_llm_call",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_quotes_hook_command_for_yaml",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_uninstall_removes_marked_custom_command",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_uninstall_removes_split_command_item",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_config_uninstall_prunes_empty_hooks_block",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_pre_llm_hook_noops_without_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_pre_llm_hook_resolves_workspace_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_pre_llm_hook_emits_context_for_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_hermes_cli::test_hermes_pre_llm_hook_noops_inside_agpair_internal_probe",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_retry_terminal_receipt_not_deduped",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_repo_evidence_rejects_historical_commits",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_git_log_grep_task_id_finds_id_in_footer",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_git_log_grep_task_id_handles_multiple_commits_with_blank_lines",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_cleanup_completes_after_sigkill_zombie",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_retry_stale_commit_does_not_close_new_attempt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_side_branch_commit_does_not_close_main_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_high_risk_regressions::test_cleanup_permission_denied_preserves_session_dir",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_silent_when_no_signals",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_active_via_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_active_via_workspace",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_active_via_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_bootstrap_stderr_noise_is_not_live_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_real_executor_startup_warnings_are_not_live_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_stale_output_activity_is_silent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_active_via_both",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_signal_summary_reports_output_metadata_without_log_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_recommend_controller_action_detaches_live_background_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_recommend_controller_action_retries_when_only_bootstrap_noise",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_recommend_controller_action_retries_when_execution_budget_is_exhausted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_classify_stale_signals_are_silent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_retry_blocked_on_live_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_retry_allowed_with_force_on_live_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_retry_allowed_on_non_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_abandon_blocked_on_live_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_abandon_allowed_with_force_on_live_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_abandon_allowed_on_silent_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_workspace_activity_prevents_watchdog_on_acked_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_stale_workspace_activity_does_not_prevent_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_wait_does_not_watchdog_exit_with_fresh_workspace_activity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_wait_does_not_watchdog_exit_with_fresh_output_activity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_wait_watchdogs_when_only_bootstrap_stderr_is_fresh",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_schema_migration_adds_workspace_activity_column",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_schema_migration_from_no_heartbeat_no_workspace",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_task_status_shows_workspace_activity_on_acked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_task_status_shows_silent_liveness_for_acked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_task_status_json_includes_signal_state_and_controller_action",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_task_status_no_liveness_for_non_acked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_retry_dispatch_resets_workspace_activity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_liveness_guard::test_force_flag_in_help",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_runs_codex_controller_fake_executor_matrix",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_runs_report_smoke_without_diff_requirement",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_runs_diagnostic_all_registered_with_self_allowed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_can_exercise_tracked_dirty_snapshot",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_fails_implementation_without_diff",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_reports_controller_suppressed_self_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_uses_controller_policy_when_executors_are_omitted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_reports_policy_disabled_executor_without_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_reports_missing_binary_without_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_reports_claude_oauth_auth_without_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_real_executor_smoke_harness::test_smoke_harness_abandons_silent_executor_after_no_progress",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_retry_from_block_generates_context_and_updates_authorization",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_retry_from_block_with_executor_override_stores_supported_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_retry_from_block_can_use_recommended_next_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_retry_next_executor_requires_from_block_and_no_executor_override",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_retry_from_block_rejects_committed_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_retry_from_block::test_legacy_gemini_retry_from_block_requires_executor_override",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_ensure_database_creates_sqlite_schema",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_ensure_database_enables_wal_and_connect_sets_busy_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_ensure_database_migrates_existing_db_to_wal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_persists_session_mapping",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_persists_wait_budget_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_persists_coordination_role",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_retry_preserves_wait_budget_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_receipt_repository_deduplicates_by_message_id",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_journal_repository_appends_and_reads_tail",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_raises_when_task_is_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_creates_local_record_and_starts_default_external_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_json_includes_coordination_role",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_task_kind_budget_and_completion_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_salvages_stdout_report_for_evidence_policy_after_nonzero_exit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_rejects_removed_fast_startup_options",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_rejects_readonly_implementation_kind",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_reuses_existing_task_for_same_repo_and_idempotency_key",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_idempotency_key_is_scoped_to_repo_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_shows_phase_and_session",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_returns_structured_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_accepts_matching_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_accepts_matching_target_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_rejects_mismatched_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_includes_effective_no_progress_threshold",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_and_human_include_live_attempt_artifact_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_refreshes_local_cli_terminal_signal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_list_json_refreshes_local_cli_terminal_signal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_marks_bootstrap_noise_only_as_blocked_signal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_marks_budget_exhausted_without_receipt_as_blocked_signal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_includes_recovery_decision_for_no_signal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_includes_structured_terminal_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_includes_failure_context_for_structured_blocked_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_maps_auth_blocker_to_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_ignores_malformed_structured_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_json_returns_not_found_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_prints_recent_journal_entries",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_json_returns_structured_rows",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_json_can_include_live_executor_output_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_json_includes_structured_receipt_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_human_compacts_large_structured_payloads",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_json_returns_not_found_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_marks_blocked_when_dispatch_fails",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_blocks_invalid_antigravity_cli_approval_mode_without_traceback",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_fails_when_task_is_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_list_prints_recent_tasks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_list_can_filter_by_phase",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_list_can_filter_by_repo_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_list_can_emit_json_and_repo_filter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_summary_prints_compact_decision_surface",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_marks_task_terminal_locally",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_json_archives_live_attempt_artifacts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_cleans_local_cli_session_after_archiving",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_notifies_bridge_cancel_when_auth_marker_present",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_fails_when_task_is_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_json_with_no_active_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_json_with_specific_task_id",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_chooses_relevant_active_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_human_readable_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_target_cli_add_resolve_list_remove",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_target_substitution",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_target_substitution",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_rejects_target_and_repo_path_together",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_default_executor_is_grok_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_authorization_profile",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_uses_env_default_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_uses_target_default_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_explicit_executor_codex",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_explicit_missing_executor_fails_before_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_surfaces_claude_probe_timeout_not_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_fails_before_dispatch_when_no_executor_is_available",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_explicit_executor_gemini_is_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_without_repo_or_target_detects_git_root",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_retry_local_executor_redispatches_locally",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_legacy_rows_without_executor_field_remain_readable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_dependencies_and_isolation",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_filters_noise_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_accepts_matching_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_logs_rejects_mismatched_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_accept_marks_terminal_task_approved",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_accept_rejects_non_terminal_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_abandon_new_local_cli_task_without_session",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_auto_structures_missing_sections",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_brief_normalizer_accepts_natural_chinese_report_brief",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_accepts_natural_chinese_readonly_brief",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_accepts_common_aliases_for_first_attempts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_json_accepts_common_aliases",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_json_returns_when_wait_reaches_failure_phase",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_rejects_placeholder",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_accepts_valid_brief",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_uses_stored_attempt_controller_for_effective_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_setup_and_teardown_hooks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_env_vars_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_and_surfaces_worktree_boundary",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_spotlight_testing_defaults_to_false",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_persists_and_surfaces_spotlight_testing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_rejects_home_repo_path_without_explicit_override",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_allows_home_repo_path_with_explicit_visible_override",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_repository_spotlight_testing_roundtrip",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_start_isolated_worktree_persists_boundary",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_derives_provider_consumed_no_ack_from_bridge_health",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_derives_running_without_receipt_from_workspace_activity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_status_uses_execution_repo_path_for_isolated_activity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_diff_json_surfaces_isolated_worker_diff",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_apply_check_refuses_conflict",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_apply_applies_worker_patch_to_controller_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_accept_records_controller_adoption_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_adopt_from_report_marks_approved_without_changing_blocked_phase",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_adopt_from_report_uses_active_stdout_artifact",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_inspect_json_surfaces_derived_antigravity_phase",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_task_retry_preserves_isolated_worktree_metadata_for_local_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_start_and_status::test_terminal_receipt_preserves_host_controller_against_worker_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_terminal_phases_contain_required_values",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_dispatch_success_phases",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_approve_success_phases",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_failure_phases",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_approve_terminal_phases_exclude_evidence_ready",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch[evidence_ready-0]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch[committed-0]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch[blocked-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch[stuck-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch[abandoned-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve[committed-0]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve[evidence_ready-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve[blocked-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve[stuck-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve[abandoned-1]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_returns_immediately_on_terminal_phase",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_polls_until_phase_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_uses_fast_polling_during_initial_window",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_does_not_oversleep_timeout_deadline",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_adaptive_polling_respects_explicit_fast_interval",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_adaptive_polling_uses_requested_interval_after_fast_window",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_adaptive_polling_caps_sleep_to_remaining_deadline",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_times_out",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_lease_expiry_is_success_for_background_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_soft_no_progress_is_success_for_background_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_blocked_is_terminal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_stuck_is_terminal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_abandoned_is_terminal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_approve_skips_evidence_ready",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_0_on_evidence_ready",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_returns_structured_terminal_payload",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_accepts_matching_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_rejects_mismatched_repo_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_reports_lease_outcome",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_uses_same_recovery_decision_for_soft_no_progress",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_normalizes_committed_result_list_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_ignores_malformed_structured_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_returns_not_found_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_includes_failure_context_for_stuck_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_json_maps_auth_blocker_to_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_1_on_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_0_on_committed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_1_on_missing_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_1_on_abandoned",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_help",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_start_no_wait_returns_immediately",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_start_auto_wait_exits_0_when_terminal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_help_shows_wait_options",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_help_does_not_show_wait_on_status_and_logs",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_plain_acked_still_waits_normally",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_plain_acked_no_progress_exits_before_hard_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_report_only_task_uses_shorter_no_progress_window",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_acked_plus_retry_recommended_exits_early",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_acked_becomes_retry_recommended_mid_wait",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_hard_stuck_still_works_after_watchdog_change",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_approve_ignores_watchdog_on_acked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_dispatch_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_exit_code_for_approve_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_wait_result_watchdog_defaults_false",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_wait_exits_1_on_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_auto_wait_exits_1_on_watchdog",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_exits_1_on_missing_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_json_not_found",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_terminal_success",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_terminal_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_json_emits_ndjson",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_json_emits_live_attempt_artifact_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_json_marks_bootstrap_stderr_as_not_useful_progress",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_json_emits_environment_metadata",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait::test_task_watch_deduplicates_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait_inline_poll::test_wait_inline_poll_ready_for_review_from_committed_receipt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait_inline_poll::test_wait_inline_poll_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait_inline_poll::test_wait_inline_poll_ready_for_review_from_evidence_pack",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait_inline_poll::test_wait_inline_poll_skips_non_local",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_wait_inline_poll::test_wait_inline_poll_exception_handled",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_emits_state_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_suppresses_unchanged_heartbeat",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_event_references_raw_log_path_without_streaming_log_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_event_emits_signal_metadata_without_log_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_event_emits_agent_result_changed_without_log_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_task_watch_events::test_watch_event_emits_when_artifact_result_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterRepository::test_start_and_get",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterRepository::test_only_one_active_per_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterRepository::test_finalize_clears_active",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterRepository::test_update_poll",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterRepository::test_list_active",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaitPersistsWaiter::test_terminal_phase_finalizes_waiter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaitPersistsWaiter::test_timeout_finalizes_waiter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaitPersistsWaiter::test_watchdog_finalizes_waiter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaitPersistsWaiter::test_poll_updates_last_poll_at",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterGuard::test_guard_blocks_when_active_waiter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterGuard::test_guard_allows_with_force",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterGuard::test_guard_allows_no_active_waiter",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterGuard::test_guard_allows_after_waiter_finalized",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterMigration::test_old_db_gets_waiters_table",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterSchema::test_table_columns",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_waiter_guard.TestWaiterSchema::test_unique_index_exists",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_cli::test_workflow_validate_accepts_valid_manifest",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_cli::test_workflow_validate_rejects_script_field",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_cli::test_workflow_start_creates_rows",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_cli::test_workflow_cancel_marks_running_nodes_abandoned",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_cli::test_workflow_fanout_dry_run_emits_valid_manifest",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_smoke_contract::test_real_smoke_can_generate_fanout_manifest_without_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_smoke_contract::test_smoke_fanout_script_reports_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_smoke_contract::test_smoke_fanout_default_codex_lanes_include_grok_and_antigravity",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_smoke_contract::test_smoke_fanout_default_claude_lanes_suppress_external_claude_code",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_synthesis::test_evidence_pack_includes_lane_cards_synthesis_and_panel_result",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_synthesis::test_scheduler_passes_lane_cards_to_synthesis_node",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_fanout_synthesis::test_gate_blocks_missing_synthesis_result",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery::test_advance_running_workflows_after_restart_dispatches_each_pending_child_once",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_restart_reroutes_stuck_node_once_and_keeps_retry_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_reroute_policy_failure_blocks_node_instead_of_spinning",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_repeated_stuck_attempts_rotate_through_executor_policy_order",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_cancel_workflow_cancels_and_abandons_active_local_child",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_abandoned_child_blocks_workflow_with_evidence_pack",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_retry_budget_exhaustion_marks_workflow_stuck_with_evidence_pack",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_daemon_sweep_cleans_terminal_workflow_child_session_without_phase_scan",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_recovery_pressure::test_daemon_sweep_removes_orphaned_antigravity_projects_but_keeps_active",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_scheduler::test_scheduler_dispatches_dependency_free_nodes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_scheduler::test_scheduler_does_not_dispatch_duplicate_child_after_restart",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_scheduler::test_scheduler_reroutes_stuck_node_with_retry_budget",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_scheduler::test_scheduler_marks_workflow_ready_after_child_and_gate",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.integration.test_workflow_watch::test_workflow_watch_payload_reports_terminal_node_and_stable_cursor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_report_with_protocol_warning_remains_adoptable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_report_without_report_is_not_adoptable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_blocked_report_receipt_with_non_global_blocker_is_partial",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_evidence_with_changed_files_and_validation_is_adoptable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_low_risk_protocol_warning_does_not_demote_applyable_implementation",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_evidence_missing_validation_is_partial",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_apply_check_pass_with_missing_validation_needs_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_apply_check_failure_blocks_adoption",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_evidence_scope_validation_tuple_missing_declared_file_blocks_adoption",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_evidence_policy_report_without_diff_is_usable_result",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_apply_check_failure_with_report_salvages_report_not_code",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_reviewable_diff_with_report_prefers_review_then_apply",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_adoption_result::test_global_authorization_violation_stays_blocked_even_with_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_agpair_benchmark::test_select_executors_keeps_grok_and_antigravity_as_peer_lanes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_agpair_benchmark::test_select_executors_all_registered_suppresses_controller_self",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_agpair_benchmark::test_select_executors_explicit_normalizes_and_peer_sorts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_agpair_benchmark::test_summarize_results_groups_executor_metrics",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_executor_uses_env_binary",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_executor_defaults_to_agy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_command_is_agy_print_driven",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_raw_log_payload_includes_vendor_log",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_command_records_conversation_baseline",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_error_summary_reads_vendor_log",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_command_honors_print_timeout_env",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_command_honors_model_env",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_command_honors_legacy_model_env",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_rejects_invalid_print_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_default_approval_mode_is_non_escalating",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_rejects_legacy_auto_edit_mode",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_removes_project_config_for_isolated_worktree",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_archives_owned_conversation_db_group",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_ignores_failed_conversation_archive_move",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_keeps_project_config_while_process_alive",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_ignores_non_transient_project_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_ignores_unprefixed_temp_project_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cleanup_ignores_malformed_project_configs",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_cli_executor::test_antigravity_cli_refuses_permission_bypass",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_project_state::test_sweep_removes_only_orphaned_agpair_transient_projects",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_antigravity_project_state::test_sweep_dry_run_reports_without_removing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_report_artifact_is_usable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_stdout_completed_report_is_salvage_candidate",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_stdout_json_text_report_is_salvage_candidate",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_apply_check_failed_diff_is_blocked_artifact_not_global_blocker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_report_survives_blocked_diff_as_primary_artifact",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_reviewable_diff_beats_report_for_mutating_artifact",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_authorization_violation_is_global_hard_blocker_even_with_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_changed_files_without_apply_check_is_needs_review_diff",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifact_classification::test_empty_or_thought_only_output_is_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_artifacts::test_read_excerpt_preserves_head_and_tail_for_long_output",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_known_authorization_profiles_are_accepted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_common_authorization_profile_aliases_are_accepted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_unknown_authorization_profile_is_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_authorization_summary_is_human_readable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_task_repository_persists_authorization_profile",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_authorization_profiles::test_task_repository_defaults_legacy_rows_to_local_mutating",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestGetTaskBodyFromJournal::test_retrieves_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestGetTaskBodyFromJournal::test_returns_none_when_no_created_event",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_no_tasks_returns_zero",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_no_deps_tasks_returns_zero",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_deps_not_satisfied_skips",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_deps_satisfied_dispatches",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_deps_satisfied_dispatch_preserves_authorization_profile",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_dispatch_failure_marks_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_multi_step_chain",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_parallel_deps_all_must_commit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_no_body_skips_with_journal_entry",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_dep_blocked_marks_downstream_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_dep_abandoned_marks_downstream_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestAutoAdvanceDependentTasks::test_dep_not_found_marks_downstream_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestCLIDependsOnValidation::test_invalid_json_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestCLIDependsOnValidation::test_empty_array_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestCLIDependsOnValidation::test_nonexistent_dep_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_auto_advance.TestCLIDependsOnValidation::test_valid_depends_on_creates_deferred_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_executor_uses_env_binary",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_command_is_print_json_and_managed_natural_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_ignores_removed_oauth_profile_restriction",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_settings_file_is_passed_to_api_worker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_ccswitch_mode_uses_provider_env_without_command_secret",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_auto_uses_ccswitch_after_oauth_live_probe_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_claude_code_executor::test_claude_code_refuses_permission_bypass",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_uses_env_binary_when_not_explicit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch_uses_isolated_worktree_for_command_and_cwd",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch_keeps_sandbox_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch_honors_full_auto_mode",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch_honors_default_mode",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_poll",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_poll_failed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_cancel",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_cancel_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_dispatch_closes_fds_on_popen_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_codex_executor::test_codex_executor_refuses_explicit_bypass",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_auto_readonly_resolves_to_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_auto_commit_hint_requires_commit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_report_policy_finishes_without_commit_when_report_artifact_exists",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_report_policy_blocks_when_report_artifact_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_report_policy_missing_output_uses_report_output_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_report_policy_does_not_treat_generic_output_excerpt_as_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_report_policy_accepts_explicit_payload_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_completion_policy_v1_1::test_commit_policy_blocks_without_commit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_daemon_does_not_send_semantic_messages",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_daemon_does_not_create_fresh_retry_attempt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_run_once_survives_transient_bus_pull_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_bus_error_surfaces_in_journal",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_daemon_recovers_after_transient_bus_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_app_paths_log_paths_under_root",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_daemon_status_surfaces_log_paths",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_start_daemon_creates_log_files",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_detect_committed_task_in_repo_finds_matching_commit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_detect_committed_task_in_repo_returns_none_when_not_found",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_detect_committed_task_in_repo_returns_none_for_nonexistent_dir",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_detect_committed_task_in_repo_returns_none_for_non_git_dir",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_transitions_eligible_task_to_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_uses_attempt_start_not_evidence_ready_timestamp",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_leaves_ineligible_task_alone",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_skips_excluded_task_ids",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_creates_journal_entry_with_commit_sha",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_auto_close_returns_zero_when_no_evidence_ready_tasks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_run_once_reports_auto_closed_in_health",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_daemon_boundaries::test_run_once_reports_zero_auto_closed_when_no_matches",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_delegation_guard::test_delegation_depth_is_read_from_environment",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_delegation_guard::test_next_delegation_env_sets_noninteractive_parent_and_depth",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_delegation_guard::test_task_start_blocks_nested_delegation_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_delegation_guard::test_task_start_rejects_self_authorized_nested_delegation",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_health::test_available_executor_is_eligible",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_health::test_malformed_receipts_make_executor_ineligible",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_health::test_explicit_unavailable_executor_fails_without_silent_fallback",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_health::test_implicit_routing_uses_next_healthy_external_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_live_probe_timeout_default_is_realistic",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_probe_uses_internal_env_and_neutral_cwd",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_probe_timeout_kills_child_process_group",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_probe_timeout_kills_descendant_in_new_process_group",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_non_active_lifecycle_states_are_not_eligible_for_new_dispatch[disabled]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_non_active_lifecycle_states_are_not_eligible_for_new_dispatch[deprecated]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_non_active_lifecycle_states_are_not_eligible_for_new_dispatch[removed]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_direct_selection_of_unavailable_active_executor_reports_precise_blocker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_launch_probe_failure_marks_executor_unavailable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_isolated_auth_requirement_marks_executor_unavailable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_oauth_subscription_auth_satisfies_default_worker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_oauth_live_probe_detects_invalid_auth",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_live_probe_timeout_is_not_reported_as_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_live_probe_hook_interference_is_not_reported_as_auth_required",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_auto_auth_falls_back_to_ccswitch_provider",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_oauth_live_probe_accepts_success",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_live_probe_redacts_ccswitch_secret_from_errors",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_isolated_auth_requirement_can_be_satisfied_by_settings",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_missing_worker_settings_file_marks_executor_unavailable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_lifecycle::test_claude_default_worker_settings_requires_api_key",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_every_registered_executor_has_required_profile_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_profile_noninteractive_flags_match_adapter_command",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_executor_environment_defaults_match_cross_controller_routing_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_controller_suppression_is_profile_driven_for_codex_and_claude_code",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_diagnostic_policy_can_include_all_registered_executors_when_self_allowed",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_onboarding::test_requested_executor_availability_probe_is_targeted",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_codex_can_disable_external_claude_code_without_affecting_generic_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_global_disable_affects_every_controller",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_direct_request_for_policy_disabled_executor_fails_fast",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_controller_priority_overlay_reorders_without_changing_static_specs",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_self_suppression_is_independent_from_runtime_disable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_overlay_rejects_unknown_and_removed_executor_ids",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_overlay_ignores_removed_startup_profile_section",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_policy_manager_round_trips_controller_overlay",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_app_paths_include_executor_policy_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_policy_overlay::test_policy_cli_manages_controller_overlay",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_default_executor_is_grok_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_supported_executor_ids_exclude_gemini",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_legacy_executor_ids_remain_detectable_but_not_supported_for_new_work",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_normalize_executor_id_strips_and_lowercases_supported_ids",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_registry_returns_external_cli_adapters_for_canonical_ids",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_registry_factories_preserve_environment_binary_overrides",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_registry_keeps_legacy_executors_readable_without_marking_them_active",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_executor_routing::test_local_cli_backends_include_new_ids_and_legacy_codex_cleanup_id",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_properties",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_dispatch_command_construction",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_dispatch_uses_isolated_worktree_for_cwd",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_dispatch_uses_yolo_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_dispatch_honors_default_mode",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_dispatch_honors_auto_edit_mode",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_executor_poll",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_gemini_executor::test_gemini_poll_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_grok_cli_executor::test_grok_cli_executor_uses_env_binary",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_grok_cli_executor::test_grok_cli_command_is_repo_scoped_and_managed_natural_by_default",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_grok_cli_executor::test_grok_cli_command_allows_json_fallback_and_custom_turn_budget",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_grok_cli_executor::test_grok_cli_rejects_unsupported_output_format",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_grok_cli_executor::test_grok_cli_rejects_invalid_turn_budget",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_internal_context::test_client_hooks_suppressed_by_explicit_flag",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_internal_context::test_client_hooks_suppressed_for_internal_roles",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_internal_context::test_build_internal_probe_env_marks_noninteractive_probe",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_internal_context::test_build_internal_executor_env_increments_depth_and_records_parent",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_dispatch_injects_executor_env_without_writing_secret_to_cmd_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_dispatch_injects_task_id_commit_requirement",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_dispatch_injects_execution_repository_root",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_executor_error_classification_treats_max_turns_as_recoverable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_executor_error_classification_treats_cancelled_after_max_turns_as_recoverable",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_prioritizes_terminal_error_over_plugin_noise",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_filters_external_cli_startup_noise",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_ignores_only_external_cli_startup_noise",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_preserves_bare_broken_pipe",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_omits_non_salient_structured_stdout_when_stderr_has_error",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_error_summary_prioritizes_stdout_error_over_progress_noise",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_dispatch_injects_authorization_and_structured_receipt_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_structured_receipt_from_logs_parses_pretty_wrapped_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_structured_receipt_from_logs_parses_claude_result_envelope",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_persists_final_summary_to_state_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_accepts_structured_report_only_receipt_without_implementation_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_persists_error_summary_to_state_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_blocks_when_executor_waits_for_interactive_input",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_waiting_for_input_detection_ignores_instructional_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_classifies_executor_quota_exhaustion",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_classifies_executor_auth_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_report_only_success_exit_salvages_completed_stdout_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_report_only_success_exit_blocks_antigravity_print_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_report_only_success_exit_blocks_missing_stdout_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_report_only_process_crash_reports_missing_report_not_commit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_mutating_process_crash_mentions_commit_evidence",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_returns_evidence_pack_for_success_exit_without_commit_when_commit_evidence_available",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_returns_evidence_pack_for_success_exit_without_commit_in_repo_without_baseline_head",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_accepts_first_commit_in_repo_without_baseline_head_when_task_id_matches",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_marks_post_commit_hang_arbitration_in_state_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_does_not_clean_git_locks_on_normal_success",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_ensure_process_dead_requests_sigterm_without_sleeping",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_ensure_process_dead_escalates_to_sigkill_after_grace",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_treats_zombie_as_dead",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_treats_live_child_in_same_group_as_alive",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_cleanup_waits_for_exit_and_removes_temp_dir",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_cleanup_does_not_block_or_remove_dir_while_process_still_alive",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_skips_git_status_while_process_is_still_running",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_batches_child_status_checks",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_detects_pid_recycling",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_allows_matching_start_time",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_ignores_commit_from_another_task",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_poll_uses_cached_receipt_on_second_poll_during_process_death",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_git_log_grep_task_id_handles_multiline_commit_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_git_log_grep_task_id_rejects_wrong_task_in_multiline_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_ensure_process_dead_forces_dead_after_sigkill_timeout",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor::test_is_process_alive_treats_permission_error_as_alive",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_creates_default_isolated_worktree_and_records_execution_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_reuses_existing_isolated_worktree",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_resolves_relative_worktree_boundary_against_repo_path",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_rejects_base_repo_as_isolated_worktree",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_tracked_dirty_snapshot_applies_to_isolated_worktree",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_dispatch_dirty_snapshot_off_leaves_isolated_worktree_clean",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_arbitrate_salvages_readonly_report_after_nonzero_exit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_arbitrate_blocks_readonly_thought_only_after_nonzero_exit",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_local_cli_executor_isolated::test_finalize_infers_isolated_worktree_changed_files_and_apply_check",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_ready_for_review_requires_machine_checkable_evidence",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_commit_ref_is_optional_for_ready_for_review",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_malformed_success_receipt_is_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_report_only_evidence_pack_accepts_artifacts_without_implementation_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_report_payload_without_declared_changes_is_report_only_evidence",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_report_payload_with_declared_changes_still_requires_validation",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_approval_required_requires_authorization_delta",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_from_wrapped_result_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_from_nested_content_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_from_codex_jsonl_item_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_claude_code_success_result_as_native_report_envelope",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_native_success_envelope_requires_task_context",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_extracts_mixed_text_then_multiline_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_realistic_wrapped_implementation_fixture",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_normalizes_ready_for_review_status_alias",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_receipt_normalizes_blocked_and_committed_status_aliases",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_real_antigravity_schema_1_0_0_mixed_fixture",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_parse_real_antigravity_nested_schema_1_0_0_fixture",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_receipt_validation::test_blocked_failure_context_prefers_recommended_next_action",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_usable_report_recommends_use_result",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_no_signal_with_next_executor_recommends_switch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_direct_executor_request_does_not_silently_switch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_auth_failure_recommends_repair_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_executor_probe_failure_recommends_repair_executor",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_approval_required_does_not_silently_switch",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_scope_violation_requires_inspection",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_controller_lease_expiry_recommends_background_wait",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_recovery_uses_result_when_stdout_salvage_is_available",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_recovery_inspects_evidence_for_global_authorization_blocker",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_recovery_decision::test_recovery_can_route_from_artifact_result_when_agent_action_is_missing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_roles::test_normalize_coordination_role_accepts_known_roles",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_roles::test_normalize_coordination_role_rejects_unknown_role",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_roles::test_role_prompt_hint_is_advisory_contract_text",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_scope_validation::test_validate_changed_files_accepts_matching_declared_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_scope_validation::test_validate_changed_files_detects_undeclared_missing_and_forbidden_changes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_scope_validation::test_validate_changed_files_excludes_baseline_dirty_snapshot",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_scope_validation::test_changed_files_helpers_read_git_status_and_commit_diff",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_scope_validation::test_terminal_scope_validation_counts_committed_diff_without_commit_ref",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_contract::test_report_completion_policy_injects_report_only_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_contract::test_mutating_auto_task_omits_report_only_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_contract::test_body_readonly_hint_injects_report_only_contract",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_contract::test_body_with_coordination_role_injects_advisory_role_hint",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_terminal_report::test_report_text_requires_explicit_report_or_stdout_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_terminal_report::test_report_text_uses_payload_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_task_terminal_report::test_report_text_preserves_stdout_report_body",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_terminal_arbitration::test_thought_only_stdout_fixture_is_not_completed_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_terminal_arbitration::test_nonzero_exit_with_real_report_fixture_is_completed_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_terminal_arbitration::test_claude_code_result_json_is_completed_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_terminal_arbitration::test_cancelled_result_json_is_not_completed_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_terminal_arbitration::test_json_text_field_with_final_report_is_completed_report",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_send_task_shells_out_to_agent_bus_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_pull_receipts_shells_out_to_agent_bus_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_reserve_receipts_shells_out_to_agent_bus_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_settle_claims_shells_out_to_agent_bus_cli",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_pull_receipts_raises_bus_pull_error_on_subprocess_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_pull_receipts_raises_bus_pull_error_on_invalid_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_send_raises_bus_send_error_on_subprocess_failure",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_transport_adapter::test_send_raises_bus_send_error_on_invalid_json",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[quick-review-quick_review]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[deep_review-deep_review]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[implementation-implementation]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[test-fix-test_fix]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[research-research]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[smoke-smoke]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_normalize_task_kind_aliases[None-generic]",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_resolve_implementation_budget_defaults_to_background_lease",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_strict_wait_policy_disables_background_detach",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_background_policy_can_be_selected_explicitly",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_unknown_task_kind_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_unknown_wait_policy_rejected",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_wait_policy::test_budget_overrides_are_validated",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_valid_minimal_manifest_passes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_rejects_cycle",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_rejects_unknown_dependency",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_rejects_script_fields_at_any_depth",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_rejects_invalid_completion_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_rejects_large_workflow_without_flag",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_report_nodes_keep_report_completion_policy",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_manifest_normalizes_coordination_policy_and_node_roles",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_manifest::test_manifest_rejects_unknown_coordination_role",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_presets::test_build_review_panel_manifest_is_valid_workflow",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_presets::test_build_implementation_panel_uses_mutating_policy_and_isolated_worktree",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_presets::test_build_fanout_manifest_rejects_missing_lanes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_rubric::test_evaluate_panel_result_scores_adoptable_panel_without_routing",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_rubric::test_evaluate_panel_result_penalizes_partial_and_blocked_lanes",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_source_policy::test_build_source_policy_is_instructional_not_sandbox_claim",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_store::test_create_workflow_persists_nodes_and_limits",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_store::test_reset_node_for_retry_increments_attempt",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_build_lane_card_preserves_agent_result_and_artifacts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_build_lane_card_marks_stdout_salvage_as_partial_evidence",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_build_lane_card_preserves_report_when_diff_artifact_is_blocked",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_validate_synthesis_result_requires_comparison_fields",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_synthesis_accepts_legacy_fall_back_but_outputs_native_fallback",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_derive_panel_result_degrades_for_partial_lane_and_scope_violation",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_workflow_synthesis::test_derive_panel_result_exposes_advisory_role_counts",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_worktree_adoption::test_worker_diff_excludes_controller_dirty_snapshot",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_worktree_adoption::test_apply_check_refuses_conflict_without_modifying_controller_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_worktree_adoption::test_apply_applies_worker_patch_to_controller_repo",
+      "outcome": "passed"
+    },
+    {
+      "nodeid": "tests.unit.test_worktree_adoption::test_worker_diff_includes_untracked_new_files",
+      "outcome": "passed"
+    }
+  ]
+}

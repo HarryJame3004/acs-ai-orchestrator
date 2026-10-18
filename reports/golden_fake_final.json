@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "suite": "full",
+  "workers": "fake",
+  "label": "CLOUD_SIMULATED",
+  "status": "PASS",
+  "results": [
+    {
+      "name": "calculator",
+      "category": "python",
+      "passed": true,
+      "runtime_seconds": 3.836,
+      "errors": {}
+    },
+    {
+      "name": "debug-division",
+      "category": "debugging",
+      "passed": true,
+      "runtime_seconds": 3.23,
+      "errors": {}
+    },
+    {
+      "name": "refactor-average",
+      "category": "refactoring",
+      "passed": true,
+      "runtime_seconds": 2.662,
+      "errors": {}
+    },
+    {
+      "name": "web-health",
+      "category": "web",
+      "passed": true,
+      "runtime_seconds": 2.92,
+      "errors": {}
+    },
+    {
+      "name": "generate-tests",
+      "category": "test-generation",
+      "passed": true,
+      "runtime_seconds": 9.706,
+      "errors": {}
+    },
+    {
+      "name": "documentation",
+      "category": "documentation",
+      "passed": true,
+      "runtime_seconds": 6.191,
+      "errors": {}
+    },
+    {
+      "name": "multifile-model",
+      "category": "multi-file",
+      "passed": true,
+      "runtime_seconds": 4.143,
+      "errors": {}
+    },
+    {
+      "name": "safe-path",
+      "category": "security",
+      "passed": true,
+      "runtime_seconds": 3.965,
+      "errors": {}
+    },
+    {
+      "name": "cpp-header",
+      "category": "cpp",
+      "passed": true,
+      "runtime_seconds": 4.621,
+      "errors": {}
+    },
+    {
+      "name": "json-contract",
+      "category": "structured-output",
+      "passed": true,
+      "runtime_seconds": 3.096,
+      "errors": {}
+    },
+    {
+      "name": "multi-agent",
+      "category": "collaboration",
+      "passed": true,
+      "runtime_seconds": 7.794,
+      "errors": {}
+    },
+    {
+      "name": "lease-recovery",
+      "category": "failure-recovery",
+      "passed": true,
+      "runtime_seconds": 5.053,
+      "errors": {}
+    }
+  ],
+  "pass_rate": 1.0,
+  "runtime_seconds": 57.245,
+  "max_child_rss_kib": 33720,
+  "measurement_note": "Harness child high-water RSS on this machine; not a laptop/provider measurement",
+  "baseline_reference": "reports/golden_fake_full.json",
+  "regressions": [],
+  "comparison_note": "Pass/missing-case regression only; runtime under different concurrent cloud load is recorded, not interpreted as a performance improvement."
+}

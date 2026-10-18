@@ -9,6 +9,7 @@ from agpair.executors.base import DispatchResult, TaskState
 
 
 def test_codex_executor_uses_env_binary_when_not_explicit(monkeypatch):
+    monkeypatch.delenv("AGPAIR_CODEX_BIN", raising=False)
     monkeypatch.setenv("AGPAIR_CODEX_CLI", "/tmp/fake-codex-env")
 
     executor = CodexExecutor()
@@ -107,14 +108,14 @@ def test_codex_executor_dispatch_uses_isolated_worktree_for_command_and_cwd(tmp_
     assert kwargs["cwd"] == str(worktree_path.resolve())
 
 
-def test_codex_executor_dispatch_uses_bypass_all_by_default(monkeypatch):
+def test_codex_executor_dispatch_keeps_sandbox_by_default(monkeypatch):
     monkeypatch.delenv("AGPAIR_CODEX_APPROVAL_MODE", raising=False)
     executor = CodexExecutor(codex_bin="fake-codex")
 
     cmd = executor._build_codex_cmd("Do something", "/fake/repo", pathlib.Path("/tmp"))
 
-    assert "--dangerously-bypass-approvals-and-sandbox" in cmd
-    assert "--full-auto" not in cmd
+    assert "--dangerously-bypass-approvals-and-sandbox" not in cmd
+    assert "--full-auto" in cmd
     assert "--ignore-user-config" not in cmd
     assert "--ignore-rules" not in cmd
 
@@ -221,3 +222,10 @@ def test_codex_executor_dispatch_closes_fds_on_popen_error():
 
     mock_stdout_fh.close.assert_called_once()
     mock_stderr_fh.close.assert_called_once()
+
+
+def test_codex_executor_refuses_explicit_bypass(monkeypatch):
+    import pytest
+    monkeypatch.setenv('AGPAIR_CODEX_APPROVAL_MODE','dangerously_bypass')
+    with pytest.raises(PermissionError):
+        CodexExecutor(codex_bin='fake-codex')._build_codex_cmd('fixture','/fake/repo',pathlib.Path('/tmp'))

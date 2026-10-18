@@ -120,7 +120,6 @@ EXECUTOR_SPECS: dict[str, ExecutorSpec] = {
             "default_output_mode": "print",
             "model_env_vars": ["AGPAIR_ANTIGRAVITY_MODEL", "AGPAIR_ANTIGRAVITY_CLI_MODEL"],
             "noninteractive_flags": [
-                "--dangerously-skip-permissions",
                 "--print",
                 "--print-timeout",
                 "--log-file",
@@ -153,7 +152,6 @@ EXECUTOR_SPECS: dict[str, ExecutorSpec] = {
                 "--single",
                 "--cwd",
                 "--output-format",
-                "--always-approve",
             ],
             "isolated_auth_env_vars": [],
             "isolation_disable_env_var": None,

@@ -73,6 +73,7 @@ def test_codex_lifecycle_success(tmp_path: pathlib.Path, monkeypatch) -> None:
     
     # We don't have a real codex CLI, we'll patch CodexExecutor.codex_bin
     fake_codex = write_fake_codex_bin(tmp_path)
+    monkeypatch.setenv("AGPAIR_CODEX_BIN", str(fake_codex))
     
     # We'll use CliRunner to dispatch the task
     runner = CliRunner()
@@ -154,6 +155,10 @@ def test_codex_lifecycle_success(tmp_path: pathlib.Path, monkeypatch) -> None:
 def write_failing_codex_bin(tmp_path: pathlib.Path) -> pathlib.Path:
     bin_path = tmp_path / "fake-codex-fail"
     script = """#!/bin/bash
+    if [[ "$1" == "--version" || "$1" == "--help" ]]; then
+        echo "codex fixture-version"
+        exit 0
+    fi
     OUTPUT_FILE=""
     while [[ $# -gt 0 ]]; do
       case $1 in
@@ -183,6 +188,7 @@ def test_codex_lifecycle_failure(tmp_path: pathlib.Path, monkeypatch) -> None:
     ensure_database(paths.db_path)
     
     fake_codex = write_failing_codex_bin(tmp_path)
+    monkeypatch.setenv("AGPAIR_CODEX_BIN", str(fake_codex))
     import agpair.executors.codex
     original_init = agpair.executors.codex.CodexExecutor.__init__
     def mocked_init(self, codex_bin="codex"):
@@ -244,6 +250,7 @@ def test_codex_evidence_ready_not_repolled(tmp_path: pathlib.Path, monkeypatch) 
     init_git_repo(tmp_path)
 
     fake_codex = write_fake_codex_bin(tmp_path)
+    monkeypatch.setenv("AGPAIR_CODEX_BIN", str(fake_codex))
     import agpair.executors.codex
     original_init = agpair.executors.codex.CodexExecutor.__init__
 
@@ -297,6 +304,7 @@ def test_codex_receipt_carries_real_attempt_no(tmp_path: pathlib.Path, monkeypat
     init_git_repo(tmp_path)
 
     fake_codex = write_fake_codex_bin(tmp_path)
+    monkeypatch.setenv("AGPAIR_CODEX_BIN", str(fake_codex))
     import agpair.executors.codex
     original_init = agpair.executors.codex.CodexExecutor.__init__
 

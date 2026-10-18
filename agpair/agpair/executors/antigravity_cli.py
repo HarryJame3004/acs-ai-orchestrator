@@ -21,18 +21,18 @@ _VENDOR_LOG_NAME = "antigravity-cli.log"
 
 
 def _approval_args() -> list[str]:
-    mode = os.environ.get("AGPAIR_ANTIGRAVITY_APPROVAL_MODE", "yolo").strip().lower()
+    mode = os.environ.get("AGPAIR_ANTIGRAVITY_APPROVAL_MODE", "default").strip().lower()
     if mode == "default":
         return []
     if mode in {"yolo", "dangerous", "dangerously-skip-permissions"}:
-        return ["--dangerously-skip-permissions"]
+        raise PermissionError("Antigravity permission bypass is prohibited")
     if mode == "auto_edit":
         raise ValueError(
             "agy does not support AGPAIR_ANTIGRAVITY_APPROVAL_MODE=auto_edit; "
-            "use default or yolo"
+            "use default"
         )
     raise ValueError(
-        "Unsupported AGPAIR_ANTIGRAVITY_APPROVAL_MODE; use default or yolo"
+        "Unsupported AGPAIR_ANTIGRAVITY_APPROVAL_MODE; use default"
     )
 
 

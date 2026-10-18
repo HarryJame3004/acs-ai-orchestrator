@@ -78,6 +78,10 @@ def test_doctor_reports_missing_bus_or_database_paths(tmp_path: Path, monkeypatc
 
 
 def test_doctor_reports_external_cli_executor_health(tmp_path: Path, monkeypatch) -> None:
+    # This case deliberately exercises legacy aliases; ambient primary variables
+    # must not override the disposable binaries supplied below.
+    for primary in ("AGPAIR_CODEX_BIN", "AGPAIR_GROK_CLI_BIN", "AGPAIR_CLAUDE_CODE_BIN"):
+        monkeypatch.delenv(primary, raising=False)
     monkeypatch.setenv("AGPAIR_HOME", str(tmp_path / ".agpair"))
     _clear_disk_cache(tmp_path)
     for env_var, filename in (

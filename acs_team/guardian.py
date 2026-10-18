@@ -3,7 +3,7 @@ Acts as the independent, un-bypassable boundary between worker pull requests/wor
 and the integrated repository.
 
 Enforces:
-1. CoreLock Protection (strict read-only isolation for /home/khoi/autonomous-coding-system).
+1. CoreLock protection from the configured protected-path policy.
 2. Protected branch protection (no direct pushes/merges to main, master, release, production).
 3. Cryptographic evidence verification (HMAC-SHA256, commit SHA integrity).
 4. Strict Quality Score verification (Q >= 0.85, 0 test failures, 0 banned patterns).
@@ -21,13 +21,15 @@ from typing import Any, Dict, List, Optional
 
 from .db import DatabaseManager
 from .evidence import EvidenceEngine
-from .human_approval import HumanApprovalGate, RiskLevel
+from .human_approval import HumanApprovalGate
 from .quality import QualityEngine, QualityReport
+from .config import PROTECTED_PATHS
+from .security import contained_path
 
 logger = logging.getLogger("acs_ai.guardian")
 
 PROTECTED_BRANCHES = {"main", "master", "release", "production", "stable"}
-CORELOCK_PROTECTED_PATHS = ["/home/khoi/autonomous-coding-system"]
+CORELOCK_PROTECTED_PATHS = [str(path) for path in PROTECTED_PATHS]
 
 
 class CoreLockViolation(Exception):
@@ -57,11 +59,12 @@ class Guardian:
         db: DatabaseManager,
         auth_token: str,
         quality_threshold: float = 0.85,
+        verification_runner=None,
     ):
         self.db = db
         self.auth_token = auth_token
         self.evidence_engine = EvidenceEngine(auth_token)
-        self.quality_engine = QualityEngine(threshold=quality_threshold)
+        self.quality_engine = QualityEngine(threshold=quality_threshold, verification_runner=verification_runner)
         self.approval_gate = HumanApprovalGate(db)
 
     def verify_corelock_safety(self, repository_path: str, changed_files: List[str]) -> None:
@@ -73,6 +76,13 @@ class Guardian:
                 raise CoreLockViolation(
                     f"CoreLock Violation: Attempted modification to protected core repository '{canonical_repo}'."
                 )
+        if not CORELOCK_PROTECTED_PATHS:
+            raise CoreLockViolation("CoreLock Violation: empty protected policy")
+        for name in changed_files:
+            try:
+                contained_path(Path(repository_path), name, tuple(Path(p) for p in CORELOCK_PROTECTED_PATHS))
+            except PermissionError as error:
+                raise CoreLockViolation(f"CoreLock Violation: {error}") from error
 
     def evaluate(
         self,
@@ -101,7 +111,10 @@ class Guardian:
         # 2. Protected Branch Gate
         if target_branch in PROTECTED_BRANCHES or is_release_attempt:
             human_approval_required = True
-            if not approval_id or not self.approval_gate.is_operation_approved(approval_id):
+            action = "merge_to_" + target_branch
+            if not approval_id or not self.approval_gate.is_operation_approved(
+                approval_id, mission_id=mission_id, target_repo=str(repository_path), commit_sha=commit_sha, action=action
+            ):
                 veto_reasons.append(
                     f"Direct integration into protected branch '{target_branch}' requires explicit human approval."
                 )
@@ -115,10 +128,19 @@ class Guardian:
         )
         if not evidence_valid:
             veto_reasons.append("Cryptographic evidence verification failed: signature or commit SHA mismatch.")
+        if not evidence_dict.get("test_results", {}).get("executed") or not evidence_dict.get("test_results", {}).get("passed"):
+            veto_reasons.append("Evidence does not demonstrate executed passing tests")
+        try:
+            if self.evidence_engine.get_repo_head_commit(worktree_path) != commit_sha:
+                veto_reasons.append("Worktree HEAD differs from signed commit")
+            for name in changed_files:
+                contained_path(Path(worktree_path), name, PROTECTED_PATHS)
+        except Exception:
+            veto_reasons.append("Cannot verify actual worktree commit/path boundaries")
 
         # 4. Independent Test Execution & Quality Evaluation
-        test_res = self.quality_engine.run_tests(worktree_path, test_command=test_command)
-        static_res = self.quality_engine.evaluate_static_analysis(worktree_path, changed_files)
+        test_res = self.quality_engine.run_tests(worktree_path, test_command=test_command) if not veto_reasons else {"executed": False, "passed": False}
+        static_res = self.quality_engine.evaluate_static_analysis(worktree_path, changed_files) if not veto_reasons else {"score": 0, "issues": veto_reasons}
 
         diff_text = evidence_dict.get("diff_summary", {}).get("diff_text", "")
         diff_res = self.quality_engine.evaluate_diff_sanity(worktree_path, diff_text)

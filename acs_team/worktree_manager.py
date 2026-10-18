@@ -11,8 +11,9 @@ import logging
 import os
 import shutil
 import subprocess
+import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 from .config import GIT_BIN, MIN_DISK_FREE_GB, WORKTREES_DIR
 
@@ -59,12 +60,13 @@ class WorktreeManager:
 
         clean_mid = mission_id.replace("/", "_")
         clean_tid = task_id.replace("/", "_")
+        if not all(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", item) for item in (clean_mid, clean_tid)):
+            raise ValueError("Unsafe worktree identifier")
         branch_name = f"acsai/worker/{clean_mid}/{clean_tid}"
         worktree_path = self.worktrees_dir / f"{clean_mid}_{clean_tid}"
 
-        if worktree_path.exists():
-            # If leftover exists, remove it cleanly first
-            self.remove_worktree(repo_path, worktree_path, force=True)
+        if worktree_path.exists() or worktree_path.is_symlink():
+            raise FileExistsError("Existing worktree retained for inspection")
 
         logger.info(f"Creating isolated worktree at {worktree_path} on branch {branch_name}...")
         cmd = [
@@ -103,16 +105,21 @@ class WorktreeManager:
         """Removes a worktree and prunes git metadata."""
         if not worktree_path.exists():
             return
+        root, target = self.worktrees_dir.resolve(), worktree_path.resolve()
+        if worktree_path.is_symlink() or root not in target.parents:
+            raise PermissionError("Refusing removal outside the owned worktree root")
+        listing = subprocess.run([str(GIT_BIN), "worktree", "list", "--porcelain"], cwd=repo_path,
+                                 check=True, capture_output=True, text=True)
+        registered = {Path(line[9:]).resolve() for line in listing.stdout.splitlines() if line.startswith("worktree ")}
+        if target not in registered or not (target / ".git").is_file():
+            raise PermissionError("Refusing removal of an unregistered linked worktree")
 
         cmd = [str(GIT_BIN), "worktree", "remove"]
         if force:
             cmd.append("--force")
         cmd.append(str(worktree_path))
 
-        subprocess.run(cmd, cwd=str(repo_path), capture_output=True, text=True)
-        # If directory still exists on disk, clean it
-        if worktree_path.exists():
-            shutil.rmtree(worktree_path, ignore_errors=True)
+        subprocess.run(cmd, cwd=str(repo_path), capture_output=True, text=True, check=True)
 
         # Prune dead worktree metadata
         subprocess.run([str(GIT_BIN), "worktree", "prune"], cwd=str(repo_path), capture_output=True)

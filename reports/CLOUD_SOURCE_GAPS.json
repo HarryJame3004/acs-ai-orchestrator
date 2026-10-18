@@ -1,0 +1,127 @@
+{
+  "status": "PARTIAL",
+  "note": "Precise current gap inventory; PASS of one defect is not whole-system acceptance. Source-feasible gaps remain FAIL, not LOCAL_VERIFICATION_REQUIRED.",
+  "requirements": [
+    {
+      "requirement_id": "REL-POSTMERGE-125",
+      "risk": "HIGH",
+      "final_status": "PASS",
+      "existing_implementation": "Both process-guard copies could return 125 before reaping an exited descendant after descheduling.",
+      "implementation_location": "acs_team/process_guard.py; agpair/agpair/executors/process_guard.py",
+      "missing_behavior": "Resolved by 84d302f; original historical seed-1337 DB remains unavailable.",
+      "planned_fix": "No retry/result rewriting.",
+      "acceptance_test": "tests/test_guard_cleanup_race.py; three seeded campaigns and 16 stress runs",
+      "verification_classification": "CLOUD_REAL"
+    },
+    {
+      "requirement_id": "REL-PROVIDER-DISPATCH",
+      "risk": "HIGH",
+      "final_status": "PASS",
+      "existing_implementation": "ProviderWorker originally recorded sessions only after external completion.",
+      "implementation_location": "acs_team/provider_workers.py; acs_team/provider_ledger.py",
+      "missing_behavior": "The scoped pre-dispatch reservation defect is fixed and contract-tested; authenticated provider behavior and the broader crash matrix remain separate open gates.",
+      "planned_fix": "Maintain fail-closed uncertainty; do not claim external exactly-once execution or currency metering.",
+      "acceptance_test": "tests/test_provider_ledger.py; tests/test_team_missions.py",
+      "verification_classification": "CLOUD_SIMULATED"
+    },
+    {
+      "requirement_id": "BASELINE-REVIEW-COVERAGE",
+      "risk": "HIGH",
+      "final_status": "FAIL",
+      "existing_implementation": "Default-deny byte protection covers tests/helpers/configuration across Python, C++ and Node.",
+      "implementation_location": "acs_team/test_policy.py; acs_team/team_runner.py",
+      "missing_behavior": "No trusted reviewed-update exception path or accurate baseline/current coverage comparison.",
+      "planned_fix": "Implement owner-authorized exact-content decisions, then measured coverage comparison without bypassing independent tests.",
+      "acceptance_test": "Add approved/denied/forged/changed baseline and coverage regression cases; existing tests/test_baseline_integrity.py",
+      "verification_classification": "CLOUD_REAL"
+    },
+    {
+      "requirement_id": "MCP-INTEGRATED-HTTP",
+      "risk": "HIGH",
+      "final_status": "FAIL",
+      "existing_implementation": "Sandboxed pinned stdio broker allows only an exact preapproved harmless call.",
+      "implementation_location": "acs_team/mcp_protocol.py; acs_team/mcp_audit.py",
+      "missing_behavior": "HTTP transport, general mission routing and provider-visible contracts with exact per-operation remote write approval are incomplete.",
+      "planned_fix": "Implement one bounded audited broker path used by real orchestration, denying unsupported/unapproved writes.",
+      "acceptance_test": "Mock HTTP and stdio mission integration, malicious responses, cancellation, timeout and write replay denial",
+      "verification_classification": "CLOUD_SIMULATED"
+    },
+    {
+      "requirement_id": "PROVIDER-QUOTA-FAILOVER",
+      "risk": "HIGH",
+      "final_status": "FAIL",
+      "existing_implementation": "Activation/auth/toolchain contracts and durable session admission exist; conservative call ceilings added.",
+      "implementation_location": "acs_team/providers.py; acs_team/provider_workers.py; acs_team/provider_ledger.py",
+      "missing_behavior": "Complete quota capabilities, free-first selection, safe controlled failover, currency/token usage and alternative producer schemas not all verified.",
+      "planned_fix": "Do not fail over uncertain calls; integrate availability/admission/accounting across supported paths without inventing pricing.",
+      "acceptance_test": "Provider quota, no-dispatch, bounded retry/failover and usage provenance tests across all paths",
+      "verification_classification": "CLOUD_SIMULATED"
+    },
+    {
+      "requirement_id": "CORE-FIRST-BOUNDARY",
+      "risk": "HIGH",
+      "final_status": "BLOCKED",
+      "existing_implementation": "Optional v1 bounded escalation/handoff contract, default disabled/zero budget, durable idempotency and approval tests implemented.",
+      "implementation_location": "acs_team/core_handoff.py; docs/upgrade/CORE_FIRST_CONTRACT.md",
+      "missing_behavior": "Actual Core API unconfirmed; native analyzers cannot yet enforce independently verified monetary ceilings.",
+      "planned_fix": "Keep real adapter disabled; validate supported interface/cost enforcement before activation. Do not modify Core.",
+      "acceptance_test": "tests/test_core_handoff.py; real interface/account acceptance requires owner environment",
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "VERIFY-PROFILES",
+      "risk": "MEDIUM",
+      "final_status": "FAIL",
+      "existing_implementation": "C++/Node and explicit Python performance/resource profiles execute under supervision and sandbox contracts.",
+      "implementation_location": "acs_team/verification_profiles.py; acs_team/security.py",
+      "missing_behavior": "Every original specialized/golden benchmark category, static/performance provenance and full acceptance coverage are not all closed.",
+      "planned_fix": "Extend the integrated verification path and measure unsupported categories explicitly.",
+      "acceptance_test": "tests/test_verification_profiles.py; full original acceptance examples",
+      "verification_classification": "CLOUD_SIMULATED"
+    },
+    {
+      "requirement_id": "TELEMETRY-LESSONS",
+      "risk": "MEDIUM",
+      "final_status": "FAIL",
+      "existing_implementation": "Structured failure evidence, metrics, advisory context and manually validated lesson candidates exist.",
+      "implementation_location": "acs_team/intelligence.py; acs_team/team_runner.py; acs_team/team_missions.py",
+      "missing_behavior": "Complete cost attribution and evidence-backed outcome learning across all execution paths remain unverified.",
+      "planned_fix": "Tie lessons to real signed outcomes; no automatic policy relaxation or fabricated improvement.",
+      "acceptance_test": "Outcome/provenance rejection and accounting tests",
+      "verification_classification": "CLOUD_SIMULATED"
+    },
+    {
+      "requirement_id": "RELIABILITY-MATRIX",
+      "risk": "HIGH",
+      "final_status": "FAIL",
+      "existing_implementation": "WAL FULL, fenced claims, owned processes, Git journal recovery, aggregate resource contracts and admission exist.",
+      "implementation_location": "acs_team/team_recovery.py; acs_team/coordination.py; acs_team/aggregate_limits.py",
+      "missing_behavior": "Every controller/provider/Git/SQLite crash boundary and exhausted-resource campaign not exhaustively closed.",
+      "planned_fix": "Add deterministic cutpoints for unresolved boundaries; preserve uncertain state, avoid duplicate execution and unsafe integration.",
+      "acceptance_test": "Concurrent controllers, crash recovery and resource enforcement campaigns",
+      "verification_classification": "CLOUD_REAL"
+    },
+    {
+      "requirement_id": "PACKAGING-LOCK-LICENSE",
+      "risk": "MEDIUM",
+      "final_status": "FAIL",
+      "existing_implementation": "Reproducible Git source bundles, exact manifests and isolated Arch-oriented installer tested. Patched build bootstrap audited. Fresh c743f45 internal bundles are byte-identical and a manifest-verified clean-room installation/repeat succeeded; dependency/license inventory recorded.",
+      "implementation_location": "scripts/build_local_bundle.py; scripts/personal_install.py; requirements/local-build.txt",
+      "missing_behavior": "Final source RC is not issued; full dependency hashes/license inventory and owner licensing decision remain open.",
+      "planned_fix": "Finish source first, then build twice, compare bytes, clean-room install/test, audit exact packages. Never invent a license.",
+      "acceptance_test": "tests/scaffolding/test_personal_install.py; packaging suite and fresh archive verification",
+      "verification_classification": "CLOUD_REAL"
+    },
+    {
+      "requirement_id": "ORIGINAL-PER-BULLET",
+      "risk": "HIGH",
+      "final_status": "FAIL",
+      "existing_implementation": "All 64 explicit acceptance bullets are indexed verbatim, alongside preserved historical section inventory and the integrated \u00a714 scenario mapping.",
+      "implementation_location": "reports/FINAL_REQUIREMENT_MATRIX.json; reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+      "missing_behavior": "Individual source/test closure is still incomplete; unreviewed source bullets remain FAIL.",
+      "planned_fix": "Index exact bullets and verify each witness individually; keep missing cloud source FAIL.",
+      "acceptance_test": "Complete original specification and acceptance scenario mapping",
+      "verification_classification": "CLOUD_SIMULATED"
+    }
+  ]
+}

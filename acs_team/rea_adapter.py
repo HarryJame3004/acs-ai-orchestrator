@@ -10,12 +10,11 @@ Provides binary and ELF inspection capabilities with:
 from __future__ import annotations
 
 import logging
-import os
 import shutil
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List
 
 logger = logging.getLogger("acs_ai.rea_adapter")
 
@@ -78,6 +77,8 @@ class REAAdapter:
 
     def _inspect_with_native_rea(self, target: Path) -> BinaryInspectionReport:
         """Executes native `rea` CLI with strict execution timeout."""
+        if self.rea_binary is None:
+            raise REAError("Native REA executable is unavailable")
         cmd = [self.rea_binary, "analyze", "--json", str(target)]
         try:
             res = subprocess.run(

@@ -1,0 +1,88 @@
+.....................................................................F.. [ 51%]
+................................................s..................      [100%]
+=================================== FAILURES ===================================
+____ test_coordinated_real_git_sqlite_guardian_with_fake_workers[postmerge] ____
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-68/test_coordinated_real_git_sqli2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f89a83018b0>
+failure = 'postmerge'
+
+    @pytest.mark.simulated
+    @pytest.mark.parametrize("failure", [None, "scope", "death", "review", "postmerge"])
+    def test_coordinated_real_git_sqlite_guardian_with_fake_workers(
+        tmp_path, monkeypatch, failure
+    ):
+        monkeypatch.setenv("ACS_ENABLE_COORDINATION", "1")
+        root = tmp_path / "repo"
+        root.mkdir()
+        git(root, "init", "-b", "main")
+        git(root, "config", "user.name", "Fixture")
+        git(root, "config", "user.email", "fixture@example.invalid")
+        (root / "README.md").write_text("Disposable fixture\n")
+        git(root, "add", ".")
+        git(root, "commit", "-m", "initial")
+        head = git(root, "rev-parse", "HEAD")
+        status = git(root, "status", "--porcelain")
+        engine = store(tmp_path)
+        barrier = threading.Barrier(2) if failure is None else None
+        workers = {
+            name: FakeWorker(
+                name, barrier, malicious=failure == "scope", fail=failure == "death"
+            )
+            for name in ("a", "b", "c")
+        }
+    
+        def test_prepare(task, requirements):
+            name = Path(task.owns[0]).stem
+            assert requirements == ["Functions return 42"]
+            code = f"from {name} import value\ndef test_requirement_{task.task_id}(): assert value() == 42\n"
+            if failure == "postmerge":
+                code += "from pathlib import Path\ndef test_injected_integration_failure(): assert not (Path('alpha.py').exists() and Path('beta.py').exists())\n"
+            return {f"tests/test_contract_{task.task_id}.py": code}
+    
+        def review(task, worktree, implementer, sha):
+            return Review(
+                task_id=task.task_id,
+                implementer=implementer,
+                reviewer="reviewer",
+                commit_sha=sha,
+                verdict="FIX_REQUIRED" if failure == "review" else "PASS",
+                requirement_coverage=task.acceptance_criteria,
+            )
+    
+        runner = TeamRunner(
+            engine,
+            workers,
+            IndependentTester("tester", test_prepare),
+            {"reviewer": review},
+            WorktreeManager(tmp_path / "worktrees", min_free_gb=0),
+            tmp_path / "artifacts",
+            "offline-evidence-fixture",
+        )
+        result = runner.run(plan(), root)
+        assert result["status"] == ("COMPLETED" if failure is None else "BLOCKED"), result[
+            "errors"
+        ]
+        assert (
+            git(root, "rev-parse", "HEAD") == head
+            and git(root, "status", "--porcelain") == status
+        )
+        if failure is None:
+            assert len(engine.messages("mission")) == 2
+            assert git(root, "rev-list", "--count", result["integration_branch"]) == "5"
+            assert all(row["state"] == "INTEGRATED" for row in result["tasks"])
+        else:
+            if failure == "postmerge":
+>               assert sorted(row["state"] for row in result["tasks"]) == [
+                    "FAILED",
+                    "INTEGRATED",
+                ]
+E               AssertionError: assert ['FAILED', 'FAILED'] == ['FAILED', 'INTEGRATED']
+E                 
+E                 At index 1 diff: 'FAILED' != 'INTEGRATED'
+E                 Use -v to get more diff
+
+tests/test_coordination.py:322: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_coordination.py::test_coordinated_real_git_sqlite_guardian_with_fake_workers[postmerge]
+1 failed, 137 passed, 1 skipped in 93.45s (0:01:33)

@@ -14,9 +14,7 @@ Threshold: Q >= 0.85 for automated approval.
 from __future__ import annotations
 
 import logging
-import os
 import re
-import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -49,8 +47,9 @@ class QualityReport:
 class QualityEngine:
     """Evaluates code quality, test results, static analysis, and diff sanity."""
 
-    def __init__(self, threshold: float = 0.85):
+    def __init__(self, threshold: float = 0.85, verification_runner=None):
         self.threshold = threshold
+        self.verification_runner = verification_runner
 
     def run_tests(
         self,
@@ -59,53 +58,13 @@ class QualityEngine:
         timeout_sec: int = 180,
     ) -> Dict[str, Any]:
         """Executes test suite within the designated worktree."""
+        from .security import run_verification
         worktree_path = Path(worktree_path)
-        if not test_command:
-            # Check for pytest or fallback python unittest
-            if (worktree_path / "tests").is_dir() or (worktree_path / "test").is_dir():
-                test_command = "pytest"
-            else:
-                return {
-                    "executed": False,
-                    "passed": True,
-                    "total": 0,
-                    "failed": 0,
-                    "output": "No tests detected in worktree.",
-                }
-
-        logger.info(f"Running test suite in {worktree_path}: '{test_command}'")
         try:
-            res = subprocess.run(
-                test_command,
-                shell=True,
-                cwd=str(worktree_path),
-                capture_output=True,
-                text=True,
-                timeout=timeout_sec,
-            )
-            output = (res.stdout + "\n" + res.stderr).strip()
-            passed = res.returncode == 0
-            
-            return {
-                "executed": True,
-                "passed": passed,
-                "exit_code": res.returncode,
-                "output": output[-4000:] if len(output) > 4000 else output,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "executed": True,
-                "passed": False,
-                "exit_code": -1,
-                "output": f"Tests timed out after {timeout_sec} seconds.",
-            }
-        except Exception as e:
-            return {
-                "executed": True,
-                "passed": False,
-                "exit_code": -1,
-                "output": f"Failed to execute tests: {e}",
-            }
+            return (self.verification_runner or run_verification)(test_command or "pytest", worktree_path, timeout_sec)
+        except Exception as error:
+            return {"executed": False, "passed": False, "exit_code": -1,
+                    "output": str(error), "counts": {}}
 
     def evaluate_static_analysis(self, worktree_path: Path | str, changed_files: List[str]) -> Dict[str, Any]:
         """Runs basic python syntax validation and lint checks on changed files."""
@@ -146,7 +105,7 @@ class QualityEngine:
                 score -= 0.4
 
         lines = diff_text.splitlines()
-        added_lines = [l for l in lines if l.startswith("+") and not l.startswith("+++")]
+        added_lines = [line for line in lines if line.startswith("+") and not line.startswith("+++")]
         
         # Penalize excessive diffs (> 1500 lines changed in a single task)
         if len(added_lines) > 1500:
@@ -178,7 +137,8 @@ class QualityEngine:
                 t_score = 0.0
                 veto_reasons.append("Automated test suite failed.")
         else:
-            t_score = 1.0  # No tests required / empty test suite
+            t_score = 0.0
+            veto_reasons.append("Automated test suite was not executed.")
 
         # S: Static analysis
         s_score = float(static_result.get("score", 1.0))

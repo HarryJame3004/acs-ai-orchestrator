@@ -16,7 +16,7 @@ def _approval_args() -> list[str]:
         raise PermissionError(
             "Security Violation: --dangerously-bypass-approvals-and-sandbox is strictly forbidden by ACS Absolute Safety Rules"
         )
-    return ["--full-auto"]
+    raise ValueError("Unsupported Codex approval mode")
 
 
 class CodexExecutor(LocalCLIExecutor):

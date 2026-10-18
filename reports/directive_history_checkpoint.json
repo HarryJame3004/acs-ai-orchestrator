@@ -1,0 +1,14 @@
+{
+  "label": "CLOUD_REAL",
+  "commits": 44,
+  "unique_blobs": 764,
+  "skipped": [],
+  "limitations": [
+    "Heuristic text scan; no credential validation",
+    "Scanner fingerprint baseline excluded",
+    "Binary blobs not analyzed"
+  ],
+  "candidate_count": 71,
+  "unknown_candidates": 0,
+  "raw_report_path": "/tmp/acs-directive-history.json"
+}

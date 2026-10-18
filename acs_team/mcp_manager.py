@@ -9,13 +9,13 @@ import json
 import logging
 import os
 import shutil
-import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .config import AGY_B_HOME
-from .mcp_registry import MCPRegistry, ToolCategory
+from .mcp_registry import MCPRegistry
+from .security import redact
 
 logger = logging.getLogger("acs_ai.mcp_manager")
 
@@ -36,7 +36,7 @@ class MCPServerInfo:
     tools: List[Dict[str, Any]]
 
     def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+        return redact(asdict(self))
 
 
 class MCPManager:
@@ -113,24 +113,26 @@ class MCPManager:
             for name, s_cfg in mcp_servers.items():
                 cmd = s_cfg.get("command", "")
                 url = s_cfg.get("serverUrl") or s_cfg.get("url", "")
-                args = s_cfg.get("args", [])
                 env = s_cfg.get("env", {})
 
                 # Check auth status without leaking tokens
                 auth_status = "NONE"
                 for k, v in env.items():
                     if any(s in k.lower() for s in ["token", "key", "secret", "auth"]):
-                        prefix = v[:10] if len(v) >= 10 else v[:3]
-                        auth_status = f"CONFIGURED ({k}={prefix}***)"
+                        auth_status = f"CONFIGURED ({k}=***)"
                         break
 
                 server_type = "http" if url else "stdio"
-                command_summary = url if url else f"{cmd} {' '.join(args[:2])}"
+                from urllib.parse import urlparse
+                parsed_url = urlparse(url) if url else None
+                command_summary = (f"{parsed_url.scheme}://{parsed_url.hostname} [endpoint details redacted]"
+                                   if parsed_url else f"{cmd} [arguments redacted]")
 
                 # Test if command binary is installed
                 is_installed = bool(cmd and shutil.which(cmd)) or bool(url)
                 can_invoke = is_installed
-                status = "USABLE" if is_installed else "CONFIGURED"
+                status = "INSTALLED" if is_installed else "CONFIGURED"
+                can_invoke = False  # A config or executable is not a protocol probe.
 
                 # Check for cached tool schemas under ~/.gemini/antigravity/mcp/<name>/
                 schema_dir = Path(os.path.expanduser(f"~/.gemini/antigravity/mcp/{name}"))
@@ -182,7 +184,7 @@ class MCPManager:
                 results.append(MCPServerInfo(
                     name=f"codex-{plugin_name}-{name}",
                     source_config=f"codex:plugin/{plugin_name}",
-                    command_or_url=url or cmd,
+                    command_or_url="[configured endpoint redacted]" if url else cmd,
                     server_type="http" if url else "stdio",
                     enabled=True,
                     status="INSTALLED" if is_installed else "CONFIGURED",
@@ -190,7 +192,7 @@ class MCPManager:
                     capabilities=["codex_plugin"],
                     accessible_workers=["codex-primary"],
                     auth_status="NONE",
-                    can_invoke=is_installed,
+                    can_invoke=False,
                     tools=[],
                 ))
         except Exception:

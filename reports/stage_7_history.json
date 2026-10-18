@@ -1,0 +1,13 @@
+{
+  "label": "CLOUD_REAL",
+  "status": "PASS",
+  "scanned_history_head": "2b07fb1",
+  "commits": 34,
+  "unique_blobs": 657,
+  "known_candidate_count": 38,
+  "unknown_candidate_count": 0,
+  "skipped_blobs": 0,
+  "detector_canary": "PASS",
+  "metadata_policy": "Only exact report field/value and detector-hash identity matching known baseline fingerprints or reachable Git references; all other values remain scanned.",
+  "note": "Immutable history snapshot; current report avoids embedding detector hashes. No credential validation or baseline reset."
+}

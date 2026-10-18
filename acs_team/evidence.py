@@ -13,9 +13,41 @@ import subprocess
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import os
+import uuid
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger("acs_ai.evidence")
+
+
+def persist_evidence(evidence: Dict[str, Any], directory: Path) -> Path:
+    from .aggregate_limits import require_managed_write
+    require_managed_write(directory)
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if directory.is_symlink():
+        raise PermissionError("Evidence directory may not be a symlink")
+    name = f"{uuid.uuid4().hex}.evidence.json"
+    temporary = f".{name}.partial"
+    anchor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=anchor)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(evidence, stream, sort_keys=True)
+                stream.flush()
+                os.fsync(stream.fileno())
+            # Publish complete contents without overwriting any existing artifact.
+            os.link(temporary, name, src_dir_fd=anchor, dst_dir_fd=anchor,
+                    follow_symlinks=False)
+        finally:
+            os.unlink(temporary, dir_fd=anchor)
+        # The SQLite caller may reference this artifact only after the directory
+        # entry has been synchronized as well as its file contents.
+        os.fsync(anchor)
+    finally:
+        os.close(anchor)
+    return directory / name
 
 
 @dataclass
@@ -114,7 +146,16 @@ class EvidenceEngine:
             payload_sha256 = evidence_dict.get("payload_sha256")
             signature = evidence_dict.get("signature")
 
-            if not all([mission_id, commit_sha, timestamp, payload_sha256, signature]):
+            if (
+                not isinstance(mission_id, str) or not mission_id
+                or not isinstance(commit_sha, str) or not commit_sha
+                or not isinstance(timestamp, str) or not timestamp
+                or not isinstance(payload_sha256, str) or not payload_sha256
+                or not isinstance(signature, str) or not signature
+                or (task_id is not None and not isinstance(task_id, str))
+                or not isinstance(test_results, dict)
+                or not isinstance(diff_summary, dict)
+            ):
                 logger.warning("Evidence package missing mandatory fields.")
                 return False
 

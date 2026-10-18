@@ -25,7 +25,7 @@ def check_daemon_health(
 ) -> Dict[str, Any]:
     """Dynamically checks daemon health via HTTP /health and process state."""
     url = f"http://{host}:{port}/health"
-    http_data = None
+    http_data: dict[str, Any] = {}
     is_http_ok = False
     error_msg = None
 
@@ -35,7 +35,10 @@ def check_daemon_health(
         with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
             if resp.status == 200:
                 raw = resp.read().decode("utf-8")
-                http_data = json.loads(raw)
+                parsed = json.loads(raw)
+                if not isinstance(parsed, dict):
+                    raise ValueError("Invalid health response")
+                http_data = parsed
                 if http_data.get("status") == "ok":
                     is_http_ok = True
     except urllib.error.URLError as e:
@@ -93,7 +96,7 @@ def check_daemon_health(
             "version": http_data.get("version", "2.1") if http_data else "2.1",
             "db": http_data.get("db", "connected") if http_data else "connected",
             "systemd_active": systemd_active,
-            "details": f"Health: OK | Database: {(http_data.get('db') or 'connected').upper()}",
+            "details": f"Health: OK | Database: {str(http_data.get('db') or 'connected').upper()}",
         }
     elif process_alive or systemd_active:
         return {

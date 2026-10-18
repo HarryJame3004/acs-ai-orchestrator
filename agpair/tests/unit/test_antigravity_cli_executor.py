@@ -72,7 +72,6 @@ def test_antigravity_cli_command_is_agy_print_driven(monkeypatch) -> None:
 
     assert cmd == [
         "fake-agy",
-        "--dangerously-skip-permissions",
         "--add-dir",
         "/tmp/repo",
         "--print-timeout",
@@ -459,3 +458,9 @@ def test_antigravity_cleanup_ignores_malformed_project_configs(monkeypatch, tmp_
 
     assert malformed_config.exists()
     assert not matching_config.exists()
+
+
+def test_antigravity_cli_refuses_permission_bypass(monkeypatch):
+    monkeypatch.setenv('AGPAIR_ANTIGRAVITY_APPROVAL_MODE','yolo')
+    with pytest.raises(PermissionError):
+        AntigravityCLIExecutor(antigravity_bin='fake-agy')._build_antigravity_cmd('fixture','/fake/repo',pathlib.Path('/tmp'))

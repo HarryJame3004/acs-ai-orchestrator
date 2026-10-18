@@ -20,6 +20,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
 ]
 dependencies = [
+    "pydantic==2.12.3",
     "textual>=8.0.0",
     "typer>=0.16.0",
     "rich>=13.0.0",
@@ -36,12 +37,16 @@ test = [
 ]
 
 [project.scripts]
-acsai = "acs_team.cli:app"
+acsai = "acs_team.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["acs_team*"]
 
+[tool.setuptools.package-data]
+acs_team = ["defaults.json", "golden_cases.json"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = ["local_only: Requires local runtime capability; see TESTING.md", "simulated: Uses fake provider/transport; see TESTING.md", "unit: Pure component checks", "integration: Component integration", "security: Policy/security checks", "failure_injection: Injected failures", "slow: Deliberate slow suite"]

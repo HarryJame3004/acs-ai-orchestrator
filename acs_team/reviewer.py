@@ -1,4 +1,3 @@
-import json
 import logging
 import subprocess
 from pathlib import Path
@@ -30,35 +29,12 @@ class CodeReviewer:
         self, repo_path: Path, test_command: str = "pytest"
     ) -> Dict[str, Any]:
         """Execute automated tests in the repository and capture results."""
-        logger.info(f"Running automated tests in {repo_path}: '{test_command}'")
+        from .security import run_verification
         try:
-            res = subprocess.run(
-                test_command,
-                shell=True,
-                cwd=str(repo_path),
-                capture_output=True,
-                text=True,
-                timeout=300,
-            )
-            passed = res.returncode == 0
-            output = (res.stdout + "\n" + res.stderr).strip()
-            return {
-                "passed": passed,
-                "returncode": res.returncode,
-                "output": output[-2000:] if len(output) > 2000 else output,
-            }
-        except subprocess.TimeoutExpired:
-            return {
-                "passed": False,
-                "returncode": -1,
-                "output": "Test command timed out after 120s.",
-            }
-        except Exception as e:
-            return {
-                "passed": False,
-                "returncode": -1,
-                "output": f"Failed to execute tests: {e}",
-            }
+            result = run_verification(test_command, repo_path, 300)
+            return {**result, "returncode": result["exit_code"]}
+        except Exception as error:
+            return {"passed": False, "returncode": -1, "output": str(error)}
 
     def get_git_diff(self, repo_path: Path) -> str:
         """Get unstaged or latest git diff."""
@@ -96,7 +72,7 @@ class CodeReviewer:
     ) -> Dict[str, Any]:
         """Perform comprehensive independent review and test verification."""
         # 1. Run tests if test_command provided
-        test_result = {"passed": True, "output": "No test command specified."}
+        test_result: Dict[str, Any] = {"passed": False, "returncode": -1, "output": "No test command specified; verification is incomplete."}
         if test_command:
             test_result = self.run_tests(repo_path, test_command)
 
@@ -130,26 +106,34 @@ Respond ONLY with a JSON object with this schema:
   "recommendations": "Specific fix recommendations if issues found"
 }}
 """
-        logger.info(f"Submitting diff and test results to Reviewer model...")
+        logger.info("Submitting diff and test results to Reviewer model...")
         resp = query_llm(
             prompt, system_prompt=REVIEWER_SYSTEM_PROMPT, model=self.model
         )
 
         try:
+            if not isinstance(resp, str) or len(resp.encode()) > 32768:
+                raise ValueError("Reviewer output exceeds the bounded text contract")
             review_data = extract_json_block(resp)
+            if (
+                not isinstance(review_data, dict)
+                or type(review_data.get("approved")) is not bool
+                or not isinstance(review_data.get("summary"), str)
+                or not isinstance(review_data.get("recommendations"), str)
+                or not isinstance(review_data.get("defects"), list)
+                or len(review_data["defects"]) > 32
+                or not all(isinstance(item, str) for item in review_data["defects"])
+            ):
+                raise ValueError("Invalid independent reviewer output")
+            if review_data["defects"]:
+                review_data["approved"] = False
         except Exception:
-            # Fallback based strictly on test results
+            # Passing tests cannot substitute for an independent review.
             review_data = {
-                "approved": test_result["passed"],
-                "summary": (
-                    "Tests passed" if test_result["passed"] else "Tests failed"
-                ),
-                "defects": (
-                    []
-                    if test_result["passed"]
-                    else [f"Automated test failure: {test_result['output'][:200]}"]
-                ),
-                "recommendations": "Fix failing tests",
+                "approved": False,
+                "summary": "Independent review is incomplete",
+                "defects": ["Missing or invalid independent reviewer output"],
+                "recommendations": "Obtain a valid review; preserve all security gates",
             }
 
         # Override approved flag if automated tests definitively failed

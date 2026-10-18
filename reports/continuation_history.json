@@ -1,0 +1,13 @@
+{
+  "label": "CLOUD_REAL",
+  "status": "PASS",
+  "scanned_history_head": "0eb6543",
+  "commits": 41,
+  "unique_blobs": 744,
+  "known_candidate_count": 71,
+  "unknown_candidate_count": 0,
+  "skipped_blobs": 0,
+  "detector_canary": "PASS",
+  "metadata_policy": "Exact report paths/fields, matching detector hash, known baseline/public Git identity; one bounded derivation only for the first continuation artifact. Unknown values and further recursion fail.",
+  "note": "Summary avoids raw detector hashes. Full scan executed; no credential validation, baseline reset or history rewriting."
+}

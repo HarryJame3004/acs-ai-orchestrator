@@ -3,8 +3,13 @@ import logging
 import re
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from .config import ROUTER_BASE_URL, ROUTER_API_KEY, MODEL_FALLBACK
+from .resilience import CircuitBreaker, FailureKind, RetryPolicy, classify
+import time
+import urllib.error
+
+_CIRCUIT = CircuitBreaker()
 
 logger = logging.getLogger("acs_team.llm")
 
@@ -40,6 +45,8 @@ def query_llm(
     last_error = None
     for attempt_model in models_to_try:
         for attempt in range(retries + 1):
+            if not _CIRCUIT.allow():
+                raise RuntimeError("Model gateway circuit is open; wait for cooldown or correct configuration")
             try:
                 payload = json.dumps(
                     {
@@ -67,9 +74,16 @@ def query_llm(
                     # If content is empty but reasoning is present
                     if not content and choice.get("reasoning"):
                         content = choice["reasoning"]
+                    _CIRCUIT.success()
                     return content
             except Exception as e:
                 last_error = e
+                kind = classify(e.code if isinstance(e, urllib.error.HTTPError) else None, e)
+                _CIRCUIT.failure(kind)
+                if kind in {FailureKind.AUTH, FailureKind.PERMANENT, FailureKind.UNKNOWN}:
+                    raise RuntimeError(f"Model gateway failed: {kind.value}; no automatic credential retry") from None
+                if attempt < retries:
+                    time.sleep(RetryPolicy().delay(attempt))
                 logger.warning(
                     f"Model {attempt_model} attempt {attempt + 1} failed: {e}"
                 )
