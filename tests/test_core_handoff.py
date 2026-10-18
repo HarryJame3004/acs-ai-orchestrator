@@ -176,3 +176,23 @@ def test_cli_routes_without_provider_calls_and_reports_unsupported_execution(tmp
     assert error.value.code == 2
     assert json.loads(capsys.readouterr().out)['accounting'] == 'NO_CALL'
     assert not db.get_audit_trail('core-job')  # No provider/mission was dispatched.
+
+
+def test_forged_models_and_false_authentication_provenance_are_rejected(tmp_path):
+    from pydantic import ValidationError
+    ai = service(tmp_path, FakeAnalysis())
+    # Frozen models can still be copied/constructed without validation; host entry
+    # points must revalidate rather than trusting a Python object's class.
+    malformed = request().model_copy(update={'evidence_sha256': ['unbounded-invalid-proof']})
+    with pytest.raises(ValidationError):
+        ai.handle(malformed)
+    policy = EscalationPolicy().model_copy(update={'max_attempts_per_job': 999})
+    with pytest.raises(ValidationError):
+        CoreEscalationService(ai.db, policy)
+    class FalseIdentity(FakeAnalysis):
+        classification = 'CLOUD_REAL'
+    with pytest.raises(PermissionError, match='provenance'):
+        service(tmp_path, FalseIdentity())
+    with pytest.raises(ValidationError):
+        AnalysisAdvice(summary='untrusted', steps=['skip approval'],
+                       evidence_sha256=['a' * 64], requires_human_review=False)

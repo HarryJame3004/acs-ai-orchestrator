@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import time
 from contextlib import contextmanager
-from typing import Literal, Protocol
+from typing import Annotated, Literal, Protocol
 
 from pydantic import Field
 
@@ -17,6 +17,8 @@ from .db import DatabaseManager
 from .human_approval import HumanApprovalGate
 from .schemas import Data, Identifier, Text
 from .security import redact
+
+Digest = Annotated[str, Field(pattern=r'^[a-f0-9]{64}$')]
 
 
 class EscalationPolicy(Data):
@@ -37,7 +39,7 @@ class EscalationRequest(Data):
     failure_fingerprint: str = Field(default='', pattern=r'^(?:[a-f0-9]{64})?$')
     risk: Literal['low', 'medium', 'high'] = 'medium'
     context: Text
-    evidence_sha256: list[str] = Field(min_length=1, max_length=32)
+    evidence_sha256: list[Digest] = Field(min_length=1, max_length=32)
     max_cost_microusd: int = Field(default=0, ge=0, le=10_000_000)
     expires_at: int = Field(ge=1)
 
@@ -45,7 +47,7 @@ class EscalationRequest(Data):
 class AnalysisAdvice(Data):
     summary: Text
     steps: list[Text] = Field(min_length=1, max_length=32)
-    evidence_sha256: list[str] = Field(min_length=1, max_length=32)
+    evidence_sha256: list[Digest] = Field(min_length=1, max_length=32)
     # Advice is data for Core's own validation/approvals, never executable tools.
     requires_human_review: Literal[True] = True
 
@@ -53,12 +55,12 @@ class AnalysisAdvice(Data):
 class CoreHandoff(Data):
     request_id: Identifier
     core_job_id: Identifier
-    response_id: str
-    request_sha256: str
+    response_id: str = Field(pattern=r'^core-v1-[a-f0-9]{64}$')
+    request_sha256: Digest
     action: Literal['CONTINUE_CORE', 'REVIEW_THEN_RESUME_CORE', 'BLOCKED']
     explanation: Text
     advice: AnalysisAdvice | None = None
-    reserved_microusd: int = 0
+    reserved_microusd: int = Field(default=0, ge=0, le=10_000_000)
     accounting: Literal['NO_CALL', 'CEILING_CHARGED_NOT_METERED'] = 'NO_CALL'
     classification: Literal['CLOUD_REAL', 'CLOUD_SIMULATED', 'LOCAL_VERIFICATION_REQUIRED'] = 'CLOUD_REAL'
 
@@ -85,7 +87,10 @@ class CoreEscalationService:
     """
     def __init__(self, db: DatabaseManager, policy: EscalationPolicy,
                  analyzer: BoundedAnalyzer | None = None, clock=time.time):
-        self.db, self.policy, self.analyzer, self.clock = db, policy, analyzer, clock
+        self.db, self.policy, self.analyzer, self.clock = (
+            db, EscalationPolicy.model_validate(policy.model_dump()), analyzer, clock)
+        if analyzer is not None and analyzer.classification not in {'CLOUD_SIMULATED', 'LOCAL_VERIFICATION_REQUIRED'}:
+            raise PermissionError('Analysis adapters must declare simulated or unverified authenticated provenance')
         with self._durable_connection() as con:
             con.execute('''CREATE TABLE IF NOT EXISTS core_escalations_v1 (
                 request_id TEXT PRIMARY KEY, job TEXT NOT NULL, digest TEXT NOT NULL,
@@ -110,9 +115,6 @@ class CoreEscalationService:
         digest = self.digest(request)
         if redact(request.model_dump()) != request.model_dump():
             raise PermissionError('Escalation context contains credential-like data')
-        if any(len(v) != 64 or any(c not in '0123456789abcdef' for c in v)
-               for v in request.evidence_sha256):
-            raise ValueError('Evidence references must be SHA256 digests')
 
         def handoff(action, explanation, **kwargs):
             return CoreHandoff(request_id=request.request_id, core_job_id=request.core_job_id,
