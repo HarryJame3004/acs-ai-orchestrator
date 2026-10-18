@@ -15,7 +15,7 @@ Ruff/mypy 0/0, 15 known candidates, zero new. A subsequent targeted real refusal
 CLI failure-report check and mypy passed. No assertion/baseline was weakened.
 Earlier checkpoints below are historical. See reports/continuation_tests.json,
 continuation_static.json, continuation_history.json and INTEGRATED_TEAM_ACCEPTANCE.md.
-Targeted bridge 56 passed; all hosted jobs passed at 2c42da3 (refresh later heads).
+Targeted bridge 56 passed; all hosted jobs passed at 0eb6543; later evidence-only commits may trigger fresh checks.
 
 `verify-team` is delivered for explicit operator-run real-provider evaluation;
 cloud verifies refusal/failure reporting and never claims authenticated success.

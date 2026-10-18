@@ -1,7 +1,7 @@
 {
   "label": "CLOUD_REAL",
   "overall_acceptance": "PARTIAL",
-  "generated_at": "2026-10-17T23:48:20.475721+00:00",
+  "generated_at": "2026-10-18T00:56:35.114793+00:00",
   "prs": [
     {
       "number": 1,
@@ -112,25 +112,43 @@
       "headRefName": "upgrade/stage-7-verification-release",
       "baseRefName": "main",
       "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7",
-      "checked_head": "329e402",
+      "checked_head": "0eb6543",
       "checks": [
         {
+          "conclusion": "SUCCESS",
           "name": "checks",
           "status": "COMPLETED",
-          "conclusion": "SUCCESS",
-          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39080293109/job/117535679337"
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548013480"
         },
         {
-          "name": "bridge",
-          "status": "COMPLETED",
           "conclusion": "SUCCESS",
-          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39080293109/job/117535679464"
-        },
-        {
           "name": "companion",
           "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548012861"
+        },
+        {
           "conclusion": "SUCCESS",
-          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39080293109/job/117535679606"
+          "name": "bridge",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458280/job/117548012655"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "companion",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548012131"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "checks",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548012115"
+        },
+        {
+          "conclusion": "SUCCESS",
+          "name": "bridge",
+          "status": "COMPLETED",
+          "url": "https://github.com/HarryJame3004/acs-ai-orchestrator/actions/runs/39084458011/job/117548011968"
         }
       ]
     }
@@ -143,5 +161,7 @@
   },
   "original_master_unchanged": true,
   "integration_branch": "upgrade/overnight-integration",
-  "note": "Metadata snapshot; rerun on later commits. Test logic using fake providers remains CLOUD_SIMULATED; no operational or release acceptance."
+  "note": "Metadata snapshot; rerun on later commits. Test logic using fake providers remains CLOUD_SIMULATED; no operational or release acceptance.",
+  "latest_verified_source": "0eb6543",
+  "continuation_note": "All root/bridge/companion hosted check instances passed at 0eb6543; later evidence-only commits may trigger fresh checks. No merge or main push. Root local evidence: 171 passed, 7 explicit local skips."
 }

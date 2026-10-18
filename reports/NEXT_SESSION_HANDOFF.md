@@ -50,8 +50,7 @@ including CLI/daemon, barrier-proven concurrency, consumed dependency handoffs,
 escalation/replanning, crash recovery and a retained advisory lesson. Lessons are
 explicitly human-reviewed fixtures; simulated outcomes cannot verify real lessons.
 Full bridge/companion snapshots remain in their existing reports. Targeted bridge
-guard-related profile: 56 passed. Hosted checks all passed at 2c42da3; refresh newer
-heads. Do not mistake a prior source ZIP for the latest candidate.
+guard-related profile: 56 passed. Hosted checks all passed at 0eb6543; refresh later evidence-only heads. Do not mistake a prior source ZIP for the latest candidate.
 
 Next work, without repeating the implemented source:
 
