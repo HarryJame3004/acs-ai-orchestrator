@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,25 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 BASELINE = ROOT / "reports/baseline_tests.json"
 LABELS = {"CLOUD_REAL", "CLOUD_SIMULATED", "LOCAL_VERIFICATION_REQUIRED"}
+
+
+@contextmanager
+def fixture_directory(retain: Path | None):
+    if retain is None:
+        with tempfile.TemporaryDirectory(prefix="acs-cloud-tests-") as temporary:
+            yield temporary
+        return
+    target = retain.expanduser().absolute()
+    policy = json.loads((ROOT / 'acs_team/defaults.json').read_text())['protected_paths']
+    policy += json.loads(os.environ.get('ACS_PROTECTED_PATHS', '[]'))
+    policy += [os.environ.get('ACS_CORE_PATH', '~/autonomous-coding-system')]
+    for name in policy:
+        protected = Path(name).expanduser().resolve()
+        if target.resolve() == protected or protected in target.resolve().parents or target.resolve() in protected.parents:
+            raise PermissionError('Retained fixture path overlaps a protected project')
+    # Never let pytest recursively clear an existing directory via --basetemp.
+    target.mkdir(mode=0o700, exist_ok=False)
+    yield str(target)
 
 
 def compare_results(baseline: list[dict[str, Any]], current: list[dict[str, Any]]) -> list[str]:
@@ -88,6 +108,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--compare-baseline", action="store_true")
+    parser.add_argument("--retain-dir", type=Path, help="NEW private directory retaining DB/worktrees/fixture logs")
     args = parser.parse_args()
     baseline = json.loads(BASELINE.read_text())
     capture = Capture({row["nodeid"]: row for row in baseline["tests"]})
@@ -96,7 +117,7 @@ def main() -> int:
     real_connect = socket.socket.connect
     real_bind = socket.socket.bind
 
-    with tempfile.TemporaryDirectory(prefix="acs-cloud-tests-") as temporary:
+    with fixture_directory(args.retain_dir) as temporary:
         scratch = Path(temporary)
 
         def expanduser(path: Any) -> Any:
@@ -162,6 +183,7 @@ def main() -> int:
         },
         "tests": results,
         "regressions": issues,
+        "retained_fixture_directory": str(args.retain_dir.absolute()) if args.retain_dir else None,
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2) + "\n")

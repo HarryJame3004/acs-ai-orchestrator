@@ -183,3 +183,19 @@ installation, static comparison and test comparison. GitHub-hosted execution is
 NOT_TESTED until the PR workflow actually runs; local execution is evidence for
 the commands, not for GitHub Actions itself. No companion extension build or
 real provider/MCP/worker test is part of this stage's profile.
+
+For retained full-suite diagnostics, use a NEW private directory:
+
+```bash
+.venv/bin/python scripts/cloud_test.py --compare-baseline \
+  --retain-dir /tmp/NEW-acs-fixtures --report /tmp/NEW-acs-tests.json
+```
+
+This keeps fixture SQLite databases, worktrees and artifacts instead of cleaning
+them at exit. Existing/protected destinations are refused before pytest can clear
+a basetemp. Keep this directory private; fixed-fixture evidence is not provider
+activation. The seeded/scheduled diagnostic runner is
+`scripts/reliability_campaign.py`; see `reports/POSTMERGE_ROOT_CAUSE.md` for the
+retained failed campaign and deterministic process-guard before/after proof.
+Language and explicit performance/resource profiles are described in
+`docs/upgrade/VERIFICATION_PROFILES.md`.
