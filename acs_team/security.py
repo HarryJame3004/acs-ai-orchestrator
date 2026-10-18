@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from pathlib import Path, PurePosixPath
 import re
 import shlex
@@ -119,7 +120,20 @@ def sandbox_argv(workspace: Path, command: list[str], *, home: Path, network: bo
     for root in extras:
         if root.exists() and root not in {Path('/usr'), Path('/bin'), Path('/lib'), Path('/lib64')}:
             argv += ['--ro-bind', str(root), str(root)]
-    argv += ["--dev", "/dev", "--proc", "/proc", "--tmpfs", "/tmp",
+    temporary_mount = ['--tmpfs','/tmp']
+    if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1':
+        from .aggregate_limits import configured_limits
+        limits = configured_limits()
+        if limits is None or limits.storage_volume is None:
+            raise PermissionError('Hard storage requires a verified filesystem contract')
+        limits.require_workspace(workspace)
+        limits.require_accounted(home)
+        scratch = home/'tmp'
+        if scratch.is_symlink():
+            raise PermissionError('Sandbox scratch may not be a symlink')
+        scratch.mkdir(mode=0o700,exist_ok=True)
+        temporary_mount = ['--bind',str(scratch),'/tmp']
+    argv += ["--dev", "/dev", "--proc", "/proc", *temporary_mount,
              "--ro-bind" if read_only_workspace else "--bind", str(workspace), str(workspace), "--bind", str(home), str(home),
              "--chdir", str(workspace), "--", *command]
     return argv

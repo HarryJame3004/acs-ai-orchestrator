@@ -14,6 +14,8 @@ def main():
         data = json.loads(command[1])
         data['cgroup'] = Path(data['cgroup'])
         data['storage'] = tuple(Path(p) for p in data['storage'])
+        if data.get('storage_volume') is not None:
+            data['storage_volume'] = Path(data['storage_volume'])
         AggregateLimits(**data).join_current_process()
         command = command[2:]
     expected_parent = None

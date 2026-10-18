@@ -97,6 +97,24 @@ storage and stop their owned process tree on excess. This is sampled enforcement
 with possible overshoot between scans. Include worktrees, artifacts/logs and Git
 object storage in the configured roots. It is **not a hard filesystem quota**;
 project/filesystem quotas and scratch tmpfs accounting still need local setup.
+
+Optional `ACS_REQUIRE_HARD_STORAGE=1` also requires aggregate limits and
+`ACS_AGGREGATE_STORAGE_VOLUME`: an operator-provisioned dedicated private mounted
+block filesystem. The application never creates a mount or obtains privileges.
+It verifies the kernel mount/device identity, permits ext2/ext3/ext4/xfs/f2fs,
+rejects nested mounts, requires every accounting root on that device beneath the
+volume, and checks both filesystem capacity and backing block-device size against
+`ACS_AGGREGATE_STORAGE_MB`. FUSE, overlay, tmpfs, a plain directory or an oversized
+device is refused. In this mode sandbox `/tmp` binds private accounted scratch
+instead of an unaccounted tmpfs. The block device supplies the hard capacity
+ceiling; inventory scans still provide earlier logical-size/entry-budget stops.
+This deliberately supports a bounded filesystem rather than trusting a cached
+project-quota receipt. Set all repository/shared-Git/state/DB/log/artifact/scratch
+paths accordingly before any local mission. Provisioning, actual kernel quota
+behavior and whole-service overhead remain LOCAL_VERIFICATION_REQUIRED; cloud
+synthetic mount/device tests are CLOUD_SIMULATED. Do not enable it on an existing
+operational volume or apply privileged provisioning from cloud. For user-run
+fixture probes, put pytest TMPDIR/basetemp inside the accounted scratch root too.
 `ACS_ENABLE_ACCEPTED_WORKTREE_CLEANUP=1` enables cleanup after verified completion:
 clean registered worker and integration checkouts are removed only after branch,
 HEAD, ancestry, owned-process and signed-evidence checks. Branches and evidence

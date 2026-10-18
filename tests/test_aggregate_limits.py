@@ -168,3 +168,65 @@ def test_team_dispatch_refuses_unaccounted_durable_storage(tmp_path,monkeypatch,
     with pytest.raises(PermissionError,match='outside aggregate'):
         controller._run_mission('fixture-no-dispatch','Create a harmless module',paths['repository'])
     assert db.get_mission('fixture-no-dispatch') is None
+
+
+def test_hard_storage_without_aggregate_and_without_dedicated_mount_fails_closed(tmp_path,monkeypatch):
+    monkeypatch.delenv('ACS_ENABLE_AGGREGATE_LIMITS',raising=False)
+    monkeypatch.setenv('ACS_REQUIRE_HARD_STORAGE','1')
+    with pytest.raises(PermissionError,match='requires aggregate'):
+        configured_limits()
+    volume = tmp_path/'not-a-mount'
+    volume.mkdir(mode=0o700)
+    with pytest.raises(PermissionError,match='dedicated mounted'):
+        AggregateLimits(tmp_path/'cgroup',(volume,),storage_volume=volume).validate_storage_volume()
+
+
+@pytest.mark.simulated
+@pytest.mark.parametrize('fault',[None,'capacity','device_capacity','nested_mount','outside_root','public','filesystem_type'])
+def test_bounded_filesystem_contract_checks_kernel_mount_device_and_all_roots(tmp_path,monkeypatch,fault):
+    from types import SimpleNamespace
+    volume = tmp_path/'volume'
+    volume.mkdir(mode=0o700)
+    root = volume/'managed'
+    root.mkdir()
+    device = f'{os.major(volume.stat().st_dev)}:{os.minor(volume.stat().st_dev)}'
+    devices = tmp_path/'synthetic-kernel-devices'
+    (devices/device).mkdir(parents=True)
+    (devices/device/'size').write_text(str((32 if fault=='device_capacity' else 16)*2048))
+    mount = tmp_path/'synthetic-mountinfo'
+    kind = 'fuse.untrusted' if fault=='filesystem_type' else 'ext4'
+    mount.write_text(f'123 1 {device} / {volume} rw - {kind} /dev/fixture rw\n')
+    if fault=='nested_mount':
+        with mount.open('a') as stream:
+            stream.write(f'124 123 {device} / {root}/escape rw - ext4 /dev/other rw\n')
+    if fault=='public':
+        volume.chmod(0o755)
+    roots = (tmp_path,) if fault=='outside_root' else (root,)
+    limits = AggregateLimits(tmp_path/'cgroup',roots,storage_mb=16,storage_volume=volume)
+    monkeypatch.setattr(os,'fstatvfs',lambda fd:SimpleNamespace(f_frsize=4096,f_blocks=(8192 if fault=='capacity' else 4096)))
+    if fault is None:
+        limits.validate_storage_volume(mount,devices)
+    else:
+        with pytest.raises(PermissionError):
+            limits.validate_storage_volume(mount,devices)
+
+
+@pytest.mark.simulated
+def test_hard_storage_sandbox_tmp_is_backed_by_accounted_private_scratch(tmp_path,monkeypatch):
+    from acs_team import aggregate_limits as module
+    from acs_team.security import sandbox_argv
+    workspace, home = tmp_path/'workspace',tmp_path/'home'
+    workspace.mkdir()
+    (workspace/'.git').mkdir()
+    home.mkdir(mode=0o700)
+    limits = AggregateLimits(tmp_path/'cgroup',(workspace,home),storage_volume=tmp_path)
+    monkeypatch.setenv('ACS_REQUIRE_HARD_STORAGE','1')
+    monkeypatch.setattr(module,'configured_limits',lambda:limits)
+    argv = sandbox_argv(workspace,['/usr/bin/true'],home=home)
+    index = argv.index('/tmp')
+    assert argv[index-2:index+1] == ['--bind',str(home/'tmp'),'/tmp']
+    assert (home/'tmp').is_dir() and (home/'tmp').stat().st_mode & 0o777 == 0o700
+    (home/'tmp').rmdir()
+    (home/'tmp').symlink_to(workspace,target_is_directory=True)
+    with pytest.raises(PermissionError,match='scratch may not be a symlink'):
+        sandbox_argv(workspace,['/usr/bin/true'],home=home)
