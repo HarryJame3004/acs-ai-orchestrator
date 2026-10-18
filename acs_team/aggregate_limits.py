@@ -8,11 +8,13 @@ samples. A filesystem quota is still required for a hard storage ceiling.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
 import stat
 import threading
+import tempfile
 import time
 
 
@@ -67,6 +69,36 @@ class AggregateLimits:
         (self.cgroup/'cgroup.procs').write_text(str(os.getpid()))
         if os.getpid() not in {int(v) for v in (self.cgroup/'cgroup.procs').read_text().split()}:
             raise PermissionError('Kernel did not attach the owned launcher')
+
+    def require_accounted(self, path: Path) -> None:
+        """Refuse execution/storage paths outside the explicitly inventoried roots."""
+        if not path.is_absolute() or any(p.is_symlink() for p in (path, *path.parents)):
+            raise PermissionError('Accounted storage paths must be absolute and free of symlinks')
+        canonical = path.resolve()
+        if not any(canonical == root.resolve() or root.resolve() in canonical.parents for root in self.storage):
+            raise PermissionError('Execution storage is outside aggregate storage roots')
+
+    def require_workspace(self, workspace: Path) -> None:
+        self.require_accounted(workspace)
+        # Linked worktrees write objects and refs in the shared Git directory.
+        marker = next((parent / '.git' for parent in (workspace, *workspace.parents)
+                       if (parent / '.git').exists() or (parent / '.git').is_symlink()), None)
+        if marker is None:
+            return
+        self.require_accounted(marker)
+        if marker.is_file():
+            if marker.is_symlink() or marker.stat().st_size > 4096:
+                raise PermissionError('Invalid linked worktree Git directory')
+            value = marker.read_text().strip()
+            if not value.startswith('gitdir: '):
+                raise PermissionError('Invalid linked worktree Git directory')
+            gitdir = marker.parent / value[8:]
+            self.require_accounted(gitdir)
+            common = gitdir / 'commondir'
+            if common.exists():
+                if common.is_symlink() or common.stat().st_size > 4096:
+                    raise PermissionError('Invalid shared Git directory')
+                self.require_accounted(gitdir / common.read_text().strip())
 
     def check_storage(self) -> int:
         seen: set[tuple[int,int]] = set()
@@ -133,6 +165,25 @@ def configured_limits() -> AggregateLimits | None:
     limits.validate_kernel_contract()
     limits.check_storage()
     return limits
+
+
+@contextmanager
+def managed_temporary_directory(*, prefix: str):
+    """Keep provider/tool scratch inside accounting when aggregate limits are on.
+
+    This covers host-backed scratch, not sandbox tmpfs or a filesystem quota.
+    The operator provisions the private scratch root; no global temp is adopted.
+    """
+    limits = configured_limits()
+    directory = None
+    if limits is not None:
+        directory = Path(os.environ['ACS_AGGREGATE_SCRATCH_ROOT'])
+        limits.require_accounted(directory)
+        info = directory.stat()
+        if not directory.is_dir() or info.st_uid != os.getuid() or info.st_mode & 0o077:
+            raise PermissionError('Aggregate scratch root must be an owned private directory')
+    with tempfile.TemporaryDirectory(prefix=prefix, dir=directory) as temporary:
+        yield temporary
 
 
 class StorageMonitor:

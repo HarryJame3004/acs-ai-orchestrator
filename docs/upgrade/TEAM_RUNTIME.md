@@ -59,7 +59,14 @@ protocol crash fixture verifies that completed provider calls are not repeated.
 
 `ACS_ENABLE_AGGREGATE_LIMITS=1` requires an operator-delegated cgroup v2 path in
 `ACS_AGGREGATE_CGROUP` and a JSON list of narrow owned storage paths in
-`ACS_AGGREGATE_STORAGE_ROOTS`. This task does not create or apply systemd/cgroup
+`ACS_AGGREGATE_STORAGE_ROOTS`, plus an existing owned mode-0700 scratch directory
+in `ACS_AGGREGATE_SCRATCH_ROOT` beneath one of those roots. Provider sessions,
+activation probes, independent planner/tester workspaces, legacy supervised worker
+homes, migration/benchmark/local-verification fixtures, verification homes and MCP
+homes use that scratch directory. Execution refuses a workspace outside the
+accounted roots, including the shared Git metadata/object directory of a linked
+worktree (also when executing from a checkout subdirectory). Symlinked Git
+directories are refused. This task does not create or apply systemd/cgroup
 configuration. The cgroup must be exclusively owned, writable for worker
 attachment, and configured with exact values:
 

@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import resource
 import subprocess
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import time
 
 from .coordination import CoordinationStore
@@ -109,7 +109,7 @@ def run_benchmarks(
     start = time.monotonic()
     for case in cases:
         case_start = time.monotonic()
-        with tempfile.TemporaryDirectory(prefix="acs-golden-") as temporary:
+        with managed_temporary_directory(prefix="acs-golden-") as temporary:
             root = Path(temporary)
             repo = root / "repo"
             repo.mkdir()

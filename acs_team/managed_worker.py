@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 import subprocess
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import Any
@@ -46,7 +46,7 @@ def worker_run(command, *, task_id=None, **kwargs):
         raise PermissionError("Worker environment contains a reserved execution-control name")
     environment = {name: provided[name] for name in names if name in provided}
     workspace = Path(kwargs["cwd"])
-    with tempfile.TemporaryDirectory(prefix="acs-worker-home-") as temporary:
+    with managed_temporary_directory(prefix="acs-worker-home-") as temporary:
         environment.update({'HOME': temporary, 'XDG_CONFIG_HOME': str(Path(temporary)/'.config'),
                             'XDG_DATA_HOME': str(Path(temporary)/'.local/share'),
                             'XDG_STATE_HOME': str(Path(temporary)/'.local/state')})

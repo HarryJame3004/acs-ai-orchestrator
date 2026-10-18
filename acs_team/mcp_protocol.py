@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 from queue import Empty, Queue, Full
 import selectors
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import threading
 import time
 
@@ -194,7 +194,7 @@ class MCPBroker:
             children[:] = [name for name in children if name != ".git"]
         home = Path(
             self.stack.enter_context(
-                tempfile.TemporaryDirectory(prefix="acs-mcp-home-")
+                managed_temporary_directory(prefix="acs-mcp-home-")
             )
         )
         argv = sandbox_argv(

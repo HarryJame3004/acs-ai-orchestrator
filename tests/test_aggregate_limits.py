@@ -73,3 +73,98 @@ def test_local_owned_launcher_really_joins_delegated_kernel_group(tmp_path):
     expected = str(limits.cgroup.relative_to('/sys/fs/cgroup'))
     assert result['stdout'].strip() == '0::/'+expected
     assert not (limits.cgroup/'cgroup.procs').read_text().strip()
+
+
+def test_linked_worktree_requires_shared_git_storage_even_from_subdirectory(tmp_path):
+    checkout = tmp_path/'checkout'
+    nested = checkout/'package'
+    nested.mkdir(parents=True)
+    shared = tmp_path/'repository.git'
+    gitdir = shared/'worktrees'/'job'
+    gitdir.mkdir(parents=True)
+    (checkout/'.git').write_text(f'gitdir: {gitdir}\n')
+    (gitdir/'commondir').write_text('../..\n')
+    limited = AggregateLimits(tmp_path/'cgroup',(checkout,))
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        limited.require_workspace(nested)
+    AggregateLimits(tmp_path/'cgroup',(checkout,shared)).require_workspace(nested)
+    # Accounting the linked metadata alone does not account shared objects/refs.
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        AggregateLimits(tmp_path/'cgroup',(checkout,gitdir)).require_workspace(nested)
+
+
+def test_workspace_rejects_git_symlink_outside_inventory(tmp_path):
+    checkout = tmp_path/'checkout'
+    checkout.mkdir()
+    outside = tmp_path/'unaccounted.git'
+    outside.mkdir()
+    (checkout/'.git').symlink_to(outside,target_is_directory=True)
+    with pytest.raises(PermissionError,match='symlinks'):
+        AggregateLimits(tmp_path/'cgroup',(checkout,)).require_workspace(checkout)
+
+
+@pytest.mark.simulated
+def test_managed_scratch_stays_accounted_and_cleans_on_failure(tmp_path,monkeypatch):
+    from acs_team import aggregate_limits as module
+    scratch = tmp_path/'scratch'
+    scratch.mkdir(mode=0o700)
+    limits = AggregateLimits(tmp_path/'cgroup',(scratch,))
+    # Only kernel delegation is substituted; filesystem placement/cleanup is real.
+    monkeypatch.setattr(module,'configured_limits',lambda:limits)
+    monkeypatch.setenv('ACS_AGGREGATE_SCRATCH_ROOT',str(scratch))
+    with pytest.raises(RuntimeError,match='worker failed'):
+        with module.managed_temporary_directory(prefix='test-provider-') as directory:
+            temporary = Path(directory)
+            assert temporary.parent == scratch
+            (temporary/'artifact').write_bytes(b'x'*4096)
+            assert limits.check_storage() >= 4096
+            raise RuntimeError('worker failed')
+    assert not temporary.exists()
+    scratch.chmod(0o755)
+    with pytest.raises(PermissionError,match='private directory'):
+        with module.managed_temporary_directory(prefix='test-denied-'):
+            pytest.fail('Public scratch was admitted')
+    scratch.chmod(0o700)
+    monkeypatch.setenv('ACS_AGGREGATE_SCRATCH_ROOT',str(tmp_path))
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        with module.managed_temporary_directory(prefix='test-denied-'):
+            pytest.fail('Unaccounted scratch was admitted')
+
+
+@pytest.mark.simulated
+def test_unaccounted_workspace_is_denied_before_process_spawn(tmp_path,monkeypatch):
+    from acs_team import aggregate_limits as module
+    accounted = tmp_path/'accounted'
+    accounted.mkdir()
+    limits = AggregateLimits(tmp_path/'cgroup',(accounted,))
+    monkeypatch.setattr(module,'configured_limits',lambda:limits)
+    marker = tmp_path/'must-not-start'
+    supervisor = ProcessSupervisor()
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        supervisor.run([sys.executable,'-c',f'open({str(marker)!r},"w").write("started")'],tmp_path)
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        with supervisor.start_owned(['sleep','1'],tmp_path):
+            pytest.fail('Unaccounted protocol process started')
+    assert not marker.exists()
+
+
+@pytest.mark.simulated
+@pytest.mark.parametrize('omitted',['repository','state','database'])
+def test_team_dispatch_refuses_unaccounted_durable_storage(tmp_path,monkeypatch,omitted):
+    from acs_team import aggregate_limits as module
+    from acs_team.db import DatabaseManager
+    from acs_team.team_missions import TeamMissionController
+    paths = {name:tmp_path/name for name in ['repository','state','database']}
+    for path in paths.values():
+        path.mkdir(mode=0o700)
+    db = DatabaseManager(paths['database']/'fixture.db')
+    controller = TeamMissionController(db,evidence_key='fixture-resource-contract',root=paths['state'])
+    monkeypatch.setenv('ACS_ENABLE_COORDINATION','1')
+    monkeypatch.setattr(module,'configured_limits',lambda:AggregateLimits(
+        tmp_path/'cgroup',tuple(path for name,path in paths.items() if name != omitted)))
+    def unexpected():
+        pytest.fail('Provider selection ran before durable storage validation')
+    monkeypatch.setattr(controller,'_runner',unexpected)
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        controller._run_mission('fixture-no-dispatch','Create a harmless module',paths['repository'])
+    assert db.get_mission('fixture-no-dispatch') is None

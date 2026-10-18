@@ -77,6 +77,8 @@ class ProcessSupervisor:
         try:
             from .aggregate_limits import configured_limits, StorageMonitor
             aggregate = configured_limits()
+            if aggregate:
+                aggregate.require_workspace(cwd)
             environment = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL") if key in os.environ}
             environment.update(env or {})
             aggregate_args = ['--aggregate',aggregate.encoded()] if aggregate else []
@@ -153,6 +155,8 @@ class ProcessSupervisor:
             raise ValueError("A positive execution timeout is required")
         from .aggregate_limits import configured_limits, StorageMonitor
         aggregate = configured_limits()
+        if aggregate:
+            aggregate.require_workspace(cwd)
         storage_monitor = StorageMonitor(aggregate) if aggregate else None
         names: tuple[str, ...] = ("PATH", "LANG", "LC_ALL", "TERM", "TMPDIR")
         if env is None:

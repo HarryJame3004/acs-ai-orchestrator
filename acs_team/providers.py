@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 import secrets
 import sys
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import time
 from typing import Callable, Literal
 
@@ -149,7 +149,7 @@ class ProviderRuntime:
             raise PermissionError('Workspace and authentication profile must be disjoint')
         if len(prompt.encode()) > 32768:
             raise ValueError('Provider input exceeds 32 KiB')
-        with tempfile.TemporaryDirectory(prefix='acs-provider-home-') as tmp:
+        with managed_temporary_directory(prefix='acs-provider-home-') as tmp:
             home = Path(tmp)
             for path in ['.config', '.local/share', '.local/state', '.cache', 'tmp']:
                 (home/path).mkdir(parents=True, mode=0o700, exist_ok=True)
@@ -206,7 +206,7 @@ class ProviderRuntime:
         if self.executor is not None:
             return False  # Simulated execution cannot attest actual namespace isolation.
         validate_bindings(contract, self.private)
-        with tempfile.TemporaryDirectory(prefix='acs-provider-probe-') as temp:
+        with managed_temporary_directory(prefix='acs-provider-probe-') as temp:
             root = Path(temp)
             workspace, home = root/'workspace', root/'home'
             workspace.mkdir()
@@ -238,7 +238,7 @@ class Activations:
         if not runtime.boundary_probe(contract):
             raise PermissionError('Real sandbox boundary probe is required for activation')
         nonce = secrets.token_hex(16)
-        with tempfile.TemporaryDirectory(prefix='acs-provider-auth-probe-') as temp:
+        with managed_temporary_directory(prefix='acs-provider-auth-probe-') as temp:
             result = runtime.run(contract, Path(temp), 'Harmless authentication verification. Do not use tools or modify files. '
                                  f'Return exactly ACS_PROVIDER_PROBE_{nonce}', readonly=True)
             if result['text'].strip() != f'ACS_PROVIDER_PROBE_{nonce}' or result['label'] != 'LOCAL_VERIFICATION_REQUIRED':

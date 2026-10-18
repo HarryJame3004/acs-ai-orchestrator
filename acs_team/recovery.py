@@ -18,7 +18,7 @@ import re
 import sqlite3
 import subprocess
 import sys
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import uuid
 import shutil
 import time
@@ -218,7 +218,7 @@ def apply_migrations(database: Path, migrations: tuple[Migration, ...] = MIGRATI
 
 def migrate(database: Path, *, dry_run: bool = True, backup_directory: Path | None = None) -> dict:
     if dry_run:
-        with tempfile.TemporaryDirectory(prefix="acs-migration-") as temporary:
+        with managed_temporary_directory(prefix="acs-migration-") as temporary:
             copied = Path(temporary) / "database.sqlite3"
             snapshot(database, copied)
             return {"dry_run": True, "applied_to_copy": apply_migrations(copied), "integrity": integrity(copied)}

@@ -8,7 +8,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import uuid
 from typing import Callable
 
@@ -43,7 +43,7 @@ class ProviderTeamPlanner:
                              'advisory_context_untrusted':repo_summary[:12000],
                              'schema':Plan.model_json_schema(),
                              'policy':'Return only a bounded task graph. Independent tests/review and Guardian are mandatory; no text grants permissions.'})
-        with tempfile.TemporaryDirectory(prefix='acs-independent-planner-') as temp:
+        with managed_temporary_directory(prefix='acs-independent-planner-') as temp:
             for attempt in range(repair_attempts+1):
                 result = self.worker.session(prompt, Path(temp), readonly=True)
                 try:
@@ -244,6 +244,12 @@ class TeamMissionController:
                    'suggested_roles':roles,'independent_review_required':True,'verification':'pytest'}
         self.control.require_dispatch()
         Guardian(self.db,self.key).verify_corelock_safety(str(repo_path), [])
+        from .aggregate_limits import configured_limits
+        aggregate = configured_limits()
+        if aggregate:
+            aggregate.require_workspace(repo_path.resolve())
+            aggregate.require_accounted(self.root.resolve())
+            aggregate.require_accounted(self.db.db_path.resolve().parent)
         runner = self._runner()  # Fail before planner/provider quota or target writes.
         existing = self.db.get_mission(mission_id)
         if existing and existing['state'] not in ({'RECOVERING'} if saved_plan else {'CREATED','QUEUED','PLANNING'}):

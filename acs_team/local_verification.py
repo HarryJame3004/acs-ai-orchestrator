@@ -11,7 +11,7 @@ from pathlib import Path
 import platform
 import shutil
 import subprocess
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 import time
 from typing import Literal
 
@@ -166,7 +166,7 @@ def run_local_suite(repository: Path) -> tuple[str, str]:
             or relative.parts[0] != "tests"
         ):
             raise ValueError("Invalid local test manifest")
-    with tempfile.TemporaryDirectory(prefix="acs-local-suite-") as temporary:
+    with managed_temporary_directory(prefix="acs-local-suite-") as temporary:
         root = Path(temporary)
         environment = {
             "ACS_HOME": str(root / "runtime"),
@@ -307,7 +307,7 @@ def verify_local(
         "Actual provider environment not captured; supervised/MCP environment boundaries require local verification",
         time.monotonic(),
     )
-    with tempfile.TemporaryDirectory(prefix="acs-local-verification-") as temporary:
+    with managed_temporary_directory(prefix="acs-local-verification-") as temporary:
         root = Path(temporary)
         if execute_probes:
             begin = time.monotonic()

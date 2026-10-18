@@ -8,7 +8,7 @@ from pathlib import Path, PurePosixPath
 import re
 import shlex
 import sys
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 from typing import Any
 
 
@@ -70,7 +70,7 @@ def run_verification(command: str | list[str], workspace: Path, timeout: float =
     argv = verification_argv(command)
     # Verification code/conftest is as untrusted as a worker. Never expose the
     # controller key/DB or run model-selected tests directly in the host context.
-    with tempfile.TemporaryDirectory(prefix='acs-verification-home-') as temporary:
+    with managed_temporary_directory(prefix='acs-verification-home-') as temporary:
         home = Path(temporary)
         (home/'tmp').mkdir(mode=0o700)
         roots = tuple(dict.fromkeys((Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve())))

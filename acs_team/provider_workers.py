@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tempfile
+from .aggregate_limits import managed_temporary_directory
 from typing import Literal
 import uuid
 
@@ -75,7 +75,7 @@ class ProductionRoles:
                              'acceptance_criteria':task.acceptance_criteria, 'interfaces':task.reads,
                              'schema':TestArtifacts.model_json_schema(),
                              'policy':'Derive substantive pytest tests from the specification before implementation. Return JSON only. No tool execution or filesystem changes.'})
-        with tempfile.TemporaryDirectory(prefix='acs-independent-tester-') as tmp:
+        with managed_temporary_directory(prefix='acs-independent-tester-') as tmp:
             result = self.worker.session(prompt, Path(tmp), readonly=True)
         artifacts = parse_data(TestArtifacts, result['text'])
         for name, code in artifacts.files.items():
