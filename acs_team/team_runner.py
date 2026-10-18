@@ -217,7 +217,7 @@ class TeamRunner:
                     raise PermissionError(
                         "Worker modified independent acceptance tests"
                     )
-            if baseline_findings(worktree, base):
+            if baseline_findings(worktree, base, tuple(protected)):
                 raise PermissionError(
                     "Baseline test modification requires explicit review"
                 )
@@ -463,6 +463,9 @@ class TeamRunner:
                                 branch, completion["branch"]
                             )
                             try:
+                                if baseline_findings(Path(merged['integration_worktree']),base_ref,
+                                                     tuple(completion.get('test_files',[]))):
+                                    raise PermissionError('Integrated baseline tests/configuration require explicit review')
                                 all_tests = [
                                     self.verify(
                                         cmd, Path(merged["integration_worktree"])

@@ -325,6 +325,12 @@ class TeamMissionController:
             if not EvidenceEngine(self.key).verify_evidence(evidence,sha):
                 raise PermissionError('Final integrated evidence is not current')
             checkout = Path(final['integration_worktree'])
+            from .test_policy import baseline_findings
+            completions = {row['task']:json.loads(row['result'])['worker_completion'] for row in rows}
+            independent_files = tuple(name for completion in completions.values()
+                                      for name in completion.get('test_files',[]))
+            if baseline_findings(checkout,baseline,independent_files):
+                raise PermissionError('Whole-mission baseline tests/configuration require explicit review')
             # Whole-mission verification runs every declared command at the
             # final combined tree, even when several tasks finished together.
             with worker_context(self.control,mission_id):
@@ -332,7 +338,6 @@ class TeamMissionController:
                 contracts = runner.verify(['pytest','-q','tests'],checkout)
             if not contracts['passed'] or not all(t['passed'] for t in tests):
                 raise PermissionError('Whole-mission verification failed')
-            completions = {row['task']:json.loads(row['result'])['worker_completion'] for row in rows}
             for task in plan.tasks:
                 completion = completions[task.task_id]
                 worker_evidence = json.loads(Path(completion['worker_evidence_ref']).read_bytes())
