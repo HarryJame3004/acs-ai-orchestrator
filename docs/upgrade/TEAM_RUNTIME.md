@@ -128,6 +128,10 @@ behavior and whole-service overhead remain LOCAL_VERIFICATION_REQUIRED; cloud
 synthetic mount/device tests are CLOUD_SIMULATED. Do not enable it on an existing
 operational volume or apply privileged provisioning from cloud. For user-run
 fixture probes, put pytest TMPDIR/basetemp inside the accounted scratch root too.
+Runtime initialization verifies requested hard/service contracts before creating
+state, logs or backup directories. Hard mode also rejects custom database,
+evidence, private export and backup/staging/migration destinations outside the
+accounted roots. Read-only help/inspection retains its no-initialization behavior.
 `ACS_ENABLE_ACCEPTED_WORKTREE_CLEANUP=1` enables cleanup after verified completion:
 clean registered worker and integration checkouts are removed only after branch,
 HEAD, ancestry, owned-process and signed-evidence checks. Branches and evidence

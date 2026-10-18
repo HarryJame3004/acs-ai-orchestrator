@@ -21,6 +21,8 @@ logger = logging.getLogger("acs_ai.evidence")
 
 
 def persist_evidence(evidence: Dict[str, Any], directory: Path) -> Path:
+    from .aggregate_limits import require_managed_write
+    require_managed_write(directory)
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     if directory.is_symlink():
         raise PermissionError("Evidence directory may not be a symlink")

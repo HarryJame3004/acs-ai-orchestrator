@@ -292,6 +292,15 @@ def managed_temporary_directory(*, prefix: str):
         yield temporary
 
 
+def require_managed_write(path: Path) -> None:
+    """Admit controller artifacts/exports only inside the hard storage roots."""
+    if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1':
+        limits = configured_limits()
+        if limits is None or limits.storage_volume is None:
+            raise PermissionError('Managed writes require the hard storage contract')
+        limits.require_accounted(path.absolute())
+
+
 class StorageMonitor:
     """Serialize scans shared by the controller's concurrent supervisors."""
     lock = threading.Lock()

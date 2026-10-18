@@ -46,6 +46,8 @@ def integrity(path: Path) -> str:
 
 
 def new_directory(path: Path) -> Path:
+    from .aggregate_limits import require_managed_write
+    require_managed_write(path)
     if path.exists() or path.is_symlink():
         raise FileExistsError("Destination must not already exist")
     path.mkdir(mode=0o700, parents=True, exist_ok=False)
@@ -53,6 +55,8 @@ def new_directory(path: Path) -> Path:
 
 
 def private_write(path: Path, data: bytes) -> None:
+    from .aggregate_limits import require_managed_write
+    require_managed_write(path)
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "wb") as stream:
         stream.write(data)
@@ -187,6 +191,8 @@ MIGRATIONS = (
 
 
 def apply_migrations(database: Path, migrations: tuple[Migration, ...] = MIGRATIONS) -> list[int]:
+    from .aggregate_limits import require_managed_write
+    require_managed_write(database)
     integrity(database)
     if [m.version for m in migrations] != list(range(1, len(migrations) + 1)):
         raise ValueError("Migrations must be ordered and contiguous")

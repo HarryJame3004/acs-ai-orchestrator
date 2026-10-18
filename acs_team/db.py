@@ -156,6 +156,8 @@ class DatabaseManager:
             if not self.db_path.is_file():
                 raise FileNotFoundError('Read-only database must already exist')
         else:
+            from .aggregate_limits import require_managed_write
+            require_managed_write(self.db_path)
             self.db_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             if not self.db_path.exists():
                 try:

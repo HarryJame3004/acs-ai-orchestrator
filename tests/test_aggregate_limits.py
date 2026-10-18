@@ -267,3 +267,42 @@ def test_whole_service_requirement_cannot_be_enabled_without_aggregate(monkeypat
     monkeypatch.setenv('ACS_REQUIRE_SERVICE_LIMITS','1')
     with pytest.raises(PermissionError,match='requires aggregate'):
         configured_limits()
+
+
+@pytest.mark.simulated
+@pytest.mark.parametrize('operation',['database','evidence','private_export','backup_or_staging'])
+def test_hard_storage_rejects_controller_writes_outside_accounted_roots(tmp_path,monkeypatch,operation):
+    from acs_team import aggregate_limits as module
+    from acs_team.db import DatabaseManager
+    from acs_team.evidence import persist_evidence
+    from acs_team.recovery import new_directory,private_write
+    accounted = tmp_path/'accounted'
+    accounted.mkdir(mode=0o700)
+    outside = tmp_path/'outside'
+    outside.mkdir()
+    target = outside/'must-not-appear'
+    limits = AggregateLimits(tmp_path/'cgroup',(accounted,),storage_volume=tmp_path)
+    monkeypatch.setenv('ACS_REQUIRE_HARD_STORAGE','1')
+    monkeypatch.setattr(module,'configured_limits',lambda:limits)
+    with pytest.raises(PermissionError,match='outside aggregate'):
+        if operation=='database':
+            DatabaseManager(target/'fixture.db')
+        elif operation=='evidence':
+            persist_evidence({'fixture':'result'},target)
+        elif operation=='private_export':
+            private_write(target,b'fixture')
+        else:
+            new_directory(target)
+    assert not target.exists()
+
+
+def test_invalid_hard_contract_stops_runtime_initialization_before_directory_creation(tmp_path):
+    import subprocess
+    environment = {k:v for k,v in os.environ.items() if not k.startswith(('ACS_','AGPAIR_'))}
+    environment.update(ACS_HOME=str(tmp_path/'new-runtime'),ACS_BACKUPS_DIR=str(tmp_path/'new-backup'),
+                       ACS_REQUIRE_HARD_STORAGE='1',PYTHONDONTWRITEBYTECODE='1')
+    result = subprocess.run([sys.executable,'-c','import acs_team.config'],env=environment,
+                            cwd=tmp_path,capture_output=True,text=True,timeout=10)
+    assert result.returncode != 0 and 'requires aggregate enforcement' in result.stderr
+    assert not (tmp_path/'new-runtime').exists()
+    assert not (tmp_path/'new-backup').exists()

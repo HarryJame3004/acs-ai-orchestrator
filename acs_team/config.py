@@ -37,6 +37,11 @@ for runtime_path in (ORCHESTRATOR_HOME, BACKUPS_DIR):
 # Read-only discovery/preview must not initialize an operational installation.
 READ_ONLY_INVOCATION = any(arg in {'verify-local', '--dry-run', '--help', '-h', 'mcp'} for arg in sys.argv)
 if not READ_ONLY_INVOCATION:
+    if any(os.environ.get(name) == '1' for name in ('ACS_REQUIRE_HARD_STORAGE','ACS_REQUIRE_SERVICE_LIMITS')):
+        from .aggregate_limits import configured_limits, require_managed_write
+        configured_limits()  # Verify requested kernel contracts before state/log creation.
+        require_managed_write(ORCHESTRATOR_HOME)
+        require_managed_write(BACKUPS_DIR)
     for directory in (ORCHESTRATOR_HOME, STATE_DIR, CONTEXT_DIR, WORKTREES_DIR, WORKSPACES_DIR, LOGS_DIR, BACKUPS_DIR):
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
 
