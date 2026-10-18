@@ -1,0 +1,35 @@
+{
+  "mission_id": "mission",
+  "status": "BLOCKED",
+  "tasks": [
+    {
+      "mission": "mission",
+      "task": "t0",
+      "state": "FAILED",
+      "worker": "a",
+      "token": "[REDACTED]",
+      "expires": 1792306630.193234,
+      "heartbeat": 1792306330.1932347,
+      "process": null,
+      "worktree": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a",
+      "result": "{\"error\": \"Guardian vetoed task: Quality Score 0.6 fell below required threshold 0.85; Automated test suite failed.\"}"
+    },
+    {
+      "mission": "mission",
+      "task": "t1",
+      "state": "FAILED",
+      "worker": "b",
+      "token": "[REDACTED]",
+      "expires": 1792306625.1485624,
+      "heartbeat": 1792306325.1485631,
+      "process": null,
+      "worktree": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t1-9f8963ca",
+      "result": "{\"error\": \"Task verification or independent contract tests failed\"}"
+    }
+  ],
+  "errors": {
+    "t1": "Task verification or independent contract tests failed",
+    "t0": "Guardian vetoed task: Quality Score 0.6 fell below required threshold 0.85; Automated test suite failed."
+  },
+  "integration_branch": "acsai/mission/mission"
+}

@@ -1,0 +1,226 @@
+[
+  {
+    "event_id": 1,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "verifier",
+    "action": "VERIFICATION_RESULT",
+    "timestamp": "2026-10-18T06:52:01.589505+00:00",
+    "details": {
+      "command": [
+        "pytest",
+        "-q"
+      ],
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a",
+      "runtime_seconds": 1.2274237849997007,
+      "executed": true,
+      "passed": true,
+      "exit_code": 0,
+      "reason": "completed",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "errors": 0
+      },
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 2,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "verifier",
+    "action": "VERIFICATION_RESULT",
+    "timestamp": "2026-10-18T06:52:03.125125+00:00",
+    "details": {
+      "command": [
+        "pytest",
+        "-q"
+      ],
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t1-9f8963ca",
+      "runtime_seconds": 2.73043605699786,
+      "executed": true,
+      "passed": true,
+      "exit_code": 0,
+      "reason": "completed",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "errors": 0
+      },
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 3,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "verifier",
+    "action": "VERIFICATION_RESULT",
+    "timestamp": "2026-10-18T06:52:03.913144+00:00",
+    "details": {
+      "command": [
+        "pytest",
+        "-q",
+        "tests/test_contract_t0.py"
+      ],
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a",
+      "runtime_seconds": 2.30268726900249,
+      "executed": true,
+      "passed": true,
+      "exit_code": 0,
+      "reason": "completed",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "errors": 0
+      },
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 4,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "verifier",
+    "action": "VERIFICATION_RESULT",
+    "timestamp": "2026-10-18T06:52:07.009177+00:00",
+    "details": {
+      "command": [
+        "pytest",
+        "-q",
+        "tests/test_contract_t1.py"
+      ],
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t1-9f8963ca",
+      "runtime_seconds": 3.6990351709973766,
+      "executed": true,
+      "passed": false,
+      "exit_code": 125,
+      "reason": "completed",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "errors": 0
+      },
+      "label": "CLOUD_SIMULATED",
+      "evidence_ref": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/artifacts/79baf65cb5654bf298c0007a17e7439b.evidence.json"
+    }
+  },
+  {
+    "event_id": 5,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "b",
+    "action": "TASK_EXECUTION",
+    "timestamp": "2026-10-18T06:52:07.053619+00:00",
+    "details": {
+      "task_id": "t1",
+      "runtime_seconds": 6.850039500997809,
+      "completed": false,
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 6,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "b",
+    "action": "WORKER_FAILURE",
+    "timestamp": "2026-10-18T06:52:07.096524+00:00",
+    "details": {
+      "task_id": "t1",
+      "fingerprint": "166aa2a456552b78c062cf2287cd6387c9cf3548b7265b97e9d052511c96f76c",
+      "exception_type": "ValueError",
+      "reason": "Task verification or independent contract tests failed",
+      "stage": "task-verification-or-integration",
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 7,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "verifier",
+    "action": "VERIFICATION_RESULT",
+    "timestamp": "2026-10-18T06:52:10.567104+00:00",
+    "details": {
+      "command": "pytest -q",
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a",
+      "runtime_seconds": 6.331484128000739,
+      "executed": true,
+      "passed": false,
+      "exit_code": 125,
+      "reason": "completed",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "errors": 0
+      },
+      "label": "CLOUD_SIMULATED",
+      "evidence_ref": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/artifacts/d2a6d5236a1c42f688dc019ba6ed6010.evidence.json"
+    }
+  },
+  {
+    "event_id": 8,
+    "mission_id": "mission",
+    "task_id": "t0",
+    "actor": "guardian",
+    "action": "GUARDIAN_VETOED",
+    "timestamp": "2026-10-18T06:52:10.671940+00:00",
+    "details": {
+      "target_branch": "acsai/mission/mission",
+      "commit_sha": "ddd347b8d7a42e40a470a1b5e6a6e9deae895df6",
+      "quality_score": 0.6,
+      "veto_reasons": [
+        "Quality Score 0.6 fell below required threshold 0.85",
+        "Automated test suite failed."
+      ],
+      "approved": false
+    }
+  },
+  {
+    "event_id": 9,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "a",
+    "action": "TASK_EXECUTION",
+    "timestamp": "2026-10-18T06:52:10.756836+00:00",
+    "details": {
+      "task_id": "t0",
+      "runtime_seconds": 10.58390751400293,
+      "completed": false,
+      "label": "CLOUD_SIMULATED"
+    }
+  },
+  {
+    "event_id": 10,
+    "mission_id": "mission",
+    "task_id": null,
+    "actor": "a",
+    "action": "WORKER_FAILURE",
+    "timestamp": "2026-10-18T06:52:10.788513+00:00",
+    "details": {
+      "task_id": "t0",
+      "fingerprint": "de8b89c154d8ff6218a7f13afb42298b684efe08378647e6c120c688b3ea187c",
+      "exception_type": "PermissionError",
+      "reason": "Guardian vetoed task: Quality Score 0.6 fell below required threshold 0.85; Automated test suite failed.",
+      "stage": "task-verification-or-integration",
+      "label": "CLOUD_SIMULATED"
+    }
+  }
+]

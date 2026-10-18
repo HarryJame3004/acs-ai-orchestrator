@@ -1,0 +1,56 @@
+[
+  {
+    "event_id": 4,
+    "artifact_sha256": "e110e6c6fdfbe90e52dd6ee109e6fddd232b8a9ec2ddf006d385700ba7aa818e",
+    "test_results": {
+      "command": [
+        "pytest",
+        "-q",
+        "tests/test_contract_t1.py"
+      ],
+      "counts": {
+        "errors": 0,
+        "failed": 0,
+        "passed": 2,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "exception_type": null,
+      "executed": true,
+      "exit_code": 125,
+      "label": "CLOUD_SIMULATED",
+      "output": "..                                                                       [100%]\n2 passed in 0.02s\n\n",
+      "passed": false,
+      "reason": "completed",
+      "runtime_seconds": 3.6990351709973766,
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t1-9f8963ca"
+    },
+    "original_artifact": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/artifacts/79baf65cb5654bf298c0007a17e7439b.evidence.json"
+  },
+  {
+    "event_id": 7,
+    "artifact_sha256": "3ea18896f297a4f2bf2ab2bf44168f25466985b06b50646d15c8fa92e7d34499",
+    "test_results": {
+      "command": "pytest -q",
+      "counts": {
+        "errors": 0,
+        "failed": 0,
+        "passed": 2,
+        "skipped": 0,
+        "xfailed": 0,
+        "xpassed": 0
+      },
+      "exception_type": null,
+      "executed": true,
+      "exit_code": 125,
+      "label": "CLOUD_SIMULATED",
+      "output": "..                                                                       [100%]\n2 passed in 0.04s\n\n",
+      "passed": false,
+      "reason": "completed",
+      "runtime_seconds": 6.331484128000739,
+      "workspace": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a"
+    },
+    "original_artifact": "/workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/artifacts/d2a6d5236a1c42f688dc019ba6ed6010.evidence.json"
+  }
+]

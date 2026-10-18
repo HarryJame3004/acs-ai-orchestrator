@@ -154,10 +154,12 @@ def run(argv: list[str], expected_parent: int | None = None) -> int:
                 sent_term = True
             if time.monotonic() - cleanup_started >= 0.1:
                 _signal_owned(os.getpid(), signal.SIGKILL)
-            if time.monotonic() - cleanup_started > 2:
-                # Never pretend cleanup completed. The outer supervisor remains
-                # responsible for this registered helper's timeout/identity.
-                return 125
+            # Only ECHILD above establishes completed cleanup. A wall-clock
+            # deadline here can expire while this helper is descheduled, after
+            # a descendant has already exited but before the next waitpid. It
+            # falsely returned 125 and could orphan an unreaped descendant.
+            # Keep ownership and reap; the outer supervisor still enforces the
+            # unchanged invocation deadline and owned-tree termination policy.
         time.sleep(0.005)
 
 

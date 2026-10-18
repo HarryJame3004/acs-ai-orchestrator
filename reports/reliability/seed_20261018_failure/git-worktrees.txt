@@ -1,0 +1,12 @@
+worktree /workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/repo
+HEAD 420d8746d47a8b94c840291010a2d14c8f8332e2
+branch refs/heads/main
+
+worktree /workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t0-e2e6930a
+HEAD ddd347b8d7a42e40a470a1b5e6a6e9deae895df6
+branch refs/heads/acsai/worker/mission/t0-e2e6930a
+
+worktree /workspace/acs-evidence/new-runner-20261018/basetemp/test_coordinated_real_git_sqli3/worktrees/mission_t1-9f8963ca
+HEAD 420d8746d47a8b94c840291010a2d14c8f8332e2
+branch refs/heads/acsai/worker/mission/t1-9f8963ca
+
