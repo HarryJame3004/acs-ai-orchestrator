@@ -1,0 +1,4 @@
+# Explicit build backends for the personal installer (not a hash lock).
+setuptools==80.9.0
+wheel==0.45.1
+hatchling==1.27.0

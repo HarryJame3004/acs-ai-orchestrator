@@ -8,6 +8,18 @@ It is **PARTIAL, not a production release**. Real Codex/AGY authentication,
 independent provider roles, sandbox operation and laptop deployment are unverified.
 Real adapters fail closed instead of treating an installed binary as readiness.
 
+This is a personal, single-owner system. **ACS Core is the primary free-first
+executor; ACS AI is optional paid intelligence support.** Use the
+[Core-first handoff](docs/upgrade/CORE_FIRST_CONTRACT.md) for bounded escalation
+and return to Core. Native paid escalation stays disabled until a real charge
+ceiling is supported. Existing direct execution commands remain explicit
+compatibility operations and can consume provider quota.
+
+For a verified source bundle, use the [personal Arch installation guide](INSTALL.md):
+checksum → inspect → `python scripts/personal_install.py --preflight` → install
+into a new private prefix → configure/authenticate → explicit local acceptance.
+Installation never starts providers or services.
+
 Current evidence and exact gaps are in [progress](docs/progress/PROGRESS.md),
 [requirements](reports/REQUIREMENTS.json) and [acceptance](reports/FINAL_ACCEPTANCE_REPORT.md).
 Original baseline: 37 passed / 5 failed. Original baselines remain unchanged.
@@ -20,9 +32,11 @@ bounded context, measured scheduling, a 12-case fake-worker benchmark harness,
 no-write dry-run, review/escalation artifacts, strict review import, MCP definition
 auditing and local verification tooling. See each stage report for limits.
 
-The existing `acsai -m` path remains single-task. Coordinated `TeamRunner` is an
-opt-in host API and is not yet connected to that path. Do not enable new runtime
-flags merely because cloud tests pass.
+The opt-in coordinated path connects natural-language CLI and daemon dispatch to
+Planner, TeamRunner, independent verification/review, Guardian and integration.
+Cloud end-to-end tests use explicitly fake provider responses; real account and
+kernel acceptance remains pending. Do not enable new runtime flags merely
+because cloud tests pass.
 
 ```bash
 bash scripts/cloud_setup.sh
