@@ -1,3 +1,12 @@
+# Current deployment gate — PARTIAL candidate
+
+Latest application source 511ff9b has verified improvements but an unresolved
+seeded postmerge failure and incomplete source acceptance. This guide remains an
+operator-reviewed procedure, not permission or readiness to promote this candidate.
+Read reports/ARCH_LINUX_LOCAL_ACCEPTANCE.md, reports/FINAL_CLOUD_HANDOFF.md and
+docs/upgrade/TEAM_RUNTIME.md for new opt-in filesystem/service contracts before
+any local staging/probes. No live deployment was performed from cloud.
+
 # Local evaluation and rollout gates
 
 **Candidate PARTIAL: live activation BLOCKED on the HIGH source/operational gaps

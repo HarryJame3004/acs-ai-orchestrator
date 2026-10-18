@@ -268,7 +268,7 @@
         "reports/stage_7_tests.json",
         "reports/stage_7_static.json"
       ],
-      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+      "remaining": "Unexecuted Guardian verification always vetoed; timeout propagated to real verifier. Baseline byte integrity now includes helpers/constants/configuration/new ignored collection controls at worker/integration/final gates. Trusted reviewed baseline exceptions and meaningful coverage-diff validation remain source gaps; current denial stays enforced."
     },
     {
       "id": "4.4",
@@ -357,7 +357,7 @@
         "reports/continuation_tests.json",
         "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
       ],
-      "remaining": "Shared cgroup CPU/RAM/PID contract and fail-closed startup implemented; delegated kernel attachment remains local-only. Storage is sampled; hard disk quota, complete scratch/Git accounting and whole-service controller limits remain HIGH."
+      "remaining": "Source now supports managed scratch/shared-Git/state/DB/artifact/export admission, opt-in bounded block-filesystem enforcement and opt-in verified controller/worker parent cgroup. Actual dedicated filesystem/delegation/capacity probes remain LOCAL_VERIFICATION_REQUIRED. Complete live whole-service telemetry and evaluate supported storage deployment on the laptop; sampled mode alone is not hard enforcement."
     },
     {
       "id": "4.8",
@@ -397,7 +397,7 @@
         "reports/stage_7_tests.json",
         "reports/stage_7_static.json"
       ],
-      "remaining": "Detailed unresolved acceptance items are in reports/FINAL_ACCEPTANCE_REPORT.md and the stage report; cloud passes do not complete this section."
+      "remaining": "Coordinated FULL WAL sync and atomic file/directory-synchronized evidence publication implemented. Consistent backups/migrations tested. Broader crash-boundary/power-loss campaigns and actual local restore/service proof remain."
     },
     {
       "id": "4.10",
@@ -611,7 +611,7 @@
         "reports/continuation_tests.json",
         "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
       ],
-      "remaining": "Independent production test adapters and protected test artifacts execute through actual TeamRunner. Reviewed baseline exceptions/coverage comparison and real provider evidence remain pending."
+      "remaining": "Unexecuted Guardian verification always vetoed; timeout propagated to real verifier. Baseline byte integrity now includes helpers/constants/configuration/new ignored collection controls at worker/integration/final gates. Trusted reviewed baseline exceptions and meaningful coverage-diff validation remain source gaps; current denial stays enforced."
     },
     {
       "id": "5.8",
@@ -1355,7 +1355,7 @@
         "reports/companion_tests.json",
         "reports/golden_fake_final.json"
       ],
-      "remaining": "Root regression/failure injection plus bridge and companion verified. Fake workers are explicitly simulated. Complete CLI-to-team demonstration, real providers, random-order campaign and laptop gates are not complete."
+      "remaining": "Open latest seed-1337 postmerge failure: both tasks FAILED; original log preserved. Isolated, diagnostic seeded and 16 stress passes do not establish closure. Expand retained-fixture randomized/flaky and long reliability campaigns."
     },
     {
       "id": "12.1",
@@ -1477,7 +1477,7 @@
         "reports/continuation_tests.json",
         "reports/INTEGRATED_TEAM_ACCEPTANCE.md"
       ],
-      "remaining": "Opt-in verified clean-checkout retention, shared cgroup contract and sampled storage accounting implemented. Complete hard storage/scratch/controller accounting and laptop measurements."
+      "remaining": "Source now supports managed scratch/shared-Git/state/DB/artifact/export admission, opt-in bounded block-filesystem enforcement and opt-in verified controller/worker parent cgroup. Actual dedicated filesystem/delegation/capacity probes remain LOCAL_VERIFICATION_REQUIRED. Complete live whole-service telemetry and evaluate supported storage deployment on the laptop; sampled mode alone is not hard enforcement."
     },
     {
       "id": "11",
@@ -1744,10 +1744,19 @@
     "source_milestones": [
       "35372c1",
       "bf9e542",
-      "2c42da3"
+      "2c42da3",
+      "f8faffe",
+      "d641fea",
+      "a5ec808",
+      "ecbdbb7",
+      "c7a86af",
+      "dd07ec7",
+      "f888349",
+      "f461c9d",
+      "511ff9b"
     ],
     "status": "PARTIAL",
-    "tests": "reports/continuation_tests.json",
-    "source_backlog": "reports/NEXT_SESSION_HANDOFF.md"
+    "tests": "reports/FULL_TEST_EVIDENCE.json",
+    "source_backlog": "reports/FINAL_CLOUD_HANDOFF.md"
   }
 }

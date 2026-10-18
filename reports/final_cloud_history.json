@@ -1,0 +1,12 @@
+{
+  "source_checkpoint": "511ff9b",
+  "label": "CLOUD_REAL",
+  "commits": 51,
+  "unique_blobs": 792,
+  "known_candidate_count": 71,
+  "unknown_candidate_count": 0,
+  "skipped_blobs": 0,
+  "raw_report": "/tmp/acs-final-history.json",
+  "detector_canary": "PASS",
+  "note": "Counts retain the exact result without recursively duplicating public detector fingerprints."
+}

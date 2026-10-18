@@ -1,292 +1,82 @@
-# ACS AI upgrade acceptance checkpoint
+# Final cloud acceptance checkpoint — PARTIAL
 
-## Current continuation (supersedes the historical source-gap snapshot below)
+Application source: 511ff9b0c69f94242b2b2bf6dc6291d5b69963d4.
+PR #7 remains the approved draft upgrade PR. Later evidence-only commits must be
+resolved from the remote before continuing. No FULL PASS or
+CLOUD_DEVELOPMENT_COMPLETE_LOCAL_PENDING claim is made. Deployment/release is
+BLOCKED; main, ACS Core and the user's laptop were not modified.
 
-Candidate remains **PARTIAL**; release/deployment **BLOCKED**. Source commits
-35372c1 and bf9e542 implement provider activation contracts, isolated auth/toolchain
-bindings, independent production role sessions, actual CLI/daemon TeamRunner
-dispatch, durable claim/Git/process recovery and bounded review-driven execution.
-The next tested increment adds daemon crash resumption, preservation of original
-criteria during blocked/completed-parent corrections, dependency handoff delivery,
-whole-mission completion artifacts, template/test-command propagation, measured
-controller resources and opt-in clean accepted-checkout retention. Consult
-docs/upgrade/TEAM_RUNTIME.md and git log for the latest source checkpoint.
+## Implemented in this continuation
 
-The original six HIGH source headings below describe the preceding candidate;
-they are no longer an accurate claim that these interfaces are absent. Actual
-authenticated provider/account identity, CLI compatibility and sandbox/cgroup
-behavior remain **LOCAL_VERIFICATION_REQUIRED**. No local runtime was inspected
-or modified, no credential requested, no Core modification, main push, merge or
-deployment occurred. No stage or full system is promoted to PASS.
+| Commit | Production change |
+|---|---|
+| f8faffe | Accounted private provider/planner/tester/verification/MCP/legacy scratch; workspace/state/DB and linked shared-Git admission. |
+| d641fea | CPU test retains one CPU second/signal assertions and rejects wall-time cancellation; effective pytest marker registration. |
+| a5ec808 | Private evidence file sync, atomic no-overwrite publication and directory sync before returning a reference. |
+| ecbdbb7 | Coordinated SQLite requires FULL WAL synchronization; legacy NORMAL default retained. |
+| c7a86af | Optional bounded block-filesystem contract and sandbox /tmp backed by accounted scratch. |
+| dd07ec7 | Optional verified parent cgroup bounds controller and descendant workers together, with overhead reserve. |
+| f888349 | Baseline byte integrity covers helpers/fixtures/constants/configuration and new ignored collection controls at worker/integration/final gates. |
+| f461c9d | Fix verifier timeout arity; unexecuted independent Guardian tests always veto integration. |
+| 511ff9b | Verify resource contracts before runtime/log initialization; reject unaccounted DB/evidence/export/backup/staging/migration writes before creation. |
 
-Current evidence: continuation_tests.json, continuation_static.json,
-continuation_history.json and INTEGRATED_TEAM_ACCEPTANCE.md. The native-protocol
-scenario now covers real production CLI/service/daemon paths, concurrent workers,
-a dependent task consuming both handoffs, independent pytest/review, final
-Guardian/evidence/dashboard/export, crash recovery without repeating provider
-sessions, and imported-review escalation/re-execution. Every provider-backed
-variant is CLOUD_SIMULATED. A verified lesson is explicitly seeded by fixture
-human review; fake outcomes never verify new production lessons.
+Flags default off; no privilege, mount, global cgroup configuration, credentials,
+merge or deployment was performed. Supported bounded filesystems and all contract
+settings are documented in docs/upgrade/TEAM_RUNTIME.md. Positive resource-contract
+fixtures are CLOUD_SIMULATED; actual delegated kernel/device enforcement and laptop
+behavior remain LOCAL_VERIFICATION_REQUIRED. Sampled storage mode is not a quota.
 
-Latest root result: **171 passed, 7 skipped**: **135 CLOUD_REAL** and
-**36 CLOUD_SIMULATED** passed; **7 LOCAL_VERIFICATION_REQUIRED** checks skipped
-explicitly. Scoped Ruff/mypy: 0/0; 15 known scanner candidates, zero new.
-Targeted bridge profile: 56 passed. All three hosted profiles passed at 0eb6543;
-later evidence-only head checks must be refreshed. New `verify-team` provides explicit
-operator-run three-profile fixture evaluation and private failure reporting;
-authenticated execution was not performed in cloud. No new dependency was added.
+## Verification and unresolved failure
 
-Remaining **HIGH source** work: a hard aggregate disk ceiling and accounting for
-all scratch/tool/Git/artifact storage; whole-service controller limits; production
-readiness of reviewed baseline-test exceptions and coverage comparison. Kernel
-cgroup CPU/RAM/PID contracts are implemented but require actual local delegation
-proof. Sampled storage monitoring is not a filesystem quota.
+| Profile | Exact result |
+|---|---|
+| Stable-source root | 220 passed, 7 explicit local skips; 159 CLOUD_REAL and 61 CLOUD_SIMULATED passes; no baseline regressions. |
+| Bridge | 847 passed; unchanged component source. |
+| Companion | 138 passed in 25 suites; compilation and production build passed. |
+| Scoped static | Ruff 0, mypy 0; 15 known detector candidates, zero new at source checkpoint. |
+| Committed history | 51 commits, 71 known candidates, zero unknown, zero skipped; canary enforced. Evidence-only history must be refreshed after publication. |
+| Hosted CI at source | All six checks/bridge/companion check-run instances succeeded. |
+| Direct diagnostic | 173 passed, 3 unchanged legacy real-provider availability failures, 2 explicit skips; not a clean acceptance pass. |
+| Latest first seed 1337 | **137 passed, 1 failed, 1 skipped**: postmerge coordination left both tasks FAILED. |
+| Diagnostic seeded profiles | Seed 1337 and 7331: 138 passed, 1 skipped each; do not close preceding failure. |
+| Targeted stress | 16 isolated repetitions across two concurrent controllers passed; preceding failure remains unresolved. |
 
-Remaining **MEDIUM source/acceptance** work: MCP HTTP/general mission operations,
-per-operation remote-write approvals and verified worker-visible bindings;
-complete sensitive-scope classification, all legacy producer schemas, measured
-quota/failover/alternative-run accounting, specialized language/performance
-profiles and automatic evidence-backed lesson production. Complete randomized
-campaign and dependency/license audit remain pending. Existing conservative
-denials remain in force. The 20-step mapping is scenario evidence, not proof that
-every V2.3–V2.6 acceptance bullet passed.
+The seeded-order failure is an **open reliability defect**. Its exact output is
+POSTMERGE_RANDOMIZED_FAILURE.txt. The first failure's temporary fixture database
+was not retained after pytest directory rotation; subsequent diagnostics log
+unchanged results. Future reproduction must retain --basetemp and capture the
+result/error map/audit before teardown. No assertion was weakened and no failing
+campaign was relabeled PASS. See FULL_TEST_EVIDENCE.json for all scope/commands.
 
-Migration 6 adds team_runs, integration_intents, coord_recoveries and review_runs
-through additive SQL shared with stores. Crash tests cover controller process
-termination, SQLite writer availability and exact owned Git reconciliation;
-power-loss durability is not established. No new third-party dependency was added.
-New opt-ins default off: ACS_ENABLE_PROVIDER_CONTRACTS, ACS_ENABLE_COORDINATION,
-ACS_ENABLE_AGGREGATE_LIMITS, ACS_ENABLE_TEAM_RECOVERY,
-ACS_ENABLE_ACCEPTED_WORKTREE_CLEANUP and ACS_ENABLE_REVIEW_EXECUTION. Existing
-supervision/review/daemon/intelligence flags still apply. Activation lifetime is
-explicitly signed (one-hour default, 24-hour maximum); no automatic renewal or
-credential rotation occurs.
+The supplied older independent report provides 148/24 counts and concern families,
+but no 24 node IDs, original command or traces. Exact per-original-case mapping is
+BLOCKED; family-level evidence is in INDEPENDENT_FINDINGS_CLOSURE.md. Passing CI
+was not used as a substitute for that mapping.
 
-Recovery retains failed/dirty work, branches and evidence. Accepted checkout
-cleanup never forces removal or prunes unrelated worktree registrations. Backups,
-copy migrations, scratch restores and rollback procedures remain in the existing
-local deployment guide. Live rollout, protected operations and release remain
-approval-gated. This is a saved development checkpoint; no background work is
-promised after the task ends.
+The real production CLI/daemon/planner/TeamRunner/dependency/test/review/Guardian/
+integration/recovery path is exercised with explicitly fake native providers and
+real Git/SQLite/subprocesses. The original 20-step scenario mapping remains in
+INTEGRATED_TEAM_ACCEPTANCE.md. It does not close every original requirement, and
+seeded human-reviewed lessons are not automatic learning or provider readiness.
 
-## Historical acceptance snapshot (counts and absent-source claims superseded)
+## Security, dependencies and acceptance still open
 
-Overall **PARTIAL**. Live activation/release **BLOCKED** on the HIGH source gaps
-below. This report records implemented, verified increments; it does not certify
-the complete V2.3–V2.6 system. Package version stays 2.2.0. No live system was
-inspected or modified; ACS Core was not accessed. No merge, main push, tag,
-credential rotation, local service operation or laptop deployment occurred.
+PyPI pip-audit checked 34 pinned requirements and reported no known vulnerabilities;
+npm audit reported zero. License inventories cover 37 installed Python distributions
+and 34 companion lockfile entries. The ACS application has no declared license;
+choosing one requires an owner decision. Metadata is not compatibility approval.
+Dependencies are version-pinned, not fully hash-locked. See the audit report.
 
-## A. Executive summary
+Next HIGH source work: investigate the reliability failure, implement the complete
+trusted reviewed-baseline exception/coverage-diff path, retain current denial until
+then. Remaining source/acceptance work includes MCP HTTP/mission routing/provider
+bindings/per-operation write approvals, provider quota/failover/producer schemas,
+specialized language/performance profiles, complete telemetry and provenance-backed
+learning, broader crash/soak campaigns and per-bullet original acceptance closure.
 
-Production changes span backup/recovery, Guardian, process ownership, isolated
-verification, SQLite coordination, independent-role host APIs, advisory learning,
-context/metrics, review workflow, MCP auditing/stdio probes and local inspection.
-They extend the existing Python application and agpair bridge. Root CLI flags
-and historical baseline evidence are retained. Actual provider activation and the
-natural-language-to-TeamRunner path are incomplete: do not deploy this candidate
-as a working autonomous three-provider system.
-
-The original Stage 0 failure was a CLI test using a workstation-specific Python
-path, alongside the broken console entry point. Source repair is 1cb2ad7; the
-separately justified test portability correction is fd23285. Original assertions
-and baseline remain. PR #1 hosted CI subsequently passed. A later V2.3 hosted
-failure came from assuming machine uptime exceeded one hour: cebfd08 makes a
-first periodic backup immediately due and tests a fresh VM uptime of 10 seconds.
-Neither fix changes assertions merely to accept broken behavior.
-
-## B. Stage and version status
-
-| Stage | Status | Implemented cloud evidence | Outstanding acceptance |
-|---|---|---|---|
-| Stage 0 | CLOUD_PASS_LOCAL_PENDING | Audit, reproducible baseline, CLI repair, PR #1 CI | Actual installation/worker/MCP inventory |
-| Stage 1 | CLOUD_PASS_LOCAL_PENDING | Consistent backup/verify, new-only scratch restore, transactional copy migration, staged candidate and rollback fixtures | Live snapshot/history, service health and local promotion |
-| V2.3 | PARTIAL | Guardian before merge, bound approvals/evidence, protected paths, private files, redaction, bounded process supervision, stop/watchdog/backup primitives | Provider activation, real sandbox/auth binding, aggregate limits and laptop service checks |
-| V2.4 | PARTIAL | Strict plans, atomic fenced claims, ownership, contracts/blackboard, concurrent host workers, independent test/review gates, sequential integration | Actual independent provider roles, legacy CLI wiring, complete crash/resume reconciliation |
-| V2.5 | PARTIAL | Candidate/verified advisory lessons, bounded context, measured selection, optional comparison API, 12-case golden harness | All producer schemas/metrics, complete real scheduling/alternative runs and verified outcomes |
-| V2.6 | PARTIAL | No-write dry-run, eight templates, bounded review/escalation/import, safe queue/daemon ownership, notifications and persisted dashboard projection | Team mission integration, review-driven execution, full profile/telemetry behavior |
-| Stage 7 | PARTIAL | MCP policy/protocol/native file guards, local report/import tooling, migrations, regression and source bundle preparation | Complete integrated demonstration, real local probes, deployment and release acceptance |
-
-Section coverage, implementation paths and explicit remaining work are indexed in
-REQUIREMENTS.json. Section status never implies all its individual bullets passed.
-
-## C. Test results
-
-Intermediate failures and their corrections are preserved in
-VERIFICATION_FAILURE_HISTORY.md. At production checkpoint 329e402, all three hosted CI jobs succeeded.
-Final machine-readable results are authoritative; check the final committed
-reports if a subsequent verification changes these checkpoint numbers.
-
-| Profile | Label | Actual result |
-|---|---|---|
-| Root policy, SQLite, Git, filesystem and process tests | CLOUD_REAL | 126 passed |
-| Root fake providers/model/transports, fixture pipeline and review | CLOUD_SIMULATED | 25 passed |
-| Root laptop-only assertions | LOCAL_VERIFICATION_REQUIRED | 5 explicit cloud skips; no local pass |
-| Full agpair bridge | CLOUD_SIMULATED | 847 passed, 0 failures in recorded full container run; hosted profile follow-up recorded in CI_STATUS.json |
-| Companion TypeScript/fake SDK/transports | CLOUD_SIMULATED | 138 passed, 25 suites, 0 failures/skips; compilation and production build passed |
-| Full golden harness | CLOUD_SIMULATED | 12/12 passed, no missing/pass-rate regressions versus stored fake baseline |
-| Scoped Ruff / mypy | CLOUD_REAL | 0 diagnostics / 0 errors, without changing the original debt baseline |
-| Offline working-tree candidate gate | CLOUD_REAL | 15 known fixture/metadata candidates; zero new findings |
-| npm dependency advisories | CLOUD_REAL | 0 advisories at audit time after exact esbuild 0.28.2 update |
-
-Mypy uses the existing scoped configuration; untyped function bodies and missing
-external stubs are not exhaustively checked. Zero diagnostics is not a proof of
-complete typing or full-repository security.
-
-The original raw root baseline was 37 passed / 5 failed; four failures needed
-local capabilities, one was the portable CLI issue described above. No baseline
-was refreshed to hide failures. Separate justified fixture commits removed
-fabricated worker readiness, vacuous tests and unsafe approval defaults. Safe
-Ruff corrections remove unused imports and rename locals; all test assertions
-remain. Reviewer regression additionally rejects absent tests, malformed output,
-non-boolean approval and unresolved defects.
-
-Root runner reports per-case labels in stage_7_tests.json. Bridge and companion
-are conservatively labeled simulated as entire mixed profiles. Production
-verification always requests bwrap. Only fixed trusted fixtures in the cloud
-harness inject a real-pytest executor; this is not namespace proof and is not a
-runtime escape switch. The cloud host cannot create the required UID mapping.
-
-Golden runtime was 57.245s with 33720 KiB child high-water RSS. The older fake
-baseline was measured under different load: no performance improvement is
-claimed. No authenticated worker, real MCP, laptop systemd or live DB was tested.
-
-## D. Security status
-
-Guardian checks occur before integration, approvals bind mission/repository/HEAD/
-action, and evidence must match the actual tested commit. Verification rejects
-vacuous/skip-only outcomes. Independent acceptance files are hashed before worker
-execution, baseline test modification is denied pending reviewed exceptions, and
-failed worktrees are retained. Runtime workers cannot claim verification merely
-because their executable exists. Unsupervised legacy execution fails closed.
-
-Fresh worker environments and mandatory bwrap verification exclude controller
-keys/state. Native MCP file operations use Linux dirfd/O_NOFOLLOW anchoring,
-regular-file/link/size checks, bounded arguments and secret-path denial. Owned
-process helpers use birth identity/pidfd where available, act as child subreapers,
-and reap escaped orphans without killing unrelated processes. Cleanup uses owned thread/child links where supported, with a birth-checked
-/proc fallback for kernels omitting children files. Probe/supervisor grace periods
-allow the reaper to finish instead of prematurely killing it on busy hosts. Core dumps are disabled for these helpers. Auth/DB creation is private; malformed existing
-auth is never silently regenerated. Redaction covers Basic/Bearer, common key
-assignments, credential URLs and CLI token arguments.
-
-These tests do not establish a complete threat-model proof. Aggregate controller/
-MCP/worker limits, storage quotas and provider auth/toolchain binds remain HIGH.
-The heuristic scanner is offline and does not validate/revoke credentials; known
-candidate metadata contains no copied values. History scan has a detector canary and exact identity validation for its own
-known fingerprint/public Git metadata; unknown values/source fields remain
-failures, with explicit negative tests. No report-wide exclusion was added;
-see stage_7_history.json for the final committed-history result. PyPI's version
-metadata reported no published advisories for 34 pins; it is not a complete
-vulnerability or license audit. npm's zero-advisory result is time-dependent.
-
-## E. MCP inventory
-
-Existing configured entries remain inventory, never counted as connected servers.
-Native bounded read/write/list operations, strict role/scope denial and external
-stdio initialize/discover/one exact harmless call are implemented. A bounded
-catalog is hashed including raw definitions to detect poisoning; source URL,
-exact version/argv, allowed environment/tools and explicit approval are required.
-No server was installed or declared authenticated. HTTP transport, general
-mission operations, per-operation remote-write approval and actual worker-visible
-permissions remain incomplete. See MCP_INTEGRATION.md and MCP_VERIFICATION_REPORT.md.
-
-## F. Operational status
-
-No live system was inspected or modified. Laptop checks remain
-LOCAL_VERIFICATION_REQUIRED, including real Codex, AGY A and AGY B authenticated
-missions, independent profiles, real sandbox escape/credential denial, actual MCP
-catalog/auth, systemd/watchdog/cgroups, live DB snapshot/restore/history, terminal
-appearance and notifications. Local inspection may report skipped/blocked checks;
-it cannot promote source gaps into operational readiness.
-
-GitHub API transport and existing authentication work. A CONNECT 403 occurs at
-the proxy before GitHub authentication and does not imply token failure. Actions
-log downloads use a separate host that still returns 403; metadata/annotations
-remain available. No new token or environment restart is needed for the working
-GitHub API. Full diagnosis is GITHUB_API_DIAGNOSTIC.md.
-
-## G. Changes and publication
-
-All seven PRs target main and are unmerged. Branches are dependent snapshots;
-later PR diffs therefore include earlier work. The integration branch contains
-the cumulative candidate. Refresh PR/check metadata before reviewing or merging.
-
-| PR | Branch | Saved checkpoint |
-|---|---|---|
-| [#1](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/1) | upgrade/stage-0-audit | 8906cd1 |
-| [#2](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/2) | upgrade/stage-1-backup-upgrade | 071cc2a |
-| [#3](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/3) | upgrade/v2.3-security-runtime | cebfd08 |
-| [#4](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/4) | upgrade/v2.4-coordination | e960726 |
-| [#5](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/5) | upgrade/v2.5-intelligence | e933d72 |
-| [#6](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/6) | upgrade/v2.6-review-workflow | 21831cd |
-| [#7](https://github.com/HarryJame3004/acs-ai-orchestrator/pull/7) | upgrade/stage-7-verification-release | 490fbb0, e69f67e, 54e598e, 8595f48, 2892d6c, 46ff7ad, 329e402 plus final evidence commits |
-
-Cumulative branch: upgrade/overnight-integration. Main was eecbce4 at task start;
-final remote comparison is recorded with the CI checkpoint. No push to main.
-
-Additive migration registry: upgrade metadata, runtime control, coordination,
-metrics, review/dispatch tables. Migration dry-run copies first; apply takes a
-pre-apply backup and uses a transaction. Store constructors share definitions;
-they still permit additive initialization outside the migration ledger, a
-compatibility limitation. No live schema changed.
-
-Development dependencies are exactly pinned in requirements/cloud-dev.txt;
-Pydantic 2.12.3 supports strict schemas and Click 8.3.0 supports bridge tests.
-Companion package-lock supplies transitive integrity pins; esbuild is exactly
-0.28.2. Three omitted companion state modules were restored from a pinned public
-upstream commit, reviewed and documented in docs/upgrade/COMPANION_STATE_RESTORATION.md;
-no wholesale vendor replacement. Snapshot writes now use private exclusive
-random temporary files. The original build's hidden IDE deployment was removed;
-build:prod only builds. Explicit deploy/dev:install scripts remain user-run only.
-
-CONFIGURATION.md documents runtime opt-ins and conservative defaults. Ordinary
-feature JSON declarations are metadata; actual implemented environment flags
-are documented individually. No production version or release tag was fabricated.
-
-## H. Recovery and local evaluation
-
-The source ZIP uses committed Git blobs only, rejects overwrites, excludes
-credential names/symlinks, includes file SHA256 manifest and performs no activation.
-See local_bundle.json for the exact source commit and archive verification. It is
-an evaluation package, not a deployable accepted release. Do not send secrets.
-
-LOCAL_DEPLOYMENT_GUIDE.md gives isolated checkout/venv/state setup, preflight,
-API snapshot/verify, restore to a new scratch location, migration dry-run, staged
-candidate, explicit local probes/import, one-flag rollout gates and rollback.
-Read-only inspection is safe; live packages/service/auth/migration/promotion are
-YELLOW/user-run. The backup reference default excludes credentials before reading
-known sensitive names. Keep old app/DB/backup and use a reviewed managed pointer;
-never downgrade a live upgraded DB in place or overwrite original backups.
-
-## I. Remaining issues
-
-- **HIGH / source:** real provider activation and verified auth/toolchain mounts.
-  Native and legacy adapters deliberately remain unverified; simply installing a
-  CLI or copying credentials will not make this candidate operational.
-- **HIGH / source:** independent real tester/reviewer adapters with trustworthy
-  session identities; currently these are host callbacks and fake fixtures.
-- **HIGH / source:** natural-language and daemon dispatch into TeamRunner; the
-  existing mission path remains single-task, with early unverified preflight.
-- **HIGH / source:** complete interrupted Git/SQLite reconciliation, resumable
-  coordinated missions and process-identity wiring for claim recovery. Current
-  active/terminal runs conservatively block rather than blindly rerun.
-- **HIGH / source:** aggregate controller/MCP/worker RAM/CPU/storage ceilings,
-  retention and full sandbox resource proof. Per-process bounds alone are partial.
-- **HIGH / source:** validated review-driven replan/task execution; baseline-test
-  exception review and coverage comparison. Import currently records bounded work
-  requiring planning, never silently executes it.
-- **MEDIUM / source:** complete sensitive-scope classification, template profile
-  execution, escalation telemetry and dashboard CPU/RAM; all legacy producer
-  schemas, metric/failover instrumentation and alternative-run quota accounting.
-- **MEDIUM / source:** MCP HTTP/general mission operations, remote-write approvals
-  and real worker visibility. Companion persistence failures remain best-effort.
-- **MEDIUM / acceptance:** full single integrated 20-step cloud demonstration,
-  randomized/flaky campaign and complete dependency/license audit; existing
-  component/golden tests do not substitute for these.
-- **BLOCKED / local approval:** deployment, live services/DB, actual credentials,
-  local packages/profiles and release activation. Scripts/procedures supplied;
-  no approval bypass or token request was made.
-
-This task stops at a saved, testable PARTIAL checkpoint. No background continuation
-is implied. NEXT_SESSION_HANDOFF.md gives exact continuation priorities and gates.
+FINAL_REQUIREMENT_MATRIX.json is a conservative numbered-section inventory, not
+complete per-bullet closure. FAIL may denote an incomplete requirement rather
+than a failed automated test. Real auth/accounts/CLI compatibility, dedicated
+kernel budgets, MCP authentication, laptop services/watchdog/UI, actual backups/
+rollback and deployment remain LOCAL_VERIFICATION_REQUIRED and approval-gated.
+No background continuation after this turn is promised.

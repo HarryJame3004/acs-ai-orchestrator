@@ -27,3 +27,30 @@ Actions log downloads remained separately proxy-blocked; sanitized check
 annotations exposed actionable failures. GitHub API and existing authentication
 continued working. No token request, TLS bypass, repeated blind retry, baseline
 reset, skip relabeling or assertion weakening was used to obtain final results.
+
+## Final directive V2 continuation
+
+- Direct isolated pytest: 173 passed, 3 legacy provider-availability failures,
+  2 gated skips. Preserved in directive_direct_pytest.json; not a full pass.
+- Concurrent focused supervisor profile: 1 failed / 6 passed because the CPU
+  test reached its five-second wall deadline (-15) before one scheduled CPU
+  second. Unchanged sequential case passed. d641fea retains RLIMIT_CPU=1 and
+  signal assertions, increases only scheduler wall allowance to 30 seconds and
+  additionally rejects wall cancellation as CPU enforcement proof. Final focused
+  profile: 7 passed.
+- Initial hard-storage sandbox policy fixture: 18 passed / 1 failed / 1 skipped.
+  The empty test workspace inherited an unrelated ancestor `/tmp/.git` and was
+  correctly rejected as unaccounted shared Git. The positive fixture now creates
+  its own `.git` directory; production rejection remains. Final hard-storage
+  profile: 19 passed / 1 explicit local skip. Later service profile: 25 / 1.
+- New reports initially duplicated scanner fingerprints and a quoted full Git
+  ID, yielding 52 derived metadata candidates. Retained the exact raw scan in
+  /tmp and committed a count/known/unknown summary instead; did not change
+  scanner rules, canaries, baselines or allowlist. Full later scoped scans had
+  15 existing candidates and zero new candidates before subsequent updates.
+- Found and fixed a substantive Guardian issue after green earlier checkpoints:
+  verifier wrapper arity raised a caught TypeError, and unexecuted tests received
+  a passing T score. f461c9d propagates timeout and gives unexecuted tests zero
+  plus an unconditional veto, even with a low threshold. New regression: six
+  passed, existing Guardian profile: four passed. Latest full root evidence is
+  recorded separately, including the native controller routes.

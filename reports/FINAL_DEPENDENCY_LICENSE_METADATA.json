@@ -1,0 +1,296 @@
+{
+  "scope": "Installed cloud Python distributions, metadata only; no legal compatibility certification",
+  "results": [
+    {
+      "package": "acs-ai-orchestrator",
+      "version": "2.2.0",
+      "license_expression": null,
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "agpair",
+      "version": "1.0.0",
+      "license_expression": null,
+      "license": "MIT License\n\nCopyright (c) 2026 logicrw contributors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above co",
+      "classifiers": []
+    },
+    {
+      "package": "annotated-doc",
+      "version": "0.0.5",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "annotated-types",
+      "version": "0.8.0",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "ast_serialize",
+      "version": "0.13.1",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "certifi",
+      "version": "2026.7.22",
+      "license_expression": null,
+      "license": "MPL-2.0",
+      "classifiers": [
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+      ]
+    },
+    {
+      "package": "charset-normalizer",
+      "version": "3.5.2",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": []
+    },
+    {
+      "package": "click",
+      "version": "8.3.0",
+      "license_expression": "BSD-3-Clause",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "detect-secrets",
+      "version": "1.5.0",
+      "license_expression": null,
+      "license": "UNKNOWN",
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ]
+    },
+    {
+      "package": "idna",
+      "version": "3.20",
+      "license_expression": "BSD-3-Clause",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "iniconfig",
+      "version": "2.3.1",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "librt",
+      "version": "0.16.0",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "linkify-it-py",
+      "version": "2.2.0",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "markdown-it-py",
+      "version": "4.2.0",
+      "license_expression": null,
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "mdit-py-plugins",
+      "version": "0.6.1",
+      "license_expression": null,
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "mdurl",
+      "version": "0.1.2",
+      "license_expression": null,
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "mypy",
+      "version": "2.4.0",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "mypy_extensions",
+      "version": "1.1.0",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "packaging",
+      "version": "26.3",
+      "license_expression": "Apache-2.0 OR BSD-2-Clause",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "pathspec",
+      "version": "1.1.1",
+      "license_expression": null,
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+      ]
+    },
+    {
+      "package": "pip",
+      "version": "25.0.1",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "platformdirs",
+      "version": "4.13.3",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "pluggy",
+      "version": "1.7.0",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "pydantic",
+      "version": "2.12.3",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "pydantic_core",
+      "version": "2.41.4",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "Pygments",
+      "version": "2.21.0",
+      "license_expression": "BSD-2-Clause",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "pytest",
+      "version": "9.1.1",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "PyYAML",
+      "version": "6.0.3",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "requests",
+      "version": "2.34.2",
+      "license_expression": null,
+      "license": "Apache-2.0",
+      "classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ]
+    },
+    {
+      "package": "rich",
+      "version": "15.0.0",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "ruff",
+      "version": "0.17.1",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "shellingham",
+      "version": "1.5.4",
+      "license_expression": null,
+      "license": "ISC License",
+      "classifiers": [
+        "License :: OSI Approved :: ISC License (ISCL)"
+      ]
+    },
+    {
+      "package": "textual",
+      "version": "8.2.8",
+      "license_expression": null,
+      "license": "MIT",
+      "classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ]
+    },
+    {
+      "package": "typer",
+      "version": "0.27.3",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "typing-inspection",
+      "version": "0.4.4",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "typing_extensions",
+      "version": "4.16.0",
+      "license_expression": "PSF-2.0",
+      "license": "",
+      "classifiers": []
+    },
+    {
+      "package": "urllib3",
+      "version": "2.8.0",
+      "license_expression": "MIT",
+      "license": "",
+      "classifiers": []
+    }
+  ]
+}

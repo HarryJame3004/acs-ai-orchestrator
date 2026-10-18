@@ -1,3 +1,16 @@
+# Latest verification — source 511ff9b, PARTIAL
+
+Root stable-source regression: 220 passed / 7 explicit local skips. Exact scopes,
+commands/labels and historical direct failures are in reports/FULL_TEST_EVIDENCE.json.
+Latest seed 1337 had one postmerge failure; later passing runs do not close it.
+Read reports/POSTMERGE_RANDOMIZED_FAILURE.txt before claiming reliability.
+
+Effective pytest.ini registers markers. CPU tests retain CPU/signal assertions
+and reject wall cancellation as CPU proof. New profiles cover bounded disk/service
+contracts, write admission, baseline helper/config tampering and independent
+Guardian invocation failures. Positive kernel-contract fixtures are simulated;
+authenticated providers, host delegation and laptop behavior remain local gates.
+
 # Current verification profiles
 
 Use reports/stage_7_tests.json and reports/bridge_tests.json for the latest

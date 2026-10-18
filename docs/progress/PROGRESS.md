@@ -1,3 +1,16 @@
+# Latest checkpoint — PARTIAL, application source 511ff9b
+
+Root: 220 passed / 7 explicit local skips (159 real, 61 simulated); bridge 847;
+companion 138/25 suites plus build; all six source CI checks green. Nine committed
+increments cover scratch/shared Git, synchronized journals/evidence, bounded disk/
+whole-service contracts, controller write admission, baseline config/helper guards
+and the Guardian re-execution failure fix. See FINAL_ACCEPTANCE_REPORT.md.
+
+Open reliability defect: first latest seed 1337 postmerge case failed. Subsequent
+isolated, seeded and 16 stress passes do not close it. Retain fixture DB/audit on
+next reproduction. Read reports/FINAL_CLOUD_HANDOFF.md before continuing; remaining
+source and local approval gates prevent cloud-complete/full-pass claims.
+
 # Upgrade progress
 
 ## Latest saved continuation — PARTIAL
