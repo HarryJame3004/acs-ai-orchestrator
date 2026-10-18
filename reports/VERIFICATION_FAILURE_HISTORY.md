@@ -54,3 +54,10 @@ reset, skip relabeling or assertion weakening was used to obtain final results.
   plus an unconditional veto, even with a low threshold. New regression: six
   passed, existing Guardian profile: four passed. Latest full root evidence is
   recorded separately, including the native controller routes.
+
+- Reproducible archive check initially failed: ordinary entries had fixed 1980
+  timestamps, but the generated ACS_BUNDLE_MANIFEST.json entry used wall time.
+  Packaging now sets its timestamp/mode/compression explicitly. Existing secret/
+  symlink/existing-destination assertions remain; the test additionally fixes the
+  clock to 2031 and requires byte-identical archives. Initial 9676296 ZIPs were
+  not offered as verified artifacts and are superseded by the later bundle.

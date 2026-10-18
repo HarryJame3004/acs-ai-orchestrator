@@ -358,5 +358,13 @@
     },
     "reproduction_source": "import os,random,sys,tempfile\nfrom pathlib import Path\nscratch=tempfile.TemporaryDirectory(prefix='acs-random-profile-')\nfor name in list(os.environ):\n    if name.startswith(('ACS_','AGPAIR_')): del os.environ[name]\nos.environ.update(HOME=scratch.name,ACS_HOME=scratch.name+'/state',ACS_BACKUPS_DIR=scratch.name+'/backups',ACS_CREDENTIALS_FILE=scratch.name+'/absent.json',GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='/dev/null',PYTHONNOUSERSITE='1')\nimport pytest\nsys.path.insert(0,\"/workspace/acs-ai-orchestrator\")\nfrom acs_team.team_runner import TeamRunner\noriginal_run = TeamRunner.run\ndef diagnostic_run(self,*args,**kwargs):\n    result = original_run(self,*args,**kwargs)\n    if result.get('errors'):\n        print('DIAGNOSTIC_TEAM_ERRORS',result['errors'],flush=True)\n    return result\nTeamRunner.run = diagnostic_run\nclass Order:\n    def pytest_collection_modifyitems(self,items): random.Random(int(sys.argv[1])).shuffle(items)\nroot=Path('/workspace/acs-ai-orchestrator')\nsys.path.insert(0,str(root))\nresult=pytest.main([str(root/'tests'/name) for name in ['test_runtime_security.py','test_coordination.py','test_review_workflow.py','test_recovery.py','test_aggregate_limits.py','test_evidence_durability.py','test_baseline_integrity.py','test_guardian_verification_failure.py']]+['-q','--showlocals','-p','no:cacheprovider','--junitxml=/tmp/acs-random-'+sys.argv[1]+'.xml'],plugins=[Order()])\nscratch.cleanup()\nraise SystemExit(result)\n",
     "campaign_classification": "FAIL"
+  },
+  "packaging": {
+    "initial_reproducibility": "FAIL: generated manifest timestamp used wall clock",
+    "fix": "Explicit fixed manifest ZipInfo timestamp/mode/compression",
+    "targeted_command": ".venv/bin/python -m pytest tests/scaffolding/test_local_bundle.py -q",
+    "targeted_result": "1 passed with forced future clock and byte equality; original exclusion/no-overwrite assertions preserved",
+    "complete_archive_comparison": "PENDING",
+    "scope": "Packaging helper changed after 511ff9b app regression; application source unchanged."
   }
 }

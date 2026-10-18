@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import time
 import zipfile
 
 import pytest
@@ -9,7 +10,7 @@ import pytest
 from scripts.build_local_bundle import build
 
 
-def test_bundle_uses_committed_blobs_excludes_credentials_and_symlinks(tmp_path):
+def test_bundle_uses_committed_blobs_excludes_credentials_and_symlinks(tmp_path,monkeypatch):
     repo = tmp_path / "repo"
     repo.mkdir()
 
@@ -40,5 +41,11 @@ def test_bundle_uses_committed_blobs_excludes_credentials_and_symlinks(tmp_path)
         )
         manifest = json.loads(bundle.read("ACS_BUNDLE_MANIFEST.json"))
         assert sorted(manifest["excluded"]) == [".env", "outside-link"]
+        assert all(info.date_time == (1980,1,1,0,0,0) for info in bundle.infolist())
+    # Wall time must not change any entry, including the generated manifest.
+    monkeypatch.setattr(zipfile.time,'localtime',lambda *args:time.struct_time((2031,7,8,9,10,12,1,189,-1)))
+    future = tmp_path/'bundle-future.zip'
+    build(repo,future)
+    assert archive.read_bytes() == future.read_bytes()
     with pytest.raises(FileExistsError):
         build(repo, archive)

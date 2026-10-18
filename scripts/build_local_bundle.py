@@ -83,9 +83,10 @@ def build(repository: Path, destination: Path) -> dict:
                         "sha256": hashlib.sha256(data).hexdigest(),
                     }
                 )
-            archive.writestr(
-                "ACS_BUNDLE_MANIFEST.json", json.dumps(manifest, indent=2) + "\n"
-            )
+            manifest_info = zipfile.ZipInfo('ACS_BUNDLE_MANIFEST.json',date_time=(1980,1,1,0,0,0))
+            manifest_info.compress_type = zipfile.ZIP_DEFLATED
+            manifest_info.external_attr = 0o100644 << 16
+            archive.writestr(manifest_info,json.dumps(manifest,indent=2)+'\n')
         temporary.flush()
         os.fsync(temporary.fileno())
         # link fails rather than overwriting if another process created the path.
