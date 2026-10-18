@@ -140,9 +140,20 @@ class ProviderRuntime:
         self.executor = executor
         self.label = 'CLOUD_SIMULATED' if executor else 'LOCAL_VERIFICATION_REQUIRED'
 
+    def private_paths(self) -> tuple[Path, ...]:
+        # A controller may use an explicitly selected database outside STATE_DIR.
+        # Derive per-call protection without mutating a runtime shared by workers.
+        from .managed_worker import _CONTEXT
+        context = _CONTEXT.get()
+        if context is None:
+            return self.private
+        database = context[0].db.db_path.resolve()
+        return (*self.private, database, Path(str(database)+'-wal'), Path(str(database)+'-shm'))
+
     def run(self, contract: ProviderContract, workspace: Path, prompt: str, *, readonly: bool = False,
             cancelled: Callable[[], bool] | None = None) -> dict:
-        validate_bindings(contract, self.private)
+        private = self.private_paths()
+        validate_bindings(contract, private)
         profile = Path(contract.auth_home).resolve()
         workspace = workspace.resolve()
         if workspace == profile or workspace in profile.parents or profile in workspace.parents:
@@ -160,7 +171,7 @@ class ProviderRuntime:
                 command = [contract.executable, '-p', prompt, '--output-format', 'json',
                            '--print-timeout', f'{contract.timeout}s']
             argv = sandbox_argv(workspace, command, home=home, network=contract.network,
-                                private_paths=self.private, read_only_workspace=readonly,
+                                private_paths=private, read_only_workspace=readonly,
                                 read_only_roots=tuple(Path(p) for p in contract.toolchain_roots))
             separator = argv.index('--')
             bindings = []
@@ -169,7 +180,7 @@ class ProviderRuntime:
                     source = Path(source_name).resolve()
                     if not source.exists():
                         continue
-                    if any(p.resolve() == source or source in p.resolve().parents for p in self.private):
+                    if any(p.resolve() == source or source in p.resolve().parents for p in private):
                         raise PermissionError('Network trust binding overlaps controller state')
                     bindings += ['--ro-bind', str(source), source_name]
             for name in contract.auth_paths:
@@ -205,7 +216,8 @@ class ProviderRuntime:
     def boundary_probe(self, contract: ProviderContract) -> bool:
         if self.executor is not None:
             return False  # Simulated execution cannot attest actual namespace isolation.
-        validate_bindings(contract, self.private)
+        private = self.private_paths()
+        validate_bindings(contract, private)
         with managed_temporary_directory(prefix='acs-provider-probe-') as temp:
             root = Path(temp)
             workspace, home = root/'workspace', root/'home'
@@ -219,8 +231,8 @@ class ProviderRuntime:
                     'assert all(not pathlib.Path(p).exists() for p in sys.argv[3:]); print("BOUNDARY_OK")')
             roots = tuple(dict.fromkeys([Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve()]))
             argv = sandbox_argv(workspace, [sys.executable, '-c', code, str(workspace), str(sentinel),
-                                           *(str(p) for p in self.private)], home=home,
-                                private_paths=self.private, read_only_roots=roots)
+                                           *(str(p) for p in private)], home=home,
+                                private_paths=private, read_only_roots=roots)
             result = self.supervisor.run(argv, workspace, env={'PATH':'/usr/bin:/bin','HOME':str(home)}, timeout=15)
             return result['exit_code'] == 0 and result['reason'] == 'completed' and 'BOUNDARY_OK' in result['stdout']
 

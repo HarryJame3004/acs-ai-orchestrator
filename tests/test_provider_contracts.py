@@ -142,3 +142,29 @@ def test_successful_local_challenge_is_signed_with_exact_expiry_and_fresh_challe
     assert not authority.valid(c,{**overnight,'valid_for_seconds':86400})
     with pytest.raises(ValueError):
         authority.verify(c,runtime,valid_for_seconds=86401)
+
+
+def test_custom_controller_database_cannot_enter_workspace_or_toolchain_binding(tmp_path):
+    from acs_team.db import DatabaseManager
+    from acs_team.runtime_control import RuntimeControl
+    from acs_team.managed_worker import worker_context
+    c = contract(tmp_path)
+    workspace = tmp_path/'workspace-with-private-controller-db'
+    workspace.mkdir()
+    control = RuntimeControl(DatabaseManager(workspace/'custom.db'))
+    called = []
+    def forbidden_executor(*args, **kwargs):
+        called.append('must not execute')
+        raise AssertionError('Private controller database exposed')
+    runtime = ProviderRuntime((), executor=forbidden_executor)
+    original = runtime.private
+    with worker_context(control, 'fixture-mission'):
+        with pytest.raises(PermissionError, match='private controller state'):
+            runtime.run(c,workspace,'never run')
+        tools = Path(c.toolchain_roots[0])
+        other_control = RuntimeControl(DatabaseManager(tools/'controller.db'))
+        with worker_context(other_control, 'other-fixture'):
+            with pytest.raises(PermissionError, match='protected controller'):
+                runtime.run(c,tmp_path/'clean-repo','never run')
+    assert runtime.private == original and not called
+    assert runtime.private_paths() == original

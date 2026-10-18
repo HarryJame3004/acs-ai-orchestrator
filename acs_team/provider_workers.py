@@ -36,7 +36,7 @@ class ProviderWorker(BaseWorker):
         if not self.activations.valid(self.contract, self.receipt):
             raise WorkerUnverifiedError('Provider activation expired or changed')
         from .providers import validate_bindings
-        validate_bindings(self.contract, self.runtime.private)
+        validate_bindings(self.contract, self.runtime.private_paths())
         context = _CONTEXT.get()
         control, mission = context if context else (None, None)
         if control:
