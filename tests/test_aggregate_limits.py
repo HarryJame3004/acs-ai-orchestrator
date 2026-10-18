@@ -230,3 +230,40 @@ def test_hard_storage_sandbox_tmp_is_backed_by_accounted_private_scratch(tmp_pat
     (home/'tmp').symlink_to(workspace,target_is_directory=True)
     with pytest.raises(PermissionError,match='scratch may not be a symlink'):
         sandbox_argv(workspace,['/usr/bin/true'],home=home)
+
+
+@pytest.mark.simulated
+@pytest.mark.parametrize('fault',[None,'membership','unlimited','outside_worker','no_overhead'])
+def test_service_parent_bounds_controller_and_workers_without_moving_processes(tmp_path,fault):
+    mount = tmp_path/'synthetic-service-cgroup'
+    service = mount/'acs-service'
+    workers = service/'workers'
+    workers.mkdir(parents=True,mode=0o700)
+    service.chmod(0o700)
+    values = {'memory.max':str(10240*1024*1024),'memory.swap.max':'0',
+              'memory.oom.group':'1','cpu.max':'250000 100000','pids.max':'384','cgroup.procs':''}
+    for name,value in values.items():
+        (service/name).write_text(value)
+    membership = tmp_path/'synthetic-process-membership'
+    membership.write_text('0::/acs-service\n' if fault!='membership' else '0::/unrelated-service\n')
+    if fault=='unlimited':
+        (service/'memory.max').write_text('max')
+    if fault=='outside_worker':
+        workers = mount/'unrelated-workers'
+    limits = AggregateLimits(workers,(tmp_path/'storage',),service_cgroup=service,
+                             service_memory_mb=8192 if fault=='no_overhead' else 10240)
+    before = (service/'cgroup.procs').read_text()
+    if fault is None:
+        limits.validate_service_contract(mount,membership)
+    else:
+        with pytest.raises(PermissionError):
+            limits.validate_service_contract(mount,membership)
+    assert (service/'cgroup.procs').read_text() == before
+    assert membership.read_text().startswith('0::/')
+
+
+def test_whole_service_requirement_cannot_be_enabled_without_aggregate(monkeypatch):
+    monkeypatch.delenv('ACS_ENABLE_AGGREGATE_LIMITS',raising=False)
+    monkeypatch.setenv('ACS_REQUIRE_SERVICE_LIMITS','1')
+    with pytest.raises(PermissionError,match='requires aggregate'):
+        configured_limits()

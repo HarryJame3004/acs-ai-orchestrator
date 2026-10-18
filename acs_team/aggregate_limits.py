@@ -7,7 +7,7 @@ storage enforcement is sampled and can overshoot between samples.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from contextlib import contextmanager
 import json
 import os
@@ -32,12 +32,19 @@ class AggregateLimits:
     pids: int = 256
     storage_mb: int = 8192
     storage_volume: Path | None = None
+    service_cgroup: Path | None = None
+    service_memory_mb: int = 10240
+    service_cpu_percent: int = 250
+    service_pids: int = 384
 
     def encoded(self) -> str:
         return json.dumps({'cgroup':str(self.cgroup),'storage':[str(p) for p in self.storage],
                            'memory_mb':self.memory_mb,'cpu_percent':self.cpu_percent,
                            'pids':self.pids,'storage_mb':self.storage_mb,
-                           'storage_volume':str(self.storage_volume) if self.storage_volume else None})
+                           'storage_volume':str(self.storage_volume) if self.storage_volume else None,
+                           'service_cgroup':str(self.service_cgroup) if self.service_cgroup else None,
+                           'service_memory_mb':self.service_memory_mb,
+                           'service_cpu_percent':self.service_cpu_percent,'service_pids':self.service_pids})
 
     def __post_init__(self):
         if not 128 <= self.memory_mb <= 131072 or not 1 <= self.cpu_percent <= 3200:
@@ -65,6 +72,29 @@ class AggregateLimits:
                 raise PermissionError(f'Aggregate kernel budget mismatch: {name}')
         if not os.access(path/'cgroup.procs',os.W_OK):
             raise PermissionError('Cgroup has not been delegated for worker attachment')
+        if self.service_cgroup is not None:
+            self.validate_service_contract(mount)
+
+    def validate_service_contract(self, mount: Path = Path('/sys/fs/cgroup'),
+                                  membership: Path = Path('/proc/self/cgroup')) -> None:
+        """Require the controller already inside a bounded parent of the workers.
+
+        Never move the controller, create a cgroup or alter operator limits.
+        Parent limits account for the controller and every worker descendant.
+        """
+        service = self.service_cgroup
+        if service is None or service not in self.cgroup.parents:
+            raise PermissionError('Whole-service limits require a dedicated parent of the worker cgroup')
+        if self.service_memory_mb < self.memory_mb+128 or self.service_cpu_percent < self.cpu_percent or self.service_pids < self.pids+8:
+            raise PermissionError('Whole-service budget must reserve controller overhead')
+        replace(self,cgroup=service,memory_mb=self.service_memory_mb,
+                cpu_percent=self.service_cpu_percent,pids=self.service_pids,
+                service_cgroup=None).validate_kernel_contract(mount)
+        with membership.open() as stream:
+            current = stream.read(4097)
+        expected = '/'+str(service.relative_to(mount))
+        if len(current) > 4096 or current.strip() != '0::'+expected:
+            raise PermissionError('Controller must already belong to the bounded service cgroup')
 
     def join_current_process(self) -> None:
         self.validate_kernel_contract()
@@ -216,20 +246,26 @@ class AggregateLimits:
 
 def configured_limits() -> AggregateLimits | None:
     if os.environ.get('ACS_ENABLE_AGGREGATE_LIMITS') != '1':
-        if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1':
-            raise PermissionError('Hard storage requires aggregate enforcement')
+        if any(os.environ.get(name) == '1' for name in ('ACS_REQUIRE_HARD_STORAGE','ACS_REQUIRE_SERVICE_LIMITS')):
+            raise PermissionError('Requested resource contract requires aggregate enforcement')
         return None
     roots = json.loads(os.environ['ACS_AGGREGATE_STORAGE_ROOTS'])
     if not isinstance(roots,list) or not all(isinstance(p,str) for p in roots):
         raise ValueError('Aggregate storage roots must be a bounded JSON path list')
     if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1' and not os.environ.get('ACS_AGGREGATE_STORAGE_VOLUME'):
         raise PermissionError('Hard storage requires ACS_AGGREGATE_STORAGE_VOLUME')
+    if os.environ.get('ACS_REQUIRE_SERVICE_LIMITS') == '1' and not os.environ.get('ACS_SERVICE_CGROUP'):
+        raise PermissionError('Whole-service limits require ACS_SERVICE_CGROUP')
     limits = AggregateLimits(Path(os.environ['ACS_AGGREGATE_CGROUP']),tuple(Path(p) for p in roots),
         int(os.environ.get('ACS_AGGREGATE_MEMORY_MB','8192')),
         int(os.environ.get('ACS_AGGREGATE_CPU_PERCENT','200')),
         int(os.environ.get('ACS_AGGREGATE_PIDS','256')),
         int(os.environ.get('ACS_AGGREGATE_STORAGE_MB','8192')),
-        Path(os.environ['ACS_AGGREGATE_STORAGE_VOLUME']) if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1' else None)
+        Path(os.environ['ACS_AGGREGATE_STORAGE_VOLUME']) if os.environ.get('ACS_REQUIRE_HARD_STORAGE') == '1' else None,
+        Path(os.environ['ACS_SERVICE_CGROUP']) if os.environ.get('ACS_REQUIRE_SERVICE_LIMITS') == '1' else None,
+        int(os.environ.get('ACS_SERVICE_MEMORY_MB','10240')),
+        int(os.environ.get('ACS_SERVICE_CPU_PERCENT','250')),
+        int(os.environ.get('ACS_SERVICE_PIDS','384')))
     if ' - cgroup2 ' not in Path('/proc/self/mountinfo').read_text():
         raise PermissionError('Aggregate enforcement requires mounted cgroup v2')
     limits.validate_kernel_contract()

@@ -16,6 +16,8 @@ def main():
         data['storage'] = tuple(Path(p) for p in data['storage'])
         if data.get('storage_volume') is not None:
             data['storage_volume'] = Path(data['storage_volume'])
+        if data.get('service_cgroup') is not None:
+            data['service_cgroup'] = Path(data['service_cgroup'])
         AggregateLimits(**data).join_current_process()
         command = command[2:]
     expected_parent = None

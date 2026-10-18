@@ -91,6 +91,19 @@ there is no unsupervised fallback. The controller itself remains outside this
 worker cgroup so it can record failures and clean up after OOM. A whole-service
 systemd cap for controller overhead remains a separate local requirement.
 
+`ACS_REQUIRE_SERVICE_LIMITS=1` requires `ACS_SERVICE_CGROUP`, a dedicated bounded
+parent of the worker cgroup. The controller must already be in that exact parent
+according to `/proc/self/cgroup`; startup never moves it or configures limits.
+The same kernel contract is checked for the parent, with budgets from
+`ACS_SERVICE_MEMORY_MB` (10240), `ACS_SERVICE_CPU_PERCENT` (250) and
+`ACS_SERVICE_PIDS` (384). Parent memory must exceed worker memory by at least
+128 MiB and PID capacity by eight; CPU capacity cannot be below the worker budget.
+The parent accounts for the controller and all descendant workers together,
+while the worker child retains its own limit. Missing/mismatched delegation,
+membership or budgets denies launch. Actual service placement and measured
+enforcement remain LOCAL_VERIFICATION_REQUIRED; synthetic cgroup-file tests do
+not prove kernel enforcement. Provisioning requires operator review on the host.
+
 `ACS_AGGREGATE_STORAGE_MB` defaults to 8192. Metadata accounting does not follow
 symlinks, counts hardlinks once and bounds traversal. Running supervisors monitor
 storage and stop their owned process tree on excess. This is sampled enforcement,
