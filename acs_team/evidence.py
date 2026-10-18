@@ -24,11 +24,28 @@ def persist_evidence(evidence: Dict[str, Any], directory: Path) -> Path:
     directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     if directory.is_symlink():
         raise PermissionError("Evidence directory may not be a symlink")
-    path = directory / f"{uuid.uuid4().hex}.evidence.json"
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
-    with os.fdopen(fd, "w", encoding="utf-8") as stream:
-        json.dump(evidence, stream, sort_keys=True)
-    return path
+    name = f"{uuid.uuid4().hex}.evidence.json"
+    temporary = f".{name}.partial"
+    anchor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                     0o600, dir_fd=anchor)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(evidence, stream, sort_keys=True)
+                stream.flush()
+                os.fsync(stream.fileno())
+            # Publish complete contents without overwriting any existing artifact.
+            os.link(temporary, name, src_dir_fd=anchor, dst_dir_fd=anchor,
+                    follow_symlinks=False)
+        finally:
+            os.unlink(temporary, dir_fd=anchor)
+        # The SQLite caller may reference this artifact only after the directory
+        # entry has been synchronized as well as its file contents.
+        os.fsync(anchor)
+    finally:
+        os.close(anchor)
+    return directory / name
 
 
 @dataclass
