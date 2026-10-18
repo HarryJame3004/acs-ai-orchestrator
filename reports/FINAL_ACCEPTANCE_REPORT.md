@@ -1,3 +1,72 @@
+# Current acceptance checkpoint — PARTIAL (2026-10-18)
+
+Latest application source: 0e6b35c; fetch actual remote/PR HEAD before resuming.
+Current evidence: [CLOUD_VERIFICATION_2026_10_18.json](CLOUD_VERIFICATION_2026_10_18.json).
+Detailed continuation: [NEXT_SESSION_HANDOFF.md](NEXT_SESSION_HANDOFF.md).
+Precise open source backlog: [CLOUD_SOURCE_GAPS.json](CLOUD_SOURCE_GAPS.json).
+The matrix now indexes all 64 explicit Master acceptance bullets; unreviewed
+source bullets remain FAIL. No cloud-complete or authenticated/local pass is claimed.
+
+The false guard-125 defect is root-caused/fixed, with retained failure evidence and
+controlled regressions. Later supervisor/discovery and fixture-publication failures
+were separately investigated and corrected; see POSTMERGE_ROOT_CAUSE.md,
+SUPERVISOR_COMPLETION_RACE.md, RECOVERY_FIXTURE_PUBLICATION.md and CUSTOM_DATABASE_BINDING.md.
+Latest 0e6b35c root: 286 passed / 7 local skips (197 real, 89 simulated); bridge 847;
+companion 138 / 25 suites plus build; six hosted checks passed at that source.
+Latest-source seeds 1337 and 7331 each passed 143 tests / 1 local skip.
+Latest-source campaign/CI outcomes are in the current evidence, not inferred here.
+Native provider calls now require durable mission admission; uncertain calls block
+re-dispatch. No real Core API or native enforceable currency ceiling is confirmed.
+
+## Delivery record
+
+1. Application commit: 0e6b35c3bd12314a8e23cdd3ab14295af82eeebd. Later report-only
+   commits preserve this tested source. Exact final delivery HEAD is recorded by
+   remote verification after committing these reports.
+2. Both approved upgrade refs were pushed fast-forward to that application commit;
+   they receive this evidence checkpoint together. Main is unchanged at eecbce4.
+3. PR #7: OPEN, draft, unmerged. Six hosted checks passed at the application commit.
+4. Requirement matrix: FINAL_REQUIREMENT_MATRIX.json, all 64 explicit acceptance
+   bullets verbatim plus preserved section inventory. CLOUD_SOURCE_GAPS.json tracks
+   paragraph/source gaps. Unreviewed/missing source criteria remain FAIL.
+5. Root: 286 passed, seven local skips; 197 CLOUD_REAL / 89 CLOUD_SIMULATED.
+   Bridge: 847 passed (fake-provider suite); companion: 138 passed / 25 suites and
+   production build passed. No simulated provider response is authenticated success.
+6. Reliability: retained failure, deterministic before/after regressions, latest
+   seeds 1337 and 7331 each 143/1, historical fixed seed 20261018 143/1, 16 scheduled
+   stress cases, and the separately preserved later failures and fixes. Details:
+   POSTMERGE_ROOT_CAUSE.md, SUPERVISOR_COMPLETION_RACE.md, RECOVERY_FIXTURE_PUBLICATION.md.
+7. Security/dependencies: scoped Ruff/mypy 0/0, 15 known candidates, zero new;
+   16 exact reviewed metadata findings. Actual installed development/clean-room
+   and npm audits report zero known vulnerabilities; two local source distributions
+   are skipped by PyPI audit. License inventory is recorded; owner root licensing
+   and full artifact hash locks remain open. No credential has been tested/rotated.
+8. Archive/checksum: SOURCE_ARCHIVE.md documents a byte-identical, manifest-verified
+   INTERNAL PARTIAL c743f45 installation test archive. It predates the last security
+   fix. No final release candidate is issued or old PARTIAL archive renamed.
+9. Installation: INSTALL.md documents verify→inspect→isolated install→configure→
+   preflight→explicit real acceptance. A fresh cloud installation and repeat were
+   actually executed with zero provider calls. It is not deployment or local acceptance.
+10. Arch commands: follow INSTALL.md and ARCH_LINUX_LOCAL_ACCEPTANCE.md after a
+    finished source candidate is prepared. Use the generated prefix/bin/acsai,
+    verify-local, provider-activate and verify-team against disposable fixtures.
+11. Authentication: independently authenticate Codex, AGY A and AGY B in disjoint
+    profiles, approve hash-bound toolchains, run explicit activation challenges,
+    then real-team acceptance. Enable the documented ledger/sandbox/supervision
+    flags. Discovery, fixtures and presence never establish authentication.
+12. Local-only: actual provider identities/CLI syntax, real MCP accounts, Arch
+    namespaces/cgroups/bounded storage, systemd/session and operational install drift.
+    Real Core API is unconfirmed; optional native paid escalation stays disabled.
+13. Unresolved: reviewed baseline changes/coverage, integrated MCP HTTP/mission/
+    provider routing and remote-write approvals, complete quota/failover/usage paths,
+    remaining crash/resource/telemetry/lesson/profile cases, all per-bullet closure,
+    full dependency hashes and owner licensing. These are not all local-only gates.
+14. Readiness: **PARTIAL**. No CLOUD_DEVELOPMENT_COMPLETE_LOCAL_PENDING,
+    LOCAL_ACCEPTANCE_PASSED or full production claim. No Core/laptop change,
+    main merge/push, deployment or background continuation occurred.
+
+Historical report below is preserved as evidence and is superseded by this notice.
+
 # Final cloud acceptance checkpoint — PARTIAL
 
 Application source: 511ff9b0c69f94242b2b2bf6dc6291d5b69963d4.

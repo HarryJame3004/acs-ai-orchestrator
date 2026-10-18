@@ -1758,5 +1758,8 @@
     "status": "PARTIAL",
     "tests": "reports/FULL_TEST_EVIDENCE.json",
     "source_backlog": "reports/FINAL_CLOUD_HANDOFF.md"
-  }
+  },
+  "current_acceptance_matrix": "reports/FINAL_REQUIREMENT_MATRIX.json",
+  "current_source_gaps": "reports/CLOUD_SOURCE_GAPS.json",
+  "section_status_notice": "Historical section statuses below are not current per-bullet closure. Current matrix and source gaps govern PARTIAL readiness."
 }

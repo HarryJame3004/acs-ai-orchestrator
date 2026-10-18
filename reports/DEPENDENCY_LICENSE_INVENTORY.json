@@ -1,0 +1,636 @@
+{
+  "source_checkpoint": "c743f45",
+  "status": "PARTIAL",
+  "python_environment_packages": [
+    {
+      "name": "acs-ai-orchestrator",
+      "version": "2.2.0",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "ruff",
+      "version": "0.17.1",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pip",
+      "version": "26.2",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "Pygments",
+      "version": "2.21.0",
+      "license_expression": "BSD-2-Clause",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "mdurl",
+      "version": "0.1.2",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "wheel",
+      "version": "0.46.2",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "rich",
+      "version": "15.0.0",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "idna",
+      "version": "3.20",
+      "license_expression": "BSD-3-Clause",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "iniconfig",
+      "version": "2.3.1",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pydantic_core",
+      "version": "2.41.4",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "packaging",
+      "version": "26.3",
+      "license_expression": "Apache-2.0 OR BSD-2-Clause",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "hatchling",
+      "version": "1.27.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "typing-inspection",
+      "version": "0.4.4",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pathspec",
+      "version": "1.1.1",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "requests",
+      "version": "2.34.2",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "Apache-2.0"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pytest",
+      "version": "9.1.1",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "librt",
+      "version": "0.16.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "editables",
+      "version": "0.5",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "cmake",
+      "version": "4.4.4",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "Apache 2.0"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: BSD License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pydantic",
+      "version": "2.12.3",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "shellingham",
+      "version": "1.5.4",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "ISC License"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: ISC License (ISCL)"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "certifi",
+      "version": "2026.7.22",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MPL-2.0"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "typer",
+      "version": "0.27.3",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "click",
+      "version": "8.3.0",
+      "license_expression": "BSD-3-Clause",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "textual",
+      "version": "8.2.8",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "license_expression": "PSF-2.0",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "ast_serialize",
+      "version": "0.13.1",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "PyYAML",
+      "version": "6.0.3",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "trove-classifiers",
+      "version": "2026.9.21.13",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "pluggy",
+      "version": "1.7.0",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "linkify-it-py",
+      "version": "2.2.0",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "agpair",
+      "version": "1.0.0",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT License"
+      ],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "urllib3",
+      "version": "2.8.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "charset-normalizer",
+      "version": "3.5.2",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "MIT"
+      ],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "mypy",
+      "version": "2.4.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "mypy_extensions",
+      "version": "1.1.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "mdit-py-plugins",
+      "version": "0.6.1",
+      "license_expression": null,
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "setuptools",
+      "version": "83.0.0",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "detect-secrets",
+      "version": "1.5.0",
+      "license_expression": null,
+      "declared_license_first_line": [
+        "UNKNOWN"
+      ],
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    },
+    {
+      "name": "platformdirs",
+      "version": "4.13.3",
+      "license_expression": "MIT",
+      "declared_license_first_line": [],
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "review": "Inventory only; SPDX compatibility and owner licensing decision are not inferred."
+    }
+  ],
+  "node_locked_packages": [
+    {
+      "package_path": "node_modules/@esbuild/aix-ppc64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/android-arm",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/android-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/android-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/darwin-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/darwin-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/freebsd-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/freebsd-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-arm",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-ia32",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-loong64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-mips64el",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-ppc64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-riscv64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-s390x",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/linux-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/netbsd-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/netbsd-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/openbsd-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/openbsd-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/openharmony-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/sunos-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/win32-arm64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/win32-ia32",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@esbuild/win32-x64",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@types/node",
+      "version": "20.19.37",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/@types/vscode",
+      "version": "1.110.0",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/antigravity-sdk",
+      "version": "1.7.0",
+      "declared_license": "AGPL-3.0-or-later",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/esbuild",
+      "version": "0.28.2",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/sql.js",
+      "version": "1.14.1",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/typescript",
+      "version": "5.9.3",
+      "declared_license": "Apache-2.0",
+      "registry_integrity_recorded": true
+    },
+    {
+      "package_path": "node_modules/undici-types",
+      "version": "6.21.0",
+      "declared_license": "MIT",
+      "registry_integrity_recorded": true
+    }
+  ],
+  "python_audit": {
+    "known_vulnerabilities": 0,
+    "audited_distributions": 41,
+    "not_on_pypi": [
+      "acs-ai-orchestrator",
+      "agpair"
+    ],
+    "evidence": "/workspace/acs-evidence/current-development-audit.json"
+  },
+  "npm_audit": {
+    "known_vulnerabilities": 0,
+    "evidence": "/workspace/acs-evidence/directive-companion-audit.json"
+  },
+  "source_licenses": {
+    "agpair": "MIT, agpair/LICENSE",
+    "acs-ai-orchestrator": "No root license declaration; owner decision BLOCKED. No license invented."
+  },
+  "limitations": [
+    "Version pins are not a complete artifact hash lock.",
+    "Audit databases do not guarantee absence of unknown vulnerabilities.",
+    "Local source packages are not audited as published PyPI distributions.",
+    "Inventory is not a legal compatibility determination."
+  ]
+}

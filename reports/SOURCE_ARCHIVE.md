@@ -1,3 +1,31 @@
+# Latest internal installation test archive — PARTIAL
+
+Archive source: c743f45, before the later custom database binding correction.
+This is an INTERNAL PARTIAL test snapshot, not the final release candidate.
+No final RC is issued while cloud-feasible source requirements remain open.
+
+Archive: /workspace/acs-evidence/ACS-AI-c743f45-INTERNAL-PARTIAL-a.zip
+Independent second build: /workspace/acs-evidence/ACS-AI-c743f45-INTERNAL-PARTIAL-b.zip
+The two ZIPs are byte-identical; 517 files, 5,494,344 source bytes, 1,462,284 ZIP bytes.
+
+SHA256:
+
+e526f6314c7c8a4b82734b938b081af4c280f5512ffa5748bb4e9de18816a350
+
+All archive paths/types were checked before extraction; every manifest hash was
+verified. Actual cloud install in a new prefix succeeded, repeat returned
+ALREADY_INSTALLED, installed CLI help passed, and dependency audit found zero known
+vulnerabilities with two source distributions explicitly skipped (not on PyPI).
+No provider mission, authentication, service, deployment or laptop action occurred.
+The extraction remains pristine; build products are inside the new prefix only.
+
+Evidence: c743-bundle-a/b.json, c743-cleanroom-install.txt,
+c743-cleanroom-repeat.txt and c743-cleanroom-audit.json under /workspace/acs-evidence.
+The archive predates the latest source/report commits; rebuild from the finished
+source after all source acceptance gates close, not by renaming this snapshot.
+
+Historical archive record follows; it is not the current release.
+
 # Reproducible source archive — PARTIAL candidate
 
 Archive commit: e0c0a6114f8e5c7663f7406d85a6b9c5a89aa725

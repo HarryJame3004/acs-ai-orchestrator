@@ -371,5 +371,7 @@
     "archive_commit": "e0c0a61",
     "archive_bytes": 1393673,
     "automatic_activation": false
-  }
+  },
+  "current_snapshot": "reports/CLOUD_VERIFICATION_2026_10_18.json",
+  "historical_snapshot_notice": "Other fields retain historical evidence; current tested source and outcomes are in current_snapshot."
 }

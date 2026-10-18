@@ -1,3 +1,25 @@
+# Current acceptance checkpoint — PARTIAL (2026-10-18)
+
+Latest application source: 0e6b35c; fetch actual remote/PR HEAD before resuming.
+Current evidence: [CLOUD_VERIFICATION_2026_10_18.json](../../reports/CLOUD_VERIFICATION_2026_10_18.json).
+Detailed continuation: [NEXT_SESSION_HANDOFF.md](../../reports/NEXT_SESSION_HANDOFF.md).
+Precise open source backlog: [CLOUD_SOURCE_GAPS.json](../../reports/CLOUD_SOURCE_GAPS.json).
+The matrix now indexes all 64 explicit Master acceptance bullets; unreviewed
+source bullets remain FAIL. No cloud-complete or authenticated/local pass is claimed.
+
+The false guard-125 defect is root-caused/fixed, with retained failure evidence and
+controlled regressions. Later supervisor/discovery and fixture-publication failures
+were separately investigated and corrected; see POSTMERGE_ROOT_CAUSE.md,
+SUPERVISOR_COMPLETION_RACE.md, RECOVERY_FIXTURE_PUBLICATION.md and CUSTOM_DATABASE_BINDING.md.
+Latest 0e6b35c root: 286 passed / 7 local skips (197 real, 89 simulated); bridge 847;
+companion 138 / 25 suites plus build; six hosted checks passed at that source.
+Latest-source seeds 1337 and 7331 each passed 143 tests / 1 local skip.
+Latest-source campaign/CI outcomes are in the current evidence, not inferred here.
+Native provider calls now require durable mission admission; uncertain calls block
+re-dispatch. No real Core API or native enforceable currency ceiling is confirmed.
+
+Historical report below is preserved as evidence and is superseded by this notice.
+
 # Latest checkpoint — PARTIAL, application source 511ff9b
 
 Root: 220 passed / 7 explicit local skips (159 real, 61 simulated); bridge 847;

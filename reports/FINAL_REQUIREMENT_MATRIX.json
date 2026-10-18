@@ -1,10 +1,1342 @@
 {
-  "schema_version": 1,
-  "source_checkpoint": "511ff9b",
+  "schema_version": 2,
+  "source_checkpoint": "0e6b35c",
   "overall_status": "PARTIAL",
   "full_pass": false,
-  "granularity": "Original numbered section inventory. Complete per-bullet closure and all cloud source requirements remain unfinished. FAIL denotes incomplete section acceptance, not necessarily a failing automated test.",
+  "granularity": "All 64 explicit acceptance bullets in Master sections 4.12, 5.11, 6.8, 7.9, 14 and 17.1 are indexed verbatim with line references. Section inventory is preserved separately; normative paragraph gaps are tracked in CLOUD_SOURCE_GAPS.json. FAIL may mean incomplete review or implementation, not a failing pytest case.",
   "requirements": [
+    {
+      "requirement_id": "MASTER-4.12-01",
+      "original_wording": "Existing tests remain passing (`CLOUD_REAL`, compared to the stored baseline).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:425",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-4.12-02",
+      "original_wording": "Secret scanning is integrated and the reported hardcoded-key literal is removed with a regression test.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:426",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py",
+        "tests/test_guard_cleanup_race.py",
+        "tests/test_supervisor_completion_race.py"
+      ],
+      "test_result": "Scanner/static gates pass; an explicit regression for the originally reported hardcoded literal was not located during this closure review.",
+      "evidence_artifact": [
+        "reports/CLOUD_VERIFICATION_2026_10_18.json",
+        "reports/POSTMERGE_ROOT_CAUSE.md",
+        "reports/SUPERVISOR_COMPLETION_RACE.md"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Complete the exact original literal-removal regression requirement without exposing the literal in reports or inventing a credential.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-4.12-03",
+      "original_wording": "Sensitive credentials are never printed (redaction tests).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:427",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py",
+        "tests/test_guard_cleanup_race.py",
+        "tests/test_supervisor_completion_race.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/CLOUD_VERIFICATION_2026_10_18.json",
+        "reports/POSTMERGE_ROOT_CAUSE.md",
+        "reports/SUPERVISOR_COMPLETION_RACE.md"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-verifiable source criterion only. Authenticated provider and owner kernel/service behavior remain separate local gates.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-4.12-04",
+      "original_wording": "Sandbox policy generation is verified; real boundaries are listed as `LOCAL_VERIFICATION_REQUIRED` with scripts ready.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:428",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-4.12-05",
+      "original_wording": "Worker cancellation and process-tree cleanup are verified with real subprocesses.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:429",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py",
+        "tests/test_guard_cleanup_race.py",
+        "tests/test_supervisor_completion_race.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/CLOUD_VERIFICATION_2026_10_18.json",
+        "reports/POSTMERGE_ROOT_CAUSE.md",
+        "reports/SUPERVISOR_COMPLETION_RACE.md"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-verifiable source criterion only. Authenticated provider and owner kernel/service behavior remain separate local gates.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-4.12-06",
+      "original_wording": "Runtime limits are enforced by the application logic.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:430",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-4.12-07",
+      "original_wording": "MCP permission enforcement is verified with fake servers.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:431",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-4.12-08",
+      "original_wording": "SQLite backup, integrity check, and restore are verified on temp databases.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:432",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py",
+        "tests/test_guard_cleanup_race.py",
+        "tests/test_supervisor_completion_race.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/CLOUD_VERIFICATION_2026_10_18.json",
+        "reports/POSTMERGE_ROOT_CAUSE.md",
+        "reports/SUPERVISOR_COMPLETION_RACE.md"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-verifiable source criterion only. Authenticated provider and owner kernel/service behavior remain separate local gates.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-4.12-09",
+      "original_wording": "Emergency stop works against the scheduler and persists across a simulated restart.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:433",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py",
+        "tests/test_guard_cleanup_race.py",
+        "tests/test_supervisor_completion_race.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/CLOUD_VERIFICATION_2026_10_18.json",
+        "reports/POSTMERGE_ROOT_CAUSE.md",
+        "reports/SUPERVISOR_COMPLETION_RACE.md"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-verifiable source criterion only. Authenticated provider and owner kernel/service behavior remain separate local gates.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-4.12-10",
+      "original_wording": "Regression tests pass.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:434",
+      "implementation_location": [
+        "acs_team/security.py",
+        "acs_team/supervision.py",
+        "acs_team/guardian.py",
+        "acs_team/recovery.py"
+      ],
+      "test_location": [
+        "tests/test_runtime_security.py",
+        "tests/test_recovery.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-5.11-01",
+      "original_wording": "Three workers are available.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:552",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-02",
+      "original_wording": "At least two independent tasks run concurrently when safe.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:553",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-03",
+      "original_wording": "Conflicting tasks do not run concurrently.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:554",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-04",
+      "original_wording": "Workers exchange structured handoffs.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:555",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-05",
+      "original_wording": "A tester validates acceptance criteria.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:556",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-06",
+      "original_wording": "A reviewer checks another worker's output.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:557",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-07",
+      "original_wording": "Integration occurs sequentially, with tests after each integration.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:558",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-08",
+      "original_wording": "Guardian rejects unauthorized changes.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:559",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-5.11-09",
+      "original_wording": "Recovery works after a simulated worker failure.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:560",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py",
+        "acs_team/coordination.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py",
+        "tests/test_coordination.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-6.8-01",
+      "original_wording": "Lessons are evidence-backed and incorrect lessons can be rejected.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:631",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-02",
+      "original_wording": "Lessons cannot weaken policy.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:632",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-03",
+      "original_wording": "Context selection reduces irrelevant input (measured).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:633",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-04",
+      "original_wording": "Structured outputs validate correctly, including malformed and oversized inputs.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:634",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-05",
+      "original_wording": "Benchmarks are reproducible with fake workers.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:635",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-06",
+      "original_wording": "Worker selection decisions are explainable.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:636",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-6.8-07",
+      "original_wording": "Regression reports compare against a stored baseline.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:637",
+      "implementation_location": [
+        "acs_team/intelligence.py",
+        "acs_team/benchmarks.py"
+      ],
+      "test_location": [
+        "tests/test_intelligence.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-01",
+      "original_wording": "Natural-language missions still work (fake worker path in cloud; real path local).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:715",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-02",
+      "original_wording": "Dry-run performs no writes to target repositories.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:716",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-03",
+      "original_wording": "Review packages contain accurate evidence.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:717",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-04",
+      "original_wording": "Escalation packages are sanitized.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:718",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-05",
+      "original_wording": "Imported reviews are validated; hostile/malformed reviews are rejected.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:719",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-06",
+      "original_wording": "Notifications work without exposing secrets.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:720",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-07",
+      "original_wording": "Dashboard shows real runtime state.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:721",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-7.9-08",
+      "original_wording": "Existing CLI commands remain compatible (CLI compatibility snapshot test: capture `--help` output of existing commands before the upgrade and assert nothing was removed).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:722",
+      "implementation_location": [
+        "acs_team/review_workflow.py",
+        "acs_team/cli.py",
+        "acs_team/runtime_view.py"
+      ],
+      "test_location": [
+        "tests/test_review_workflow.py",
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Per-bullet source/verification review is still open. Referenced modules are inventory witnesses, not automatic closure; do not promote from a green suite alone.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-14-01",
+      "original_wording": "ACS AI accepts the mission.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:918",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-02",
+      "original_wording": "Planner generates validated tasks.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:919",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-03",
+      "original_wording": "Acceptance criteria are recorded.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:920",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-04",
+      "original_wording": "Relevant context is selected.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:921",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-05",
+      "original_wording": "Workers receive coordinated assignments.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:922",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-06",
+      "original_wording": "File ownership is enforced.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:923",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-07",
+      "original_wording": "Independent tasks execute concurrently when safe.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:924",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-08",
+      "original_wording": "Workers exchange structured handoffs.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:925",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-09",
+      "original_wording": "Tests are generated from specifications.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:926",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-10",
+      "original_wording": "Implementations are reviewed.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:927",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-11",
+      "original_wording": "Changes are integrated sequentially.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:928",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-12",
+      "original_wording": "Tests run after integration.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:929",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-13",
+      "original_wording": "Guardian verifies security and scope.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:930",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-14",
+      "original_wording": "Failures trigger bounded retries or escalation.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:931",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-15",
+      "original_wording": "Evidence is recorded.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:932",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-16",
+      "original_wording": "Relevant verified lessons are retained.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:933",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-17",
+      "original_wording": "Mission status is updated.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:934",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-18",
+      "original_wording": "The dashboard data model reflects actual progress.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:935",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-19",
+      "original_wording": "A final review package is generated.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:936",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-14-20",
+      "original_wording": "A completion report is produced with honest labels.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:937",
+      "implementation_location": [
+        "acs_team/team_missions.py",
+        "acs_team/team_runner.py"
+      ],
+      "test_location": [
+        "tests/test_team_missions.py"
+      ],
+      "test_result": "Latest 0e6b35c full campaign: 286 passed / 7 local skips; applicable named witness modules passed. Integrated \u00a714/5.11 workflow uses explicitly fake providers.",
+      "evidence_artifact": [
+        "reports/INTEGRATED_TEAM_ACCEPTANCE.md",
+        "reports/CLOUD_VERIFICATION_2026_10_18.json"
+      ],
+      "verification_classification": "CLOUD_SIMULATED",
+      "remaining_limitation": "Fake-provider workflow acceptance only; authenticated accounts, kernel/service and live MCP remain local gates. \u00a714 step 16 retains a manually reviewed fixture lesson; it does not prove automatic learning.",
+      "final_status": "PASS"
+    },
+    {
+      "requirement_id": "MASTER-17.1-01",
+      "original_wording": "Environment: OS, Python version, git version, bubblewrap availability, systemd user session, free disk.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1006",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "MASTER-17.1-02",
+      "original_wording": "Installation drift: operational directory versus repository HEAD (file hash diff, excluding secrets/state).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1007",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "MASTER-17.1-03",
+      "original_wording": "Workers: executable discovery, auth status (boolean only), harmless test task, timeout, cancellation, process-tree cleanup, log location, exit codes \u2014 for Codex, AGY A, AGY B independently, confirming separate HOME/XDG.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1008",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-feasible harness/integration coverage for this full bullet is incomplete; do not hide the source gap as a laptop-only check.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-17.1-04",
+      "original_wording": "MCP: for each configured server: startup, tools, one harmless call, permission restrictions, timeout; credential exposure scan of environment passed to workers.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1009",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-feasible harness/integration coverage for this full bullet is incomplete; do not hide the source gap as a laptop-only check.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-17.1-05",
+      "original_wording": "Sandbox: allowed write, denied write, protected path (fixture), symlink escape, traversal escape.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1010",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "MASTER-17.1-06",
+      "original_wording": "Guardian/HMAC: evidence round trip and tamper rejection with the real key file location (key value never printed); confirm the key is not visible inside a worker sandbox.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1011",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-feasible harness/integration coverage for this full bullet is incomplete; do not hide the source gap as a laptop-only check.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-17.1-07",
+      "original_wording": "Database: backup, verify, restore to scratch location, migration dry-run on the copy.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1012",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "MASTER-17.1-08",
+      "original_wording": "Service: watchdog configuration present and responsive (read-only inspection unless the user passes an explicit flag).",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1013",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    },
+    {
+      "requirement_id": "MASTER-17.1-09",
+      "original_wording": "Emergency stop: exercised against a **test instance** on a different port and state directory, not the live daemon.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1014",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "CLOUD_REAL",
+      "remaining_limitation": "Cloud-feasible harness/integration coverage for this full bullet is incomplete; do not hide the source gap as a laptop-only check.",
+      "final_status": "FAIL"
+    },
+    {
+      "requirement_id": "MASTER-17.1-10",
+      "original_wording": "Real multi-agent E2E mission on a disposable repository.",
+      "original_reference": "docs/upgrade/MASTER_SPEC.md:1015",
+      "implementation_location": [
+        "acs_team/local_verification.py",
+        "acs_team/local_team_probe.py"
+      ],
+      "test_location": [
+        "tests/test_local_verification.py"
+      ],
+      "test_result": "Individual closure pending; no fabricated per-bullet test pass.",
+      "evidence_artifact": [
+        "reports/CLOUD_SOURCE_GAPS.json"
+      ],
+      "verification_classification": "LOCAL_VERIFICATION_REQUIRED",
+      "remaining_limitation": "Actual owner-environment execution is pending; source tooling exists, and no local pass is inferred.",
+      "final_status": "LOCAL_VERIFICATION_REQUIRED"
+    }
+  ],
+  "source_gap_inventory": "reports/CLOUD_SOURCE_GAPS.json",
+  "historical_section_inventory": [
     {
       "requirement_id": "0.1",
       "requirement": "Existing system (reported by the user, NOT verified by you)",
