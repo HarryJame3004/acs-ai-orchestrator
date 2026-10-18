@@ -135,6 +135,10 @@ def install(source: Path, prefix: Path, *, yes=False, wheelhouse: Path | None = 
         run([sys.executable, '-m', 'venv', '--copies', str(target / 'venv')])
         python = str(target / 'venv/bin/python')
         offline = ['--no-index', '--find-links', str(wheelhouse.resolve())] if wheelhouse else []
+        # ensurepip's bundled pip can contain extraction vulnerabilities. Upgrade
+        # it before installing any source/build dependencies, not just at the end.
+        run([python, '-m', 'pip', 'install', '--disable-pip-version-check',
+             '--no-cache-dir', *offline, '--upgrade', 'pip==26.2'])
         run([python, '-m', 'pip', 'install', '--no-cache-dir', *offline,
              '--constraint', str(staged_source / 'requirements/cloud-dev.txt'),
              '--requirement', str(staged_source / 'requirements/local-build.txt')])
