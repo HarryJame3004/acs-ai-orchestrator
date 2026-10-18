@@ -6,7 +6,7 @@ proof. Every destination must be new. No operation replaces the running app.
 
 from __future__ import annotations
 
-from .upgrade_schema import RUNTIME_SQL, COORD_SQL, METRICS_SQL, REVIEW_SQL, DISPATCH_SQL
+from .upgrade_schema import RUNTIME_SQL, COORD_SQL, METRICS_SQL, REVIEW_SQL, DISPATCH_SQL, RECOVERY_SQL
 
 from dataclasses import dataclass
 from contextlib import closing
@@ -182,6 +182,7 @@ MIGRATIONS = (
     Migration(3, "fenced team coordination", COORD_SQL),
     Migration(4, "measured worker intelligence", METRICS_SQL),
     Migration(5, "review intake and daemon dispatch", REVIEW_SQL + DISPATCH_SQL),
+    Migration(6, "durable team recovery journal", RECOVERY_SQL),
 )
 
 

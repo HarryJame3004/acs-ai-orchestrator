@@ -570,6 +570,10 @@ def cmd_mission(args):
         if not m:
             print(f"Error: Mission '{target_id}' not found.")
             sys.exit(1)
+        if os.environ.get('ACS_ENABLE_COORDINATION') == '1':
+            from .team_missions import TeamMissionController
+            print(json.dumps(TeamMissionController(db).resume_mission(target_id)))
+            return
         if m['state'] not in {'CREATED', 'QUEUED'}:
             print(json.dumps({'status':'BLOCKED','reason':'Inspect retained worktree/checkpoint and create a reviewed recovery plan; terminal/active missions are not restarted blindly'}))
             raise SystemExit(1)

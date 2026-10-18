@@ -186,14 +186,21 @@ class ProviderRuntime:
                    'HOME': tmp, 'XDG_CONFIG_HOME': str(home/'.config'), 'XDG_DATA_HOME': str(home/'.local/share'),
                    'XDG_STATE_HOME': str(home/'.local/state'), 'XDG_CACHE_HOME': str(home/'.cache'),
                    'CODEX_HOME': str(home/'.codex'), 'TMPDIR': str(home/'tmp'), 'GIT_TERMINAL_PROMPT': '0'}
+            from .managed_worker import _PROCESS_OBSERVER
+            observer = _PROCESS_OBSERVER.get()
+            session_id = secrets.token_hex(16)
+            def started(owned):
+                if observer:
+                    observer({**owned.__dict__, 'provider_session':session_id,
+                              'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip()})
             execute = self.executor or self.supervisor.run
             result = execute(argv, workspace, env=env, timeout=contract.timeout,
                              memory_mb=contract.memory_mb, cpu_seconds=contract.cpu_seconds,
-                             cancelled=cancelled)
+                             cancelled=cancelled, on_spawn=started)
             if result['exit_code'] != 0 or result['reason'] != 'completed' or result.get('truncated'):
                 raise RuntimeError('Provider failed/expired/cancelled; no result accepted')
             return {'text': response_text(contract.worker_id, result['stdout']),
-                    'session_id': secrets.token_hex(16), 'worker_id': contract.worker_id, 'label': self.label}
+                    'session_id': session_id, 'worker_id': contract.worker_id, 'label': self.label}
 
     def boundary_probe(self, contract: ProviderContract) -> bool:
         if self.executor is not None:

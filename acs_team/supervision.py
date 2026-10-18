@@ -71,10 +71,16 @@ class ProcessSupervisor:
             raise TimeoutError("Protocol process slot unavailable")
         process = None
         expected = None
+        monitoring_done = threading.Event()
+        monitoring_errors: list[Exception] = []
+        watcher = None
         try:
+            from .aggregate_limits import configured_limits, StorageMonitor
+            aggregate = configured_limits()
             environment = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL") if key in os.environ}
             environment.update(env or {})
-            command = [sys.executable, '-m', 'acs_team._exec_limits', str(self.output_limit), '0', '0', *argv]
+            aggregate_args = ['--aggregate',aggregate.encoded()] if aggregate else []
+            command = [sys.executable, '-m', 'acs_team._exec_limits', str(self.output_limit), '0', '0', *aggregate_args, '--parent-pid', str(os.getpid()), '--', *argv]
             process = subprocess.Popen(command, cwd=cwd, env=environment, stdin=subprocess.PIPE,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             expected = identity(process.pid)
@@ -83,8 +89,26 @@ class ProcessSupervisor:
                 raise RuntimeError("Protocol process exited before ownership registration")
             with self._lock:
                 self._owned[process.pid] = (process, expected)
+            if aggregate:
+                storage_monitor = StorageMonitor(aggregate)
+                def watch_storage():
+                    while not monitoring_done.wait(.1):
+                        try:
+                            storage_monitor()
+                        except Exception as exc:
+                            monitoring_errors.append(exc)
+                            if process is not None and expected is not None and process.poll() is None:
+                                self.terminate(process,expected)
+                            return
+                watcher = threading.Thread(target=watch_storage,daemon=True)
+                watcher.start()
             yield process
+            if monitoring_errors:
+                raise monitoring_errors[0]
         finally:
+            monitoring_done.set()
+            if watcher:
+                watcher.join(timeout=5)
             if process is not None:
                 if expected is not None and process.poll() is None:
                     self.terminate(process, expected)
@@ -123,9 +147,13 @@ class ProcessSupervisor:
 
     def run(self, argv: list[str], cwd: Path, *, timeout: float = 300,
             cancelled: Callable[[], bool] | None = None, env: dict[str, str] | None = None,
-            memory_mb: int = 0, cpu_seconds: int = 0) -> dict:
+            memory_mb: int = 0, cpu_seconds: int = 0, on_spawn: Callable | None = None,
+            monitor: Callable | None = None) -> dict:
         if timeout <= 0:
             raise ValueError("A positive execution timeout is required")
+        from .aggregate_limits import configured_limits, StorageMonitor
+        aggregate = configured_limits()
+        storage_monitor = StorageMonitor(aggregate) if aggregate else None
         names: tuple[str, ...] = ("PATH", "LANG", "LC_ALL", "TERM", "TMPDIR")
         if env is None:
             names += ("ACS_HOME", "ACS_BACKUPS_DIR", "ACS_CREDENTIALS_FILE")
@@ -146,7 +174,8 @@ class ProcessSupervisor:
                             exceeded.set()
                 finally:
                     stream.close()
-            command = [sys.executable, "-m", "acs_team._exec_limits", str(self.output_limit), str(memory_mb), str(cpu_seconds), *argv]
+            aggregate_args = ['--aggregate',aggregate.encoded()] if aggregate else []
+            command = [sys.executable, "-m", "acs_team._exec_limits", str(self.output_limit), str(memory_mb), str(cpu_seconds), *aggregate_args, "--parent-pid", str(os.getpid()), "--", *argv]
             process = subprocess.Popen(command, cwd=cwd, env=safe_env, stdin=subprocess.DEVNULL,
                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             readers = [threading.Thread(target=collect, args=(stream, target), daemon=True)
@@ -162,7 +191,13 @@ class ProcessSupervisor:
             deadline = time.monotonic() + timeout
             reason = "completed"
             try:
+                if on_spawn:
+                    on_spawn(owned)
                 while process.poll() is None:
+                    if storage_monitor:
+                        storage_monitor(owned)
+                    if monitor:
+                        monitor(owned)
                     if cancelled and cancelled():
                         reason = "cancelled"
                     elif time.monotonic() >= deadline:

@@ -12,16 +12,19 @@ from .security import sandbox_argv
 from .supervision import ProcessSupervisor
 
 _SUPERVISOR = ProcessSupervisor()
+_PROCESS_OBSERVER: ContextVar[Any] = ContextVar("acs_process_observer", default=None)
 _CONTEXT: ContextVar[tuple[Any, str] | None] = ContextVar("acs_worker_context", default=None)
 
 
 @contextmanager
-def worker_context(control, mission_id):
+def worker_context(control, mission_id, process_observer=None):
+    observer_token = _PROCESS_OBSERVER.set(process_observer or _PROCESS_OBSERVER.get())
     token = _CONTEXT.set((control, mission_id))
     try:
         yield
     finally:
         _CONTEXT.reset(token)
+        _PROCESS_OBSERVER.reset(observer_token)
 
 
 def worker_run(command, *, task_id=None, **kwargs):

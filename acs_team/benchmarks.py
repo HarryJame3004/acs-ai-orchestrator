@@ -74,7 +74,8 @@ def fixture_verification(command, workspace, timeout=180):
     from .supervision import ProcessSupervisor
 
     result = ProcessSupervisor().run(
-        verification_argv(command), workspace, timeout=timeout
+        verification_argv(command), workspace, timeout=timeout,
+        env={'PYTHONDONTWRITEBYTECODE':'1', 'PYTHONNOUSERSITE':'1'},
     )
     return verification_summary({**result, "isolation": "TRUSTED_FIXTURE_SIMULATION"})
 

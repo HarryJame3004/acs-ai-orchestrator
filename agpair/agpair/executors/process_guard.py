@@ -90,7 +90,7 @@ def _signal_owned(root: int, sig: signal.Signals) -> None:
                 os.close(descriptor)
 
 
-def run(argv: list[str]) -> int:
+def run(argv: list[str], expected_parent: int | None = None) -> int:
     if not argv:
         raise ValueError("Guard requires a child argv")
     if not sys.platform.startswith("linux"):
@@ -106,6 +106,11 @@ def run(argv: list[str]) -> int:
 
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
+    if expected_parent is not None:
+        if library.prctl(1, signal.SIGTERM, 0, 0, 0) != 0:
+            raise OSError(ctypes.get_errno(), 'Cannot enforce supervisor parent lifetime')
+        if os.getppid() != expected_parent:
+            return 143
     worker = os.fork()
     if worker == 0:
         signal.signal(signal.SIGTERM, signal.SIG_DFL)

@@ -187,6 +187,30 @@ class IntegrationManager:
         )
         return sha_res.stdout.strip()
 
+    def ensure_worktree(self, integration_branch: str) -> Path:
+        if not integration_branch.startswith('acsai/mission/'):
+            raise PermissionError('Only dedicated mission worktrees are allowed')
+        if self.integration_path is not None:
+            return self.integration_path
+        listing = subprocess.run([str(GIT_BIN),'worktree','list','--porcelain'],cwd=self.repo_path,
+                                 check=True,capture_output=True,text=True).stdout
+        for block in listing.strip().split('\n\n'):
+            lines = block.splitlines()
+            if f'branch refs/heads/{integration_branch}' not in lines:
+                continue
+            path = Path(lines[0].removeprefix('worktree '))
+            if path.is_symlink() or self.worktrees_dir.resolve() not in path.resolve().parents:
+                raise PermissionError('Mission branch is checked out outside owned storage')
+            self.integration_path = path
+            return path
+        self.worktrees_dir.mkdir(parents=True,exist_ok=True)
+        path = Path(tempfile.mkdtemp(prefix='integration-',dir=self.worktrees_dir))
+        path.rmdir()
+        subprocess.run([str(GIT_BIN),'worktree','add',str(path),integration_branch],cwd=self.repo_path,
+                       check=True,capture_output=True)
+        self.integration_path = path
+        return path
+
     def merge_task_branch(
         self,
         integration_branch: str,
@@ -198,13 +222,7 @@ class IntegrationManager:
 
         if not integration_branch.startswith("acsai/mission/"):
             raise PermissionError("Integration requires a dedicated mission branch")
-        if self.integration_path is None:
-            self.worktrees_dir.mkdir(parents=True, exist_ok=True)
-            path = Path(tempfile.mkdtemp(prefix="integration-", dir=self.worktrees_dir))
-            path.rmdir()  # Only our just-created empty directory.
-            subprocess.run([str(GIT_BIN), "worktree", "add", str(path), integration_branch],
-                           cwd=self.repo_path, check=True, capture_output=True)
-            self.integration_path = path
+        self.ensure_worktree(integration_branch)
         previous = subprocess.run([str(GIT_BIN), "rev-parse", "HEAD"], cwd=self.integration_path,
                                   check=True, capture_output=True, text=True).stdout.strip()
 

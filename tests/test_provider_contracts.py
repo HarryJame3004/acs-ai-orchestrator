@@ -84,6 +84,7 @@ def test_runtime_uses_pinned_binary_readonly_auth_fresh_home_and_narrow_env(tmp_
 
 @pytest.mark.simulated
 def test_independent_roles_bind_host_identity_and_reject_model_impersonation(tmp_path):
+    import subprocess
     c = contract(tmp_path)
     authority = Activations('fixture',clock=lambda:150.)
     calls=[]
@@ -98,12 +99,25 @@ def test_independent_roles_bind_host_identity_and_reject_model_impersonation(tmp
     task=Task(task_id='t1',title='Addition',description='Implement addition',owns=['add.py'],
               acceptance_criteria=['Addition works'],verification_commands=[['pytest','-q']])
     assert 'tests/test_contract.py' in roles.prepare(task,['Addition works'])
-    review=roles.review(task,tmp_path/'review-workspace','codex-primary','a'*40)
+    checkout=tmp_path/'review-workspace'
+    checkout.mkdir()
+    def git(*args):
+        return subprocess.run(['git',*args],cwd=checkout,check=True,capture_output=True,text=True).stdout.strip()
+    git('init','-b','main')
+    git('config','user.name','Fixture')
+    git('config','user.email','fixture@example.invalid')
+    (checkout/'add.py').write_text('def add(a,b): return a+b\n')
+    git('add','.')
+    git('commit','-m','fixture')
+    sha=git('rev-parse','HEAD')
+    review=roles.review(task,checkout,'codex-primary',sha)
     assert review.reviewer==roles.reviewer_id and review.implementer=='codex-primary'
     assert roles.sessions[0]['session_id'] != roles.sessions[1]['session_id']
     assert roles.tester_id != roles.reviewer_id
     with pytest.raises(ValueError):
-        roles.review(task,tmp_path/'review-workspace','codex-primary','a'*40)
+        roles.review(task,checkout,'codex-primary',sha)
+    with pytest.raises(PermissionError,match='host commit'):
+        roles.review(task,checkout,'codex-primary','a'*40)
 
 
 @pytest.mark.simulated

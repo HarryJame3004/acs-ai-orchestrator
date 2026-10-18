@@ -42,7 +42,11 @@ def execute(args):
         else:
             with Path(args.file).open("rb") as stream:
                 raw = stream.read(32769)
-        print(json.dumps(workflow.apply(args.mission_id, raw)))
+        result = workflow.apply(args.mission_id, raw)
+        if getattr(args,'execute',False) and result['status'] == 'ACCEPTED':
+            from .team_missions import TeamMissionController
+            result['execution'] = TeamMissionController(workflow.db).replan_from_review(args.mission_id,result['round'])
+        print(json.dumps(result))
     else:
         print(
             json.dumps(
@@ -64,6 +68,7 @@ def register(subparsers):
         child = subparsers.add_parser(name, help="Local bounded review workflow")
         child.add_argument("mission_id")
         if name == "apply":
+            child.add_argument('--execute',action='store_true',help='Run validated mandatory corrections on a new dependent mission (requires review-execution feature flag)')
             child.add_argument(
                 "--file", default="-", help="Structured review file or stdin"
             )

@@ -186,19 +186,38 @@ class CoordinationStore:
     def integration(
         self, mission: str, task: str, token: int, operation: Callable[[], dict]
     ) -> dict:
-        # Keep the write lock through the fenced branch update and verification.
-        # One local integration at a time; this intentionally bounds throughput.
+        # Serialize integrators with a crash-released kernel lock, while leaving
+        # SQLite available for other workers' heartbeats during long test runs.
+        from .service_lock import ServiceLock
+        path = self.db.db_path.parent/'coord-integration.lock'
+        lock = ServiceLock(path).acquire()
+        try:
+            return self._integrate(mission,task,token,operation)
+        finally:
+            lock.release()
+
+    def _integrate(self, mission: str, task: str, token: int, operation: Callable[[],dict]) -> dict:
         with self.db.connection() as con:
             con.execute("BEGIN IMMEDIATE")
-            self._fenced(con, mission, task, token, ("COMPLETED",))
+            completion = self._fenced(con, mission, task, token, ("COMPLETED",))
+            worker_result = json.loads(completion['result'])
             con.execute(
                 'UPDATE coord_tasks SET state="INTEGRATING" WHERE mission=? AND task=?',
                 (mission, task),
             )
+        try:
             result = operation()
+        except BaseException:
+            with self.db.connection() as con:
+                con.execute('UPDATE coord_tasks SET state="COMPLETED" WHERE mission=? AND task=? AND token=? AND state="INTEGRATING"',
+                            (mission,task,token))
+            raise
+        with self.db.connection() as con:
+            con.execute('BEGIN IMMEDIATE')
+            self._fenced(con,mission,task,token,('INTEGRATING',))
             con.execute(
                 'UPDATE coord_tasks SET state="INTEGRATED",result=? WHERE mission=? AND task=?',
-                (json.dumps(redact(result)), mission, task),
+                (json.dumps(redact({**result, 'worker_completion': worker_result})), mission, task),
             )
         return result
 

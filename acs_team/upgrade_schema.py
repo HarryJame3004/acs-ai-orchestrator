@@ -28,3 +28,10 @@ REVIEW_SQL = (
 DISPATCH_SQL = (
     "CREATE TABLE IF NOT EXISTS daemon_dispatch (mission TEXT PRIMARY KEY REFERENCES missions(mission_id), owner TEXT NOT NULL, state TEXT NOT NULL)",
 )
+
+RECOVERY_SQL = (
+    'CREATE TABLE IF NOT EXISTS team_runs (mission TEXT PRIMARY KEY, repository TEXT NOT NULL, owner TEXT NOT NULL, phase TEXT NOT NULL, baseline TEXT, plan TEXT)',
+    'CREATE TABLE IF NOT EXISTS integration_intents (mission TEXT NOT NULL, task TEXT NOT NULL, token INTEGER NOT NULL, intent TEXT NOT NULL, phase TEXT NOT NULL, PRIMARY KEY(mission,task))',
+    'CREATE TABLE IF NOT EXISTS coord_recoveries (id INTEGER PRIMARY KEY AUTOINCREMENT, mission TEXT NOT NULL, task TEXT NOT NULL, snapshot TEXT NOT NULL)',
+    'CREATE TABLE IF NOT EXISTS review_runs (parent TEXT NOT NULL, round INTEGER NOT NULL, root TEXT NOT NULL, child TEXT NOT NULL UNIQUE, base_commit TEXT NOT NULL, PRIMARY KEY(parent,round))',
+)

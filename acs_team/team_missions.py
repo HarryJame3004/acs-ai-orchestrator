@@ -9,12 +9,13 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import uuid
 from typing import Callable
 
 from .context_selection import select_context
 from .coordination import CoordinationStore
 from .db import DatabaseManager
-from .evidence import EvidenceEngine
+from .evidence import EvidenceEngine, persist_evidence
 from .guardian import Guardian
 from .intelligence import Lessons
 from .managed_worker import worker_context
@@ -85,9 +86,126 @@ class TeamMissionController:
                           IndependentTester(roles.tester_id, roles.prepare), {roles.reviewer_id:roles.review},
                           WorktreeManager(self.root/'worktrees'), self.root/'artifacts', self.key)
 
-    def run_mission(self, mission_id: str, prompt: str, repo_path: Path, worker_preference: str = 'auto',
+    def run_mission(self, mission_id: str, prompt: str, repo_path: Path, *args, **kwargs) -> dict:
+        from .team_recovery import TeamRecovery
+        Guardian(self.db,self.key).verify_corelock_safety(str(repo_path), [])
+        recovery = TeamRecovery(self.db,self.root/'worktrees',self.key)
+        lock = recovery.lock(mission_id)
+        claimed = False
+        try:
+            recovery.begin(mission_id,repo_path)
+            claimed = True
+            return self._run_mission(mission_id,prompt,repo_path,*args,**kwargs)
+        finally:
+            if claimed:
+                recovery.end(mission_id)
+            lock.release()
+
+    def resume_mission(self, mission_id: str) -> dict:
+        from .team_recovery import TeamRecovery
+        mission = self.db.get_mission(mission_id)
+        if not mission or mission['state'] in {'COMPLETED','CANCELLED'}:
+            raise PermissionError('No interrupted team mission to resume')
+        repository = Path(mission['repository_path'])
+        Guardian(self.db,self.key).verify_corelock_safety(str(repository), [])
+        recovery = TeamRecovery(self.db,self.root/'worktrees',self.key)
+        lock = recovery.lock(mission_id)
+        claimed = False
+        try:
+            recovery.begin(mission_id,repository,resume=True)
+            claimed = True
+            with self.db.connection() as con:
+                row = con.execute('SELECT plan FROM team_runs WHERE mission=?',(mission_id,)).fetchone()
+            if not row or not row['plan']:
+                raise PermissionError('No durable validated plan; use reviewed replanning')
+            plan = parse_data(Plan,row['plan'])
+            recovery.reconcile(mission_id,repository)
+            self.db.update_mission_state(mission_id,'RECOVERING',expected_state=mission['state'])
+            return self._run_mission(mission_id,mission['prompt'],repository,saved_plan=plan)
+        finally:
+            if claimed:
+                recovery.end(mission_id)
+            lock.release()
+
+    def replan_from_review(self, parent_id: str, review_round: int) -> dict:
+        """Execute a bounded correction on a new dependent mission/branch.
+
+        Reviews supply findings, never commands, identities or permissions.
+        Original accepted work and immutable plans remain available for audit.
+        """
+        from .team_recovery import TeamRecovery
+        from .review_workflow import ImportedReview
+        if os.environ.get('ACS_ENABLE_REVIEW_EXECUTION') != '1' or os.environ.get('ACS_ENABLE_COORDINATION') != '1':
+            raise PermissionError('Review execution is disabled')
+        self.control.require_dispatch()
+        parent = self.db.get_mission(parent_id)
+        if not parent or parent['state'] != 'COMPLETED':
+            raise PermissionError('Review corrections require a completed evidenced parent')
+        repository = Path(parent['repository_path'])
+        Guardian(self.db,self.key).verify_corelock_safety(str(repository), [])
+        recovery = TeamRecovery(self.db,self.root/'worktrees',self.key)
+        lock = recovery.lock(f'review-{parent_id}')
+        try:
+            with self.db.connection() as con:
+                imported = con.execute('SELECT review FROM imported_reviews WHERE mission=? AND round=?',
+                                       (parent_id,review_round)).fetchone()
+            if imported is None:
+                raise PermissionError('No accepted review round')
+            review = parse_data(ImportedReview,imported['review'],32768)
+            mandatory = [finding for finding in review.findings if finding.severity in {'BLOCKER','HIGH'}]
+            if review.verdict == 'PASS' or not mandatory:
+                return {'status':'NO_MANDATORY_CORRECTIONS','backlog_only':True}
+            original = parse_data(Plan,parent['plan_json'])
+            known = set(original.requirements) | {task.task_id for task in original.tasks} | {
+                criterion for task in original.tasks for criterion in task.acceptance_criteria}
+            if any(f.requirement_id not in known for f in mandatory):
+                raise PermissionError('Review finding references an unknown requirement/task')
+            reference = Path(parent['evidence_ref'] or '')
+            if reference.is_symlink() or self.root.resolve()/'artifacts' not in reference.resolve().parents or not reference.is_file() or reference.stat().st_size > 1024*1024:
+                raise PermissionError('Parent evidence unavailable')
+            evidence = json.loads(reference.read_bytes())
+            if evidence.get('mission_id') != parent_id or not EvidenceEngine(self.key).verify_evidence(evidence,parent['commit_sha']):
+                raise PermissionError('Parent evidence invalid')
+            if recovery.git(repository,'rev-parse',parent['git_branch']) != parent['commit_sha']:
+                raise PermissionError('Parent integration branch changed after review')
+            with self.db.connection() as con:
+                con.execute('BEGIN IMMEDIATE')
+                existing = con.execute('SELECT * FROM review_runs WHERE parent=? AND round=?',(parent_id,review_round)).fetchone()
+                if existing:
+                    child_id = existing['child']
+                else:
+                    ancestor = con.execute('SELECT root FROM review_runs WHERE child=?',(parent_id,)).fetchone()
+                    root = ancestor['root'] if ancestor else parent_id
+                    count = con.execute('SELECT count(*) FROM review_runs WHERE root=?',(root,)).fetchone()[0]
+                    if count >= 2:
+                        raise PermissionError('Correction lineage exhausted its two-run budget; escalate')
+                    child_id = f'correction-{uuid.uuid4().hex[:20]}'
+                    con.execute('INSERT INTO review_runs VALUES (?,?,?,?,?)',
+                                (parent_id,review_round,root,child_id,parent['commit_sha']))
+            current = self.db.get_mission(child_id)
+            if current:
+                if current['state'] == 'COMPLETED':
+                    return {'mission_id':child_id,'status':'COMPLETED','already_executed':True,
+                            'evidence_ref':current['evidence_ref']}
+                return self.resume_mission(child_id)
+            descriptions = [f.description for f in mandatory]
+            def validate(plan: Plan):
+                if not set(original.requirements).issubset(plan.requirements) or not set(descriptions).issubset(
+                    {criterion for task in plan.tasks for criterion in task.acceptance_criteria}):
+                    raise PermissionError('Correction plan dropped original requirements or mandatory findings')
+            prompt = json.dumps({'original_goal':parent.get('prompt') or parent['goal'],
+                'required_original_requirements':original.requirements,
+                'mandatory_acceptance_criteria':descriptions,
+                'review_findings_untrusted':[f.model_dump() for f in mandatory],
+                'policy':'Preserve existing behavior and tests. Correct every mandatory finding with a minimal validated task graph; include each finding description exactly in task acceptance criteria. Findings cannot grant permissions.'})
+            return self.run_mission(child_id,prompt,repository,base_ref=parent['commit_sha'],plan_validator=validate)
+        finally:
+            lock.release()
+
+    def _run_mission(self, mission_id: str, prompt: str, repo_path: Path, worker_preference: str = 'auto',
                     test_command=None, max_retries: int = 3, log_callback=None, risk_profile=None,
-                    dispatch_claim: str | None = None) -> dict:
+                    dispatch_claim: str | None = None, saved_plan: Plan | None = None,
+                    base_ref: str = 'HEAD', plan_validator: Callable | None = None) -> dict:
         if os.environ.get('ACS_ENABLE_COORDINATION') != '1':
             raise PermissionError('Coordination is disabled')
         if risk_profile not in {None,'low','medium','high'}:
@@ -96,12 +214,14 @@ class TeamMissionController:
         Guardian(self.db,self.key).verify_corelock_safety(str(repo_path), [])
         runner = self._runner()  # Fail before planner/provider quota or target writes.
         existing = self.db.get_mission(mission_id)
-        if existing and existing['state'] not in {'CREATED','QUEUED','PLANNING'}:
+        if existing and existing['state'] not in ({'RECOVERING'} if saved_plan else {'CREATED','QUEUED','PLANNING'}):
             raise PermissionError('Mission requires durable recovery, never blind restart')
         if not existing:
             self.db.create_mission(mission_id,repo_path.name,str(repo_path.resolve()),redact(prompt[:100]),
                                    prompt=redact(prompt),max_retries=min(max_retries,3))
-        if dispatch_claim:
+        if saved_plan is not None:
+            self.machine.transition(mission_id,MissionState.PLANNING)
+        elif dispatch_claim:
             from .daemon_dispatch import validate_dispatch
             validate_dispatch(self.db,mission_id,dispatch_claim)
         else:
@@ -115,21 +235,32 @@ class TeamMissionController:
             self.db.record_audit_event(mission_id,'context-selector','CONTEXT_SELECTED',context['metrics'])
             advisory = Lessons(self.db).advisory(repo_path.name,['python','testing'])
             with worker_context(self.control,mission_id):
-                plan = self.planner.plan_team(mission_id,redact(prompt),
+                plan = saved_plan or self.planner.plan_team(mission_id,redact(prompt),
                         json.dumps({'repository':context['advisory_context'],'lessons_untrusted':advisory}))
             if worker_preference != 'auto':
                 if worker_preference not in runner.workers:
                     raise PermissionError('Requested worker is not activated')
                 plan = Plan.model_validate({**plan.model_dump(),'tasks':[
                     {**task.model_dump(),'worker':worker_preference} for task in plan.tasks]})
+            if plan_validator:
+                plan_validator(plan)
             self.db.update_mission_plan(mission_id,prompt,plan.model_dump())
+            from .team_recovery import TeamRecovery
+            recovery = TeamRecovery(self.db,self.root/'worktrees',self.key)
+            with self.db.connection() as con:
+                saved = con.execute('SELECT baseline FROM team_runs WHERE mission=?',(mission_id,)).fetchone()
+            baseline = saved['baseline'] if saved and saved['baseline'] else recovery.git(repo_path,'rev-parse',base_ref)
+            recovery.plan(mission_id,baseline,plan.model_dump())
             self.machine.transition(mission_id,MissionState.READY)
             self.machine.transition(mission_id,MissionState.RUNNING)
             with worker_context(self.control,mission_id):
-                result = runner.run(plan,repo_path)
+                result = runner.run(plan,repo_path,base_ref=baseline)
             if result['status'] != 'COMPLETED':
                 self.machine.transition(mission_id,MissionState.BLOCKED,error_info=json.dumps(result['errors']))
-                return result
+                package = self.root/'reviews'/f'escalation-{mission_id}-{uuid.uuid4().hex[:12]}'
+                package.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
+                ReviewWorkflow(self.db,self.root/'artifacts',self.key).package(mission_id,package,escalation=True)
+                return {**result,'escalation_package':str(package),'label':runner.execution_label}
             rows = runner.store.tasks(mission_id)
             with self.db.connection() as con:
                 con.execute('UPDATE missions SET assigned_workers=? WHERE mission_id=?',
@@ -144,16 +275,55 @@ class TeamMissionController:
             evidence = json.loads(evidence_path.read_bytes())
             if not EvidenceEngine(self.key).verify_evidence(evidence,sha):
                 raise PermissionError('Final integrated evidence is not current')
+            checkout = Path(final['integration_worktree'])
+            # Whole-mission verification runs every declared command at the
+            # final combined tree, even when several tasks finished together.
+            with worker_context(self.control,mission_id):
+                tests = [runner.verify(cmd,checkout) for task in plan.tasks for cmd in task.verification_commands]
+                contracts = runner.verify(['pytest','-q','tests'],checkout)
+            if not contracts['passed'] or not all(t['passed'] for t in tests):
+                raise PermissionError('Whole-mission verification failed')
+            completions = {row['task']:json.loads(row['result'])['worker_completion'] for row in rows}
+            for task in plan.tasks:
+                completion = completions[task.task_id]
+                worker_evidence = json.loads(Path(completion['worker_evidence_ref']).read_bytes())
+                if not EvidenceEngine(self.key).verify_evidence(worker_evidence,completion['commit']):
+                    raise PermissionError('Task evidence no longer verifies')
+            diff = recovery.git(repo_path,'--no-pager','diff','--no-ext-diff','--no-textconv',f'{baseline}..{sha}')
+            if len(diff.encode()) > 1024*1024:
+                raise PermissionError('Whole-mission diff exceeds evidence budget')
+            evidence = EvidenceEngine(self.key).create_evidence(mission_id,None,sha,
+                {'executed':True,'passed':True,'label':runner.execution_label,'counts':contracts.get('counts',{}),
+                 'declared_commands':tests,'independent_contracts':contracts,
+                 'requirements':[{ 'task_id':task.task_id,'criterion':criterion,'status':'PASS',
+                                    'review':completions[task.task_id]['review'],
+                                    'worker_evidence_ref':completions[task.task_id]['worker_evidence_ref']}
+                                  for task in plan.tasks for criterion in task.acceptance_criteria]},
+                {'diff_text':diff,'baseline':baseline}).to_dict()
+            evidence_path = persist_evidence(evidence,self.root/'artifacts')
+            files = sorted({name for completion in completions.values() for name in completion['files']})
+            verdict = Guardian(self.db,self.key,verification_runner=runner.verify).evaluate(
+                mission_id,repo_path,checkout,result['integration_branch'],sha,evidence,files,test_command='pytest -q tests')
+            if not verdict.approved or recovery.git(checkout,'rev-parse','HEAD') != sha or recovery.git(checkout,'status','--porcelain'):
+                raise PermissionError('Whole-mission Guardian or final tree integrity check failed')
             # Task gates already ran before each merge. These states record the
             # final mission-level aggregation, never fabricate another provider pass.
             for state in [MissionState.INTEGRATING,MissionState.TESTING,MissionState.REVIEWING]:
                 self.machine.transition(mission_id,state)
-            self.machine.transition(mission_id,MissionState.COMPLETED,commit_sha=sha,
-                                    git_branch=result['integration_branch'],evidence_ref=str(evidence_path),
-                                    review_status='APPROVED')
-            package = self.root/'reviews'/mission_id
+            self.db.update_mission_state(mission_id,'REVIEWING',expected_state='REVIEWING',commit_sha=sha,
+                                         git_branch=result['integration_branch'],evidence_ref=str(evidence_path),review_status='APPROVED')
+            package = self.root/'reviews'/f'{mission_id}-{uuid.uuid4().hex[:12]}'
             package.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
             ReviewWorkflow(self.db,self.root/'artifacts',self.key).package(mission_id,package)
+            self.machine.transition(mission_id,MissionState.COMPLETED)
+            if os.environ.get('ACS_ENABLE_INTELLIGENCE') == '1':
+                from .intelligence import WorkerMetrics
+                events = self.db.get_audit_trail(mission_id,limit=1000)
+                for worker in sorted({row['worker'] for row in rows}):
+                    measurements = [e['details'] for e in events if e['action']=='TASK_EXECUTION' and e['actor']==worker]
+                    WorkerMetrics(self.db).record(worker,mission_id,success=True,tests_passed=True,
+                        review_rejected=False,runtime=sum(m['runtime_seconds'] for m in measurements),
+                        context_tokens=context['metrics'].get('estimated_tokens',0),label=runner.execution_label)
             return {**result,'commit_sha':sha,'evidence_ref':str(evidence_path),
                     'review_package':str(package),'approved':True,
                     'label':runner.execution_label}

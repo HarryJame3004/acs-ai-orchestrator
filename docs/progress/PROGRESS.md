@@ -1,5 +1,25 @@
 # Upgrade progress
 
+## Active continuation — durable provider-backed team
+
+Source now includes crash-released mission/integration locks, durable Git intents,
+birth-bound owned-process recovery, parent-death cleanup, completed-output reuse,
+renewable leases while SQLite stays writable during tests, opt-in shared cgroup
+CPU/RAM/PID enforcement and sampled storage monitoring. Kernel delegation and
+hard filesystem quotas remain local requirements; controller/service overhead
+and accepted-worktree retention remain incomplete. Added actual CLI and daemon
+protocol-fixture E2E, whole-mission signed evidence/final Guardian, host-bound
+review diffs, measured scheduling/outcomes, and bounded imported-review correction
+missions preserving original plans/branches. Review export precedes COMPLETED.
+
+167 passed / 5 local skips: 134 CLOUD_REAL, 33 CLOUD_SIMULATED; scoped Ruff/mypy
+0/0, 15 known candidates, zero new. See reports/team_runtime_tests.json,
+reports/team_runtime_static.json and docs/upgrade/TEAM_RUNTIME.md. Overall PARTIAL.
+Provider authentication, actual namespace/cgroup enforcement and laptop checks
+are LOCAL_VERIFICATION_REQUIRED. Automatic daemon crash resumption, complete
+20-step combined acceptance, remaining MCP/producer/profile details and retention
+are still under development. Earlier snapshots below are historical.
+
 ## Active continuation — provider-backed team execution
 
 Added pinned provider catalogs, isolated auth/toolchain mounts, mandatory sandbox

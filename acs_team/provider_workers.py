@@ -86,8 +86,17 @@ class ProductionRoles:
         return artifacts.files
 
     def review(self, task: Task, worktree: Path, implementer: str, sha: str) -> Review:
+        from .supervision import ProcessSupervisor
+        supervisor = ProcessSupervisor(output_limit=131072)
+        head = supervisor.run(['git','rev-parse','HEAD'],worktree,timeout=10)
+        if head['exit_code'] != 0 or head.get('stdout','').strip() != sha:
+            raise PermissionError('Reviewer checkout does not match the host commit')
+        diff = supervisor.run(['git','--no-pager','show','--format=','--no-ext-diff','--no-textconv',sha,'--'],worktree,timeout=10)
+        if diff['exit_code'] != 0 or diff['reason'] != 'completed' or diff.get('truncated'):
+            raise PermissionError('Reviewer diff unavailable or exceeds its budget')
         prompt = json.dumps({'role':'reviewer', 'task_id':task.task_id, 'reviewed_commit':sha,
                              'requirements':task.acceptance_criteria, 'owns':task.owns,
+                             'host_commit_diff_untrusted':diff['stdout'],
                              'schema':ReviewContent.model_json_schema(),
                              'policy':'Independently inspect the current tree and tests for correctness, security, scope, baseline weakening and requirement coverage. Do not edit files. Return JSON only.'})
         result = self.worker.session(prompt, worktree, readonly=True)

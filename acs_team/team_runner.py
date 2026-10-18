@@ -8,11 +8,13 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from dataclasses import dataclass
+from contextlib import contextmanager
 import hashlib
 import os
 from pathlib import Path
 import subprocess
 import threading
+import time
 import uuid
 from typing import Callable
 
@@ -76,6 +78,29 @@ class TeamRunner:
         self.verify = labeled_verification
         self.control = RuntimeControl(store.db, initialize=False)
         self._allocation = threading.Lock()
+        self._owned_leases: dict[tuple[str,str],int] = {}
+        self._leases_lock = threading.Lock()
+
+    @contextmanager
+    def _keep_leases(self):
+        done = threading.Event()
+        def renew():
+            while not done.wait(5):
+                with self._leases_lock:
+                    leases = list(self._owned_leases.items())
+                for (mission,task), token in leases:
+                    try:
+                        self.store.heartbeat(mission,task,token)
+                    except ClaimDenied:
+                        with self._leases_lock:
+                            self._owned_leases.pop((mission,task),None)
+        keeper = threading.Thread(target=renew,daemon=True)
+        keeper.start()
+        try:
+            yield
+        finally:
+            done.set()
+            keeper.join(timeout=6)
 
     def _worker(self, task: Task, busy: set[str]) -> tuple[str, BaseWorker]:
         available = [
@@ -88,6 +113,11 @@ class TeamRunner:
         ]
         if not available:
             raise ClaimDenied("No verified available implementer")
+        if task.worker == 'auto' and os.environ.get('ACS_ENABLE_INTELLIGENCE') == '1':
+            from .intelligence import WorkerMetrics
+            selected,_ = WorkerMetrics(self.store.db).choose([name for name,_ in available],
+                self._mission_id,label=self.execution_label)
+            return selected,self.workers[selected]
         return sorted(available, key=lambda pair: pair[0])[0]
 
     def _execute(
@@ -103,6 +133,8 @@ class TeamRunner:
         worktree = None
         done = threading.Event()
         lost = threading.Event()
+        started = time.monotonic()
+        completed = False
 
         def heartbeat():
             while not done.wait(10):
@@ -111,6 +143,9 @@ class TeamRunner:
                 except Exception:
                     lost.set()
                     return
+
+        def process_observer(owned):
+            self.store.heartbeat(plan.mission_id, task.task_id, token, process=owned)
 
         thread = threading.Thread(target=heartbeat, daemon=True)
         thread.start()
@@ -127,7 +162,7 @@ class TeamRunner:
                 plan.mission_id, task.task_id, token, worktree=str(worktree)
             )
             # Tester has no worker checkout or implementation at this point.
-            with worker_context(self.control, plan.mission_id):
+            with worker_context(self.control, plan.mission_id, process_observer=process_observer):
                 supplied = self.tester.prepare(task, plan.requirements)
             if not supplied or len(supplied) > 16:
                 raise ValueError("Independent bounded contract tests required")
@@ -153,7 +188,7 @@ class TeamRunner:
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(code)
                 protected[name] = hashlib.sha256(code.encode()).hexdigest()
-            with worker_context(self.control, plan.mission_id):
+            with worker_context(self.control, plan.mission_id, process_observer=process_observer):
                 result = worker.execute_task(
                     task_id=task.task_id,
                     goal=task.title,
@@ -240,7 +275,7 @@ class TeamRunner:
             )
             if reviewer_id is None:
                 raise PermissionError("Independent review unavailable")
-            with worker_context(self.control, plan.mission_id):
+            with worker_context(self.control, plan.mission_id, process_observer=process_observer):
                 review = Review.model_validate(
                     self.reviewers[reviewer_id](task, worktree, worker_id, sha).model_dump()
                 )
@@ -254,6 +289,8 @@ class TeamRunner:
                     review.requirement_coverage
                 )
             ):
+                self.store.db.record_audit_event(plan.mission_id,reviewer_id,'REVIEW_FINDING',
+                    {'task_id':task.task_id,'implementer':worker_id,'review':review.model_dump()})
                 raise PermissionError(
                     "Independent review rejected or is not bound to task/commit/criteria"
                 )
@@ -273,7 +310,7 @@ class TeamRunner:
                 )
                 .to_dict()
             )
-            persist_evidence(evidence, self.artifacts)
+            worker_evidence_path = persist_evidence(evidence, self.artifacts)
             verdict = Guardian(
                 self.store.db, self.key, verification_runner=self.verify
             ).evaluate(
@@ -315,6 +352,7 @@ class TeamRunner:
             )
             completion = {
                 "commit": sha,
+                "worker_evidence_ref":str(worker_evidence_path),
                 "branch": branch,
                 "worktree": str(worktree),
                 "tests": tests,
@@ -324,16 +362,21 @@ class TeamRunner:
                 "test_files": list(protected),
             }
             self.store.complete(plan.mission_id, task.task_id, token, completion)
+            completed = True
             return completion
         finally:
             done.set()
             thread.join(timeout=1)
+            self.store.db.record_audit_event(plan.mission_id,worker_id,'TASK_EXECUTION',
+                {'task_id':task.task_id,'runtime_seconds':time.monotonic()-started,'completed':completed,
+                 'label':self.execution_label})
 
-    def run(self, plan: Plan, repository: Path) -> dict:
+    def run(self, plan: Plan, repository: Path, *, base_ref: str = 'HEAD') -> dict:
         if os.environ.get("ACS_ENABLE_COORDINATION") != "1":
             raise PermissionError("Coordination is disabled")
         # Revalidate even trusted callers; nested lists in frozen models can mutate.
         plan = Plan.model_validate(plan.model_dump())
+        self._mission_id = plan.mission_id
         repository = repository.resolve()
         self.control.require_dispatch()
         Guardian(self.store.db, self.key).verify_corelock_safety(str(repository), [])
@@ -341,11 +384,23 @@ class TeamRunner:
         integration = IntegrationManager(
             repository, worktrees_dir=self.worktrees.worktrees_dir
         )
-        branch = integration.ensure_integration_branch(plan.mission_id, "HEAD")
+        branch = integration.ensure_integration_branch(plan.mission_id, base_ref)
+        from .team_recovery import TeamRecovery
+        recovery = TeamRecovery(self.store.db,self.worktrees.worktrees_dir,self.key)
         busy: set[str] = set()
         running: dict = {}
         failures: dict[str, str] = {}
-        with ThreadPoolExecutor(max_workers=self.concurrency) as pool:
+        # Completed immutable worker output is resumed without another model call.
+        for row in self.store.tasks(plan.mission_id):
+            if row['state'] == 'COMPLETED':
+                from concurrent.futures import Future
+                ready_result: Future[dict] = Future()
+                ready_result.set_result(__import__('json').loads(row['result']))
+                task = next(t for t in plan.tasks if t.task_id == row['task'])
+                running[ready_result] = (task,row['worker'],row['token'])
+                busy.add(row['worker'])
+                self._owned_leases[(plan.mission_id,row['task'])] = row['token']
+        with self._keep_leases(), ThreadPoolExecutor(max_workers=self.concurrency) as pool:
             while True:
                 self.control.require_dispatch()
                 states = {
@@ -363,6 +418,8 @@ class TeamRunner:
                         token = self.store.claim(
                             plan.mission_id, task.task_id, worker_id
                         )
+                        with self._leases_lock:
+                            self._owned_leases[(plan.mission_id,task.task_id)] = token
                     except ClaimDenied:
                         continue
                     base = subprocess.run(
@@ -389,7 +446,7 @@ class TeamRunner:
                 ready, _ = wait(running, return_when=FIRST_COMPLETED)
                 for future in ready:
                     task, worker_id, token = running.pop(future)
-                    busy.remove(worker_id)
+                    busy.discard(worker_id)
                     try:
                         completion = future.result()
 
@@ -455,12 +512,18 @@ class TeamRunner:
                                 )
                                 raise
 
-                        self.store.integration(
-                            plan.mission_id, task.task_id, token, integrate
-                        )
+                        integration_path = integration.ensure_worktree(branch)
+                        recovery.prepare(plan.mission_id,task.task_id,token,repository,branch,
+                                         integration_path,completion)
+                        self.store.integration(plan.mission_id, task.task_id, token, integrate)
+                        recovery.resolved(plan.mission_id,task.task_id,'VERIFIED')
                     except Exception as exc:
                         failures[task.task_id] = redact(str(exc))[:4096]
+                        self.store.db.record_audit_event(plan.mission_id,worker_id,'WORKER_FAILURE',
+                            {'task_id':task.task_id,'fingerprint':hashlib.sha256(failures[task.task_id].encode()).hexdigest(),
+                             'stage':'task-verification-or-integration','label':self.execution_label})
                         try:
+                            recovery.rolled_back(plan.mission_id,task.task_id)
                             self.store.fail(
                                 plan.mission_id,
                                 task.task_id,
@@ -469,6 +532,10 @@ class TeamRunner:
                             )
                         except ClaimDenied:
                             pass  # Expired ownership remains locked for explicit recovery.
+                        except PermissionError as recovery_error:
+                            # Keep completion and the prepared intent: a failed
+                            # rollback must remain recoverable, never be hidden.
+                            failures[task.task_id] += '; ' + redact(str(recovery_error))[:1024]
         rows = self.store.tasks(plan.mission_id)
         return {
             "mission_id": plan.mission_id,

@@ -164,7 +164,10 @@ class ReviewWorkflow:
             "requirements": mission.get("prompt") or mission["goal"],
             "acceptance_criteria": criteria,
             "requirement_evidence_matrix": [
-                {"criterion": c, "status": "NOT_TESTED", "evidence_ref": reference}
+                {"criterion": c, "status": "PASS" if any(
+                    r.get('criterion') == c and r.get('status') == 'PASS'
+                    for r in tests.get('requirements',[]) if isinstance(r,dict)
+                 ) else "NOT_TESTED", "label":tests.get('label','UNLABELED'), "evidence_ref": reference}
                 for c in criteria[:64]
             ],
             "commit_sha": mission.get("commit_sha"),
