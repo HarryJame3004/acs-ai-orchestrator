@@ -154,7 +154,11 @@ def test_supervised_tree_dies_when_controller_is_killed(tmp_path):
     code = '''import os,json,subprocess,sys,time
 from pathlib import Path
 child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)'],start_new_session=True)
-Path(sys.argv[1]).write_text(json.dumps([os.getpid(),child.pid]))
+# Publish readiness only after the entire PID payload is available. Existence
+# of a file opened by write_text is not a completed-write notification.
+pending=Path(sys.argv[1]).with_suffix('.pending')
+pending.write_text(json.dumps([os.getpid(),child.pid]))
+os.replace(pending,sys.argv[1])
 time.sleep(60)
 '''
     launcher = '''import sys
