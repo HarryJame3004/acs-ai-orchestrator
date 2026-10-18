@@ -116,7 +116,11 @@ def test_supervisor_timeout_and_memory_limit(tmp_path):
     assert result["reason"] == "timeout" and result["exit_code"] != 0
     limited = ProcessSupervisor().run([sys.executable, "-c", "data=bytearray(300*1024*1024)"], tmp_path, memory_mb=96)
     assert limited["exit_code"] != 0 and "MemoryError" in limited["output"]
-    cpu = ProcessSupervisor().run([sys.executable, "-c", "while True: pass"], tmp_path, cpu_seconds=1, timeout=5)
+    # RLIMIT_CPU measures scheduled CPU time. A contended CI host can need more
+    # than five wall seconds to schedule one CPU second; a wall-time kill must
+    # never count as evidence that the kernel CPU limit fired.
+    cpu = ProcessSupervisor().run([sys.executable, "-c", "while True: pass"], tmp_path, cpu_seconds=1, timeout=30)
+    assert cpu["reason"] == "completed"
     assert cpu["exit_code"] in {-signal.SIGXCPU, -signal.SIGKILL}
 
 
