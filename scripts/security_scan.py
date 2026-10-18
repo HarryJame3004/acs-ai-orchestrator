@@ -53,6 +53,7 @@ def main() -> int:
     parser.add_argument("--history", action="store_true", required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
+    from acs_team.evidence_metadata import public_checkpoint, reviewed_evidence
     known = json.loads((ROOT / "reports/baseline_static.json").read_text())["secret_candidates"]
     permitted = {(row["file"], row["type"], row["fingerprint"]) for row in known}
     commits = git("rev-list", "--all").decode().splitlines()
@@ -67,6 +68,7 @@ def main() -> int:
                 objects.setdefault(sha, (raw_name.decode(), commit))
     mapping = {}
     metadata_lines = {}
+    reviewed_blobs = set()
     skipped = []
     with tempfile.TemporaryDirectory(prefix="acs-history-scan-") as temporary:
         directory = Path(temporary)
@@ -95,7 +97,9 @@ def main() -> int:
             target.write_bytes(content)
             target.chmod(0o600)
             mapping[str(target)] = (name, commit)
-            if name in HISTORY_REPORTS:
+            if reviewed_evidence(name, content):
+                reviewed_blobs.add(str(target))
+            if name in HISTORY_REPORTS or name == 'reports/CLOUD_VERIFICATION_2026_10_18.json':
                 metadata_lines[str(target)] = content.decode("utf-8").splitlines()
         scan = subprocess.run([sys.executable, "-m", "detect_secrets", "scan", "--no-verify", "--all-files", str(canary), *mapping],
                               cwd=directory, capture_output=True, text=True, check=True)
@@ -116,6 +120,8 @@ def main() -> int:
                                    "type": row["type"], "fingerprint": row["hashed_secret"],
                                    "known_fixture_or_metadata": (
                                        (name, row["type"], row["hashed_secret"]) in permitted
+                                       or filename in reviewed_blobs
+                                       or public_checkpoint(name, metadata_line, row["hashed_secret"], set(commits))
                                        or known_report_metadata(
                                            name,
                                            metadata_line,

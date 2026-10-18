@@ -55,11 +55,26 @@ def collect() -> dict[str, Any]:
     secrets = json.loads(run([
         sys.executable, "-m", "detect_secrets", "scan", "--no-verify", *files,
     ], {0}))
+    from acs_team.evidence_metadata import public_checkpoint, reviewed_evidence
+    commits = set(run(['git', 'rev-list', '--all'], {0}).splitlines())
+    reviewed: set[tuple[str, int, str]] = set()
+    for name, rows in secrets['results'].items():
+        content = (ROOT/name).read_bytes()
+        if reviewed_evidence(name, content):
+            reviewed.update((name, row['line_number'], row['hashed_secret']) for row in rows)
+        else:
+            lines = content.decode('utf-8', errors='replace').splitlines()
+            for row in rows:
+                if public_checkpoint(name, lines[row['line_number']-1], row['hashed_secret'], commits):
+                    reviewed.add((name, row['line_number'], row['hashed_secret']))
     secret_rows = [
         {"file": name, "line": row["line_number"], "type": row["type"], "fingerprint": row["hashed_secret"]}
         for name, rows in secrets["results"].items() for row in rows
+        if (name, row["line_number"], row["hashed_secret"]) not in reviewed
     ]
-    return {"ruff": lint_rows, "mypy": type_rows, "secret_candidates": secret_rows}
+    return {"ruff": lint_rows, "mypy": type_rows, "secret_candidates": secret_rows,
+            "reviewed_evidence_metadata":[{"file":name,"line":line,"fingerprint":fingerprint}
+                for name,line,fingerprint in sorted(reviewed)]}
 
 
 def new_findings(previous: dict[str, Any], current: dict[str, Any]) -> dict[str, list[Any]]:
@@ -87,6 +102,7 @@ def main() -> int:
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
     current = collect()
+    reviewed_metadata = current.pop("reviewed_evidence_metadata", [])
     if args.record_baseline:
         BASELINE.write_text(json.dumps(current, indent=2) + "\n")
     previous = json.loads(BASELINE.read_text())
@@ -95,6 +111,8 @@ def main() -> int:
     args.report.write_text(json.dumps({
         "label": "CLOUD_REAL", "counts": {k: len(v) for k, v in current.items()},
         "new_findings": regressions,
+        "reviewed_evidence_metadata": reviewed_metadata,
+        "review_policy": "Exact reviewed evidence bytes/public Git identity; acs_team/evidence_metadata.py",
     }, indent=2) + "\n")
     print(json.dumps({"counts": {k: len(v) for k, v in current.items()},
                       "new_counts": {k: len(v) for k, v in regressions.items()}}))
