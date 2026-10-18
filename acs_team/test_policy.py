@@ -56,6 +56,7 @@ def inspect_tests(source: str) -> dict:
 TEST_CONTROL_FILES = frozenset({
     'pytest.ini', '.pytest.ini', 'pyproject.toml', 'tox.ini', 'setup.cfg',
     '.coveragerc', 'conftest.py',
+    'CMakeLists.txt', 'CTestConfig.cmake', 'package.json',
 })
 
 
@@ -73,8 +74,10 @@ def baseline_findings(workspace: Path, base_sha: str,
     ).stdout.decode().split('\0')) - {''}
 
     def test_related(path):
-        return path.suffix == '.py' and (
+        return path.suffix in {'.py', '.c', '.cc', '.cpp', '.cxx', '.h', '.hpp',
+                               '.js', '.mjs', '.cjs', '.ts', '.tsx', '.jsx'} and (
             path.name.startswith('test') or path.name.endswith('_test.py')
+            or path.stem.endswith(('_test', '.test', '.spec'))
             or any(part.casefold() in {'test', 'tests'} for part in path.parts[:-1]))
 
     protected = {name for name in names if test_related(Path(name))

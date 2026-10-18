@@ -54,6 +54,11 @@ def verification_argv(command: str | list[str]) -> list[str]:
     if not argv or any(any(char in arg for char in ";&|><\n\r\x00") for arg in argv):
         raise PermissionError("Shell syntax is forbidden in verification commands")
     executable = Path(argv[0]).name
+    if argv[0] == 'acs-profile':
+        from .verification_profiles import PROFILES
+        if os.environ.get('ACS_ENABLE_VERIFICATION_PROFILES') != '1' or len(argv) != 2 or argv[1] not in PROFILES:
+            raise PermissionError('Unsupported or disabled verification profile')
+        return argv
     if executable in {"pytest", "pytest.exe"}:
         argv[0:1] = [sys.executable, "-m", "pytest"]
     elif executable in {"python", "python3", Path(sys.executable).name} and argv[1:3] in (["-m", "pytest"], ["-m", "unittest"]):
@@ -67,15 +72,18 @@ def verification_argv(command: str | list[str]) -> list[str]:
 
 def run_verification(command: str | list[str], workspace: Path, timeout: float = 180) -> dict:
     from .supervision import ProcessSupervisor
-    from .config import STATE_DIR, AUTH_TOKEN_PATH
+    from .config import STATE_DIR, AUTH_TOKEN_PATH, PROTECTED_PATHS
     argv = verification_argv(command)
+    if argv[0] == 'acs-profile':
+        from .verification_profiles import run_profile
+        return run_profile(argv[1], workspace, timeout)
     # Verification code/conftest is as untrusted as a worker. Never expose the
     # controller key/DB or run model-selected tests directly in the host context.
     with managed_temporary_directory(prefix='acs-verification-home-') as temporary:
         home = Path(temporary)
         (home/'tmp').mkdir(mode=0o700)
         roots = tuple(dict.fromkeys((Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve())))
-        isolated = sandbox_argv(workspace, argv, home=home, private_paths=(STATE_DIR, AUTH_TOKEN_PATH),
+        isolated = sandbox_argv(workspace, argv, home=home, private_paths=(STATE_DIR, AUTH_TOKEN_PATH, *PROTECTED_PATHS),
                                 read_only_roots=roots)
         environment = {'HOME':str(home), 'TMPDIR':str(home/'tmp'), 'ACS_HOME':str(home/'acs'),
                        'ACS_BACKUPS_DIR':str(home/'backups'), 'ACS_CREDENTIALS_FILE':str(home/'absent.json'),

@@ -19,7 +19,12 @@ def repository(tmp_path):
              'tests/helpers.py':'def expected():\n    return 42\n',
              'tests/conftest.py':'import pytest\n@pytest.fixture\ndef value():\n    return 42\n',
              'pytest.ini':'[pytest]\ntestpaths = tests\n',
-             'calc.py':'def value():\n    return 42\n'}
+             'calc.py':'def value():\n    return 42\n',
+             'tests/value_contract.cpp':'int expected() { return 42; }\n',
+             'value.test.js':'test("value", () => assert.equal(value(), 42));\n',
+             'tests/helpers.ts':'export const expected = 42;\n',
+             'CMakeLists.txt':'enable_testing()\nadd_test(NAME contract COMMAND contract)\n',
+             'package.json':'{"type":"commonjs"}\n'}
     for name,content in files.items():
         path = root/name
         path.parent.mkdir(parents=True,exist_ok=True)
@@ -37,6 +42,11 @@ def repository(tmp_path):
     ('tests/pytest.ini','[pytest]\npython_files = nothing.py\n'),
     ('pyproject.toml','[tool.pytest.ini_options]\npython_files = ["nothing.py"]\n'),
     ('tests/accept/conftest.py','def pytest_collection_modifyitems(items):\n    items.clear()\n'),
+    ('tests/value_contract.cpp','int expected() { return 0; }\n'),
+    ('value.test.js','test.skip("value", () => assert.equal(value(), 42));\n'),
+    ('tests/helpers.ts','export const expected = 0;\n'),
+    ('CMakeLists.txt','enable_testing()\n'),
+    ('package.json','{"type":"module"}\n'),
 ])
 def test_baseline_helpers_constants_and_collection_controls_cannot_change_unreviewed(repository,name,content):
     root,base = repository

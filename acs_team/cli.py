@@ -783,6 +783,8 @@ def main():
     register_workflow(subparsers)
     from .core_handoff import register as register_core_handoff
     register_core_handoff(subparsers)
+    from .verification_profiles import register as register_profiles
+    register_profiles(subparsers)
 
     # ui
     p_ui = subparsers.add_parser("ui", help="Launch interactive Textual Control Center TUI")
